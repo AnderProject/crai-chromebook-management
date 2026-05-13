@@ -1,0 +1,368 @@
+/* ==========================================
+   DASHBOARD - CRAI UNEMI
+   Estilos exclusivos del panel de control
+   ========================================== */
+
+/* Variables locales del dashboard */
+:root {
+    --primario: #1a237e;
+    --primario-claro: #e8eaf6;
+    --secundario: #ff6f00;
+    --gris-fondo: #f4f6f9;
+    --blanco: #ffffff;
+    --borde: #e0e0e0;
+    --texto: #212529;
+    --texto-claro: #6c757d;
+}
+
+/* ==========================================
+   CONTENEDOR PRINCIPAL
+   ========================================== */
+.dashboard-container {
+    min-height: 100vh;
+    background-color: var(--gris-fondo);
+}
+
+/* ==========================================
+   NAVBAR SUPERIOR
+   ========================================== */
+.navbar-dashboard {
+    background: linear-gradient(135deg, var(--primario) 0%, #283593 100%);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-dashboard .navbar-brand {
+    font-size: 1.2rem;
+    letter-spacing: 0.5px;
+}
+
+.navbar-dashboard .nav-link {
+    color: rgba(255,255,255,0.9) !important;
+    transition: color 0.2s;
+}
+
+.navbar-dashboard .nav-link:hover {
+    color: #ffffff !important;
+}
+
+/* Badge de notificaciones */
+.notificacion-badge {
+    font-size: 0.6rem;
+    padding: 0.25em 0.4em;
+}
+
+/* ==========================================
+   AVATAR DEL USUARIO
+   ========================================== */
+.avatar-dashboard {
+    width: 35px;
+    height: 35px;
+    background-color: var(--secundario);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* Dropdown del usuario */
+.dropdown-perfil .dropdown-header {
+    font-size: 0.85rem;
+}
+
+.dropdown-perfil .dropdown-item {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+}
+
+.dropdown-perfil .dropdown-item:hover {
+    background-color: var(--primario-claro);
+}
+
+/* ==========================================
+   SIDEBAR LATERAL
+   ========================================== */
+.sidebar-dashboard {
+    background-color: var(--blanco);
+    border-right: 1px solid var(--borde);
+    min-height: calc(100vh - 56px);
+    padding-top: 1rem;
+}
+
+.sidebar-dashboard .nav-link {
+    color: var(--texto);
+    font-weight: 500;
+    padding: 0.7rem 1.2rem;
+    margin: 0.2rem 0.5rem;
+    border-radius: 0.4rem;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.sidebar-dashboard .nav-link:hover {
+    background-color: #f0f0f0;
+    color: var(--primario);
+}
+
+.sidebar-dashboard .nav-link.active {
+    background-color: var(--primario-claro);
+    color: var(--primario);
+    font-weight: 600;
+    border-left: 3px solid var(--primario);
+}
+
+.sidebar-dashboard .nav-link i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Encabezado del sidebar */
+.sidebar-heading {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--texto-claro);
+    padding: 0 1.2rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ==========================================
+   ÁREA DE CONTENIDO PRINCIPAL
+   ========================================== */
+.main-content {
+    padding: 1.5rem 2rem;
+}
+
+/* Encabezado de página */
+.page-header {
+    background-color: var(--blanco);
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* ==========================================
+   TARJETAS DE RESUMEN (CARDS)
+   ========================================== */
+.tarjeta-resumen {
+    border: none;
+    border-radius: 0.8rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.tarjeta-resumen:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.tarjeta-resumen .card-body {
+    padding: 1.5rem;
+}
+
+.tarjeta-resumen .titulo-tarjeta {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--texto-claro);
+    margin-bottom: 0.5rem;
+}
+
+.tarjeta-resumen .valor-tarjeta {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--texto);
+    margin-bottom: 0.25rem;
+}
+
+.tarjeta-resumen .subtitulo-tarjeta {
+    font-size: 0.8rem;
+    margin-bottom: 0;
+}
+
+/* Iconos de tarjetas (fondos de colores) */
+.icono-resumen {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.icono-azul {
+    background-color: rgba(26, 35, 126, 0.1);
+    color: var(--primario);
+}
+
+.icono-naranja {
+    background-color: rgba(255, 111, 0, 0.1);
+    color: var(--secundario);
+}
+
+.icono-verde {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+}
+
+.icono-cyan {
+    background-color: rgba(13, 202, 240, 0.1);
+    color: #0dcaf0;
+}
+
+/* ==========================================
+   TABLA DE PRÉSTAMOS
+   ========================================== */
+.tabla-prestamos {
+    background-color: var(--blanco);
+    border-radius: 0.8rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+
+.tabla-prestamos .table-header {
+    background-color: #f8f9fa;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--borde);
+}
+
+.tabla-prestamos .table-header h5 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.tabla-prestamos .table {
+    margin-bottom: 0;
+}
+
+.tabla-prestamos .table th {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--texto-claro);
+    border-bottom-width: 2px;
+    padding: 0.75rem 1.5rem;
+}
+
+.tabla-prestamos .table td {
+    font-size: 0.85rem;
+    padding: 0.75rem 1.5rem;
+    vertical-align: middle;
+}
+
+.tabla-prestamos .table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Badges de estado */
+.badge-estado {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.badge-activo {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.badge-proximo {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.badge-vencido {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* ==========================================
+   BOTONES DEL DASHBOARD
+   ========================================== */
+.btn-accion {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.3rem;
+    transition: all 0.2s;
+}
+
+.btn-accion:hover {
+    transform: scale(1.05);
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 991.98px) {
+    .sidebar-dashboard {
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--borde);
+    }
+    
+    .main-content {
+        padding: 1rem;
+    }
+    
+    .valor-tarjeta {
+        font-size: 1.5rem;
+    }
+    
+    .icono-resumen {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .tarjeta-resumen .card-body {
+        padding: 1rem;
+    }
+    
+    .tabla-prestamos .table th,
+    .tabla-prestamos .table td {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* ==========================================
+   ANIMACIONES
+   ========================================== */
+@keyframes fadeInDashboard {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tarjeta-resumen {
+    animation: fadeInDashboard 0.5s ease-out;
+}
+
+.tarjeta-resumen:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.tarjeta-resumen:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.tarjeta-resumen:nth-child(4) {
+    animation-delay: 0.3s;
+}

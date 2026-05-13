@@ -1,0 +1,97 @@
+<!-- templates/autenticacion/cambiar_contraseña.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Cambiar Contraseña - CRAI UNEMI{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid vh-100 bg-light">
+    <div class="row h-100 justify-content-center align-items-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    
+                    <h2 class="text-center fw-bold mb-3">
+                        <i class="bi bi-shield-lock-fill"></i> Nueva Contraseña
+                    </h2>
+                    <p class="text-muted text-center mb-4">Ingresa tu nueva contraseña</p>
+                    
+                    <!-- Mensajes -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if '✅' in message %}success{% else %}danger{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="nueva_contraseña" class="form-label fw-semibold">
+                                <i class="bi bi-lock-fill me-1"></i>Nueva Contraseña
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-key"></i>
+                                </span>
+                                <input type="password" name="nueva_contraseña" id="nueva_contraseña" 
+                                       class="form-control" placeholder="Mínimo 8 caracteres" required>
+                                <button class="btn btn-outline-secondary" type="button" id="btnMostrarContraseña">
+                                    <i class="bi bi-eye-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="confirmar_contraseña" class="form-label fw-semibold">
+                                <i class="bi bi-lock-fill me-1"></i>Confirmar Contraseña
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-key"></i>
+                                </span>
+                                <input type="password" name="confirmar_contraseña" id="confirmar_contraseña" 
+                                       class="form-control" placeholder="Repite la contraseña" required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primario w-100 py-2 fw-semibold">
+                            <i class="bi bi-check-circle me-2"></i>Cambiar Contraseña
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnMostrar = document.getElementById('btnMostrarContraseña');
+    const campo = document.getElementById('nueva_contraseña');
+    
+    if (btnMostrar && campo) {
+        btnMostrar.addEventListener('click', function() {
+            const tipo = campo.getAttribute('type') === 'password' ? 'text' : 'password';
+            campo.setAttribute('type', tipo);
+            
+            const icono = this.querySelector('i');
+            if (tipo === 'text') {
+                icono.classList.replace('bi-eye-fill', 'bi-eye-slash-fill');
+            } else {
+                icono.classList.replace('bi-eye-slash-fill', 'bi-eye-fill');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+{% block estilos_extra %}
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+{% endblock %}

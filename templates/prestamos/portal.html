@@ -1,0 +1,215 @@
+<!-- templates/prestamos/portal.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block estilos_extra %}
+<link href="{% static 'css/portal.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block titulo %}Portal - CRAI UNEMI{% endblock %}
+
+{% block contenido %}
+<div class="portal-container">
+
+    <!-- Navbar superior -->
+    <nav class="navbar navbar-expand-lg navbar-portal sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-white" href="#">
+                <i class="bi bi-building me-2"></i>e-campus by UNEMI
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarPortal">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarPortal">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center text-white" href="#" data-bs-toggle="dropdown">
+                            <div class="avatar-portal me-2">
+                                {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                            </div>
+                            <span>{{ user.first_name }} {{ user.last_name }}</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow">
+                            <div class="dropdown-header">
+                                <strong>{{ user.get_full_name }}</strong><br>
+                                <small class="text-muted">{{ user.email }}</small>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'autenticacion:cerrar_sesion' %}">
+                                <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <main class="portal-main">
+        <div class="container py-4">
+            
+            <!-- Saludo -->
+            <div class="saludo-container mb-4">
+                <h3 class="fw-bold texto-oscuro mb-1">
+                    ¡Hola {{ user.first_name }} {{ user.last_name }}, bienvenido al Sistema de Gestión Académica!
+                </h3>
+                <p class="texto-gris mb-0">Selecciona un módulo para continuar</p>
+            </div>
+            
+            <!-- Sección: Mis Módulos -->
+            <h5 class="fw-bold texto-oscuro mb-3">
+                <i class="bi bi-grid-fill me-2 text-primary"></i>Mis Módulos
+            </h5>
+            
+            <div class="row g-3">
+                
+                <!-- Módulo: Mundo CRAI (ÚNICO visible) -->
+                <div class="col-sm-6 col-lg-4 col-xl-3">
+                    <a href="{% url 'prestamos:dashboard' %}" class="text-decoration-none">
+                        <div class="modulo-card modulo-crai">
+                            <div class="modulo-icono">
+                                <i class="bi bi-book"></i>
+                            </div>
+                            <div class="modulo-info">
+                                <h6 class="modulo-titulo">Mundo CRAI</h6>
+                                <p class="modulo-descripcion">
+                                    Gestión de préstamos de Chromebooks, inventario y chatbot inteligente
+                                </p>
+                            </div>
+                            <div class="modulo-flecha">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Módulos inactivos (solo visual) -->
+                <div class="col-sm-6 col-lg-4 col-xl-3">
+                    <div class="modulo-card modulo-inactivo opacity-50">
+                        <div class="modulo-icono">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+                        <div class="modulo-info">
+                            <h6 class="modulo-titulo">Eventos</h6>
+                            <p class="modulo-descripcion">Próximamente</p>
+                        </div>
+                        <div class="modulo-badge">
+                            <span class="badge bg-secondary">Pronto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4 col-xl-3">
+                    <div class="modulo-card modulo-inactivo opacity-50">
+                        <div class="modulo-icono">
+                            <i class="bi bi-laptop"></i>
+                        </div>
+                        <div class="modulo-info">
+                            <h6 class="modulo-titulo">Aula Virtual</h6>
+                            <p class="modulo-descripcion">Próximamente</p>
+                        </div>
+                        <div class="modulo-badge">
+                            <span class="badge bg-secondary">Pronto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4 col-xl-3">
+                    <div class="modulo-card modulo-inactivo opacity-50">
+                        <div class="modulo-icono">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                        <div class="modulo-info">
+                            <h6 class="modulo-titulo">Carné Estudiantil</h6>
+                            <p class="modulo-descripcion">Próximamente</p>
+                        </div>
+                        <div class="modulo-badge">
+                            <span class="badge bg-secondary">Pronto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4 col-xl-3">
+                    <div class="modulo-card modulo-inactivo opacity-50">
+                        <div class="modulo-icono">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <div class="modulo-info">
+                            <h6 class="modulo-titulo">Ficha Situacional</h6>
+                            <p class="modulo-descripcion">Próximamente</p>
+                        </div>
+                        <div class="modulo-badge">
+                            <span class="badge bg-secondary">Pronto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4 col-xl-3">
+                    <div class="modulo-card modulo-inactivo opacity-50">
+                        <div class="modulo-icono">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <div class="modulo-info">
+                            <h6 class="modulo-titulo">Horarios de Examen</h6>
+                            <p class="modulo-descripcion">Próximamente</p>
+                        </div>
+                        <div class="modulo-badge">
+                            <span class="badge bg-secondary">Pronto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4 col-xl-3">
+                    <div class="modulo-card modulo-inactivo opacity-50">
+                        <div class="modulo-icono">
+                            <i class="bi bi-trophy"></i>
+                        </div>
+                        <div class="modulo-info">
+                            <h6 class="modulo-titulo">Insignias</h6>
+                            <p class="modulo-descripcion">Próximamente</p>
+                        </div>
+                        <div class="modulo-badge">
+                            <span class="badge bg-secondary">Pronto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4 col-xl-3">
+                    <div class="modulo-card modulo-inactivo opacity-50">
+                        <div class="modulo-icono">
+                            <i class="bi bi-gear"></i>
+                        </div>
+                        <div class="modulo-info">
+                            <h6 class="modulo-titulo">Balcón de Servicios</h6>
+                            <p class="modulo-descripcion">Próximamente</p>
+                        </div>
+                        <div class="modulo-badge">
+                            <span class="badge bg-secondary">Pronto</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="portal-footer">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <small class="texto-footer">
+                    Copyright &copy; {% now "Y" %} e-campus by UNEMI. Todos los derechos reservados.
+                </small>
+                <small class="texto-footer">
+                    sga.unemi.edu.ec
+                </small>
+            </div>
+        </div>
+    </footer>
+
+</div>
+{% endblock %}

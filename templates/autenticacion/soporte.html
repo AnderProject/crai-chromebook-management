@@ -1,0 +1,82 @@
+<!-- templates/autenticacion/soporte.html -->
+
+{% extends 'base.html' %}
+
+{% block titulo %}Soporte Técnico - CRAI UNEMI{% endblock %}
+
+{% block contenido %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <!-- Botón Volver -->
+            <a href="{% url 'autenticacion:login' %}" class="btn btn-outline-secondary mb-4">
+                <i class="bi bi-arrow-left me-1"></i>Volver al inicio de sesión
+            </a>
+            
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h2 class="fw-bold mb-4">
+                        <i class="bi bi-headset me-2"></i>Centro de Soporte
+                    </h2>
+                    
+                    <div class="row g-4">
+                        <!-- Contacto -->
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <h5><i class="bi bi-envelope-fill me-2"></i>Correo Electrónico</h5>
+                                <p class="mb-0">soporte.crai@unemi.edu.ec</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Teléfono -->
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <h5><i class="bi bi-telephone-fill me-2"></i>Teléfono</h5>
+                                <p class="mb-0">(04) 2-715-081 Ext. 1234</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Horario -->
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <h5><i class="bi bi-clock-fill me-2"></i>Horario de Atención</h5>
+                                <p class="mb-0">Lunes a Viernes: 08:00 - 18:00</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Ubicación -->
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <h5><i class="bi bi-geo-alt-fill me-2"></i>Ubicación</h5>
+                                <p class="mb-0">Edificio CRAI, Planta Baja</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Preguntas Frecuentes -->
+                    <h4 class="fw-bold mt-5 mb-3">Preguntas Frecuentes</h4>
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    ¿Cómo puedo solicitar un Chromebook?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Puede realizar la solicitud a través de nuestro sistema en línea una vez que haya iniciado sesión.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block estilos_extra %}
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+{% endblock %}

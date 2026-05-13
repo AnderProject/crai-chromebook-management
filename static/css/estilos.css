@@ -1,0 +1,203 @@
+/* static/css/estilos.css */
+
+/* ==========================================
+   VARIABLES DE COLOR
+   ========================================== */
+:root {
+    --color-primario: #1a237e;
+    --color-primario-oscuro: #0d1757;
+    --color-secundario: #ff6f00;
+    --color-secundario-claro: #ffa040;
+    --color-exito: #28a745;
+    --color-info: #17a2b8;
+    --color-advertencia: #ffc107;
+    --color-error: #dc3545;
+    --color-fondo: #f8f9fa;
+    --color-blanco: #ffffff;
+    --color-texto: #212529;
+    --color-texto-claro: #6c757d;
+    --sombra-suave: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --borde-radio: 0.5rem;
+    --transicion: all 0.3s ease;
+}
+
+/* ==========================================
+   ESTILOS GENERALES
+   ========================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--color-fondo);
+    overflow-x: hidden;
+}
+
+.texto-primario {
+    color: var(--color-primario);
+}
+
+/* ==========================================
+   PANELES DE LOGIN
+   ========================================== */
+.panel-izquierdo {
+    background: linear-gradient(135deg, var(--color-primario) 0%, #283593 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.panel-izquierdo::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+    animation: rotarFondo 30s linear infinite;
+}
+
+@keyframes rotarFondo {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.panel-derecho {
+    background-color: var(--color-blanco);
+}
+
+/* ==========================================
+   CONTENEDOR DE LOGIN
+   ========================================== */
+.contenedor-login {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================
+   BOTONES PERSONALIZADOS
+   ========================================== */
+.btn-primario {
+    background-color: var(--color-primario);
+    color: var(--color-blanco);
+    border: none;
+    border-radius: var(--borde-radio);
+    transition: var(--transicion);
+    font-size: 1rem;
+}
+
+.btn-primario:hover {
+    background-color: #283593;
+    color: var(--color-blanco);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(26, 35, 126, 0.4);
+}
+
+.btn-primario:active {
+    transform: translateY(0);
+}
+
+/* ==========================================
+   CAMPOS DE FORMULARIO
+   ========================================== */
+.form-control {
+    border-radius: 0 var(--borde-radio) var(--borde-radio) 0;
+    border: 2px solid #e0e0e0;
+    transition: var(--transicion);
+    padding: 0.65rem 1rem;
+    font-size: 0.95rem;
+}
+
+.form-control:focus {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 0.2rem rgba(26, 35, 126, 0.15);
+}
+
+.input-group-text {
+    border-radius: var(--borde-radio) 0 0 var(--borde-radio);
+    border: 2px solid #e0e0e0;
+    border-right: none;
+    background-color: #f8f9fa;
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+.input-group .btn-outline-secondary {
+    border: 2px solid #e0e0e0;
+    border-left: none;
+    border-radius: 0 var(--borde-radio) var(--borde-radio) 0;
+    transition: var(--transicion);
+}
+
+.input-group .btn-outline-secondary:hover {
+    background-color: #e9ecef;
+}
+
+.input-group:focus-within .input-group-text,
+.input-group:focus-within .form-control,
+.input-group:focus-within .btn-outline-secondary {
+    border-color: var(--color-primario);
+}
+
+/* ==========================================
+   ENLACES DE AYUDA
+   ========================================== */
+.enlace-ayuda {
+    color: var(--color-texto-claro);
+    font-size: 0.9rem;
+    transition: var(--transicion);
+    text-decoration: none;
+}
+
+.enlace-ayuda:hover {
+    color: var(--color-primario);
+    text-decoration: underline;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
+@media (max-width: 991.98px) {
+    .contenedor-login {
+        max-width: 100% !important;
+        padding: 1.5rem;
+    }
+    
+    .panel-derecho {
+        min-height: 100vh;
+    }
+}
+
+@media (max-width: 575.98px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+}
+
+/* ==========================================
+   ANIMACIONES
+   ========================================== */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake {
+    animation: shake 0.6s ease-in-out;
+}

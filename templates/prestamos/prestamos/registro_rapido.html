@@ -1,0 +1,437 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block estilos_extra %}
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+<style>
+    /* Estilos específicos para registro rápido */
+    .registro-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .paso-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.2rem;
+        border: 1px solid #e9ecef;
+        transition: all 0.2s;
+        margin-bottom: 0.8rem;
+    }
+    
+    .paso-card:hover {
+        border-color: #cbd5e0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    
+    .paso-numero {
+        width: 28px;
+        height: 28px;
+        background: #e8f0fe;
+        color: #1a73e8;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+        margin-right: 0.6rem;
+    }
+    
+    .input-elegante {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 0.5rem 0.8rem;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        background: #fafafa;
+    }
+    
+    .input-elegante:focus {
+        border-color: #1a73e8;
+        box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+        background: #fff;
+        outline: none;
+    }
+    
+    .btn-elegante {
+        border-radius: 8px;
+        padding: 0.45rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    
+    .btn-prestamo {
+        background: #1a73e8;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    
+    .btn-prestamo:hover {
+        background: #1557b0;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+    }
+    
+    .tiempo-chip {
+        border: 1.5px solid #e0e0e0;
+        border-radius: 20px;
+        padding: 0.4rem 1rem;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: #fff;
+    }
+    
+    .tiempo-chip:hover {
+        border-color: #1a73e8;
+        background: #f8faff;
+    }
+    
+    .tiempo-chip.activo {
+        border-color: #1a73e8;
+        background: #e8f0fe;
+        color: #1a73e8;
+        font-weight: 600;
+    }
+    
+    .prestamo-item {
+        background: #fff;
+        border-radius: 10px;
+        padding: 0.7rem 1rem;
+        border-left: 4px solid #e0e0e0;
+        margin-bottom: 0.5rem;
+        transition: all 0.2s;
+    }
+    
+    .prestamo-item:hover {
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+    
+    .prestamo-item.activo { border-left-color: #34a853; }
+    .prestamo-item.proximo { border-left-color: #fbbc04; }
+    .prestamo-item.vencido { border-left-color: #ea4335; }
+    
+    .badge-estado {
+        font-size: 0.7rem;
+        padding: 0.25em 0.6em;
+        border-radius: 12px;
+        font-weight: 500;
+    }
+    
+    .stat-mini {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 0.6rem 1rem;
+        text-align: center;
+    }
+    
+    .stat-mini .numero {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1a73e8;
+    }
+</style>
+{% endblock %}
+
+{% block titulo %}Préstamo Rápido - CRAI UNEMI{% endblock %}
+
+{% block contenido %}
+<div class="dashboard-container">
+    
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dashboard sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-white" href="{% url 'prestamos:dashboard' %}">
+                <i class="bi bi-book me-2"></i>CRAI UNEMI
+            </a>
+            <div class="collapse navbar-collapse" id="navbarDashboard">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center text-white" href="#" data-bs-toggle="dropdown">
+                            <div class="avatar-dashboard me-2">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                            <span>{{ user.first_name }}</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow">
+                            <div class="dropdown-header">
+                                <strong>{{ user.get_full_name }}</strong><br>
+                                <small class="text-muted">{{ user.email }}</small>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'autenticacion:cerrar_sesion' %}">
+                                <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar-dashboard collapse d-md-block">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'prestamos:dashboard' %}">
+                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'prestamos:lista_chromebooks' %}">
+                            <i class="bi bi-laptop me-2"></i>Chromebooks
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'prestamos:lista_prestamos' %}">
+                            <i class="bi bi-journal-check me-2"></i>Préstamos
+                        </a>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-people me-2"></i>Estudiantes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-bar-chart me-2"></i>Reportes</a></li>
+                </ul>
+                <h6 class="sidebar-heading">Configuración</h6>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-gear me-2"></i>Ajustes</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="{% url 'autenticacion:cerrar_sesion' %}">
+                            <i class="bi bi-box-arrow-right me-2"></i>Salir
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Contenido -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+                <div class="registro-container">
+                    
+                    <!-- Encabezado -->
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h5 class="fw-bold mb-0">Registro Rápido</h5>
+                            <small class="text-muted">Préstamo de Chromebooks</small>
+                        </div>
+                        <span class="badge bg-light text-dark border">
+                            <i class="bi bi-circle-fill text-success me-1" style="font-size: 0.5rem;"></i>
+                            12 disponibles
+                        </span>
+                    </div>
+                    
+                    <div class="row g-3">
+                        
+                        <!-- Columna izquierda: Formulario -->
+                        <div class="col-lg-7">
+                            
+                            <!-- Paso 1: Chromebook -->
+                            <div class="paso-card">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="paso-numero">1</span>
+                                    <span class="fw-semibold small text-muted">CHROMEBOOK</span>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0 text-muted small">CB-</span>
+                                    <input type="text" class="input-elegante flex-grow-1" 
+                                           placeholder="Número del equipo" id="codigoChromebook">
+                                    <button class="btn btn-elegante btn-light border" id="btnBuscarChromebook">
+                                        <i class="bi bi-search me-1"></i>Verificar
+                                    </button>
+                                </div>
+                                <div id="infoChromebook" class="mt-2 small"></div>
+                            </div>
+                            
+                            <!-- Paso 2: Estudiante -->
+                            <div class="paso-card">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="paso-numero">2</span>
+                                    <span class="fw-semibold small text-muted">ESTUDIANTE</span>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0 text-muted">
+                                        <i class="bi bi-person-vcard"></i>
+                                    </span>
+                                    <input type="text" class="input-elegante flex-grow-1" 
+                                           placeholder="Cédula de identidad" id="cedulaEstudiante">
+                                    <button class="btn btn-elegante btn-light border" id="btnBuscarEstudiante">
+                                        <i class="bi bi-search me-1"></i>Buscar
+                                    </button>
+                                </div>
+                                <div id="infoEstudiante" class="mt-2 small"></div>
+                            </div>
+                            
+                            <!-- Paso 3: Duración -->
+                            <div class="paso-card">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="paso-numero">3</span>
+                                    <span class="fw-semibold small text-muted">DURACIÓN</span>
+                                </div>
+                                <div class="d-flex gap-2" id="selectorTiempo">
+                                    <span class="tiempo-chip" data-tiempo="2">2 horas</span>
+                                    <span class="tiempo-chip activo" data-tiempo="4">4 horas</span>
+                                    <span class="tiempo-chip" data-tiempo="8">8 horas</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Resumen -->
+                            <div class="paso-card bg-light border-0" id="resumenCard" style="display:none;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="small">
+                                        <span class="text-muted">Resumen:</span>
+                                        <strong id="resumenTexto">CB-015 → Anderson Merchán | 4 horas</strong>
+                                    </div>
+                                    <span class="small text-muted" id="horaDevolucion"></span>
+                                </div>
+                            </div>
+                            
+                            <!-- Botón -->
+                            <button class="btn-prestamo w-100 mt-2" id="btnPrestarAhora">
+                                <i class="bi bi-laptop me-2"></i>Registrar Préstamo
+                            </button>
+                            
+                        </div>
+                        
+                        <!-- Columna derecha: Activos hoy -->
+                        <div class="col-lg-5">
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold mb-0"><i class="bi bi-circle-fill text-success me-2" style="font-size: 0.5rem;"></i>Préstamos Activos Hoy</h6>
+                                <span class="badge bg-success rounded-pill">3</span>
+                            </div>
+                            
+                            <div class="prestamo-item activo">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-light text-dark me-2">#01</span>
+                                        <strong class="small">Anderson Merchán</strong>
+                                        <div class="small text-muted mt-1">
+                                            CB-015 <span class="mx-1">•</span> 08:00 - 12:00
+                                            <span class="badge bg-success ms-1 badge-estado">activo</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm btn-light" title="Devolver">
+                                        <i class="bi bi-check-circle text-success"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="prestamo-item proximo">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-light text-dark me-2">#02</span>
+                                        <strong class="small">Lady Loaiza</strong>
+                                        <div class="small text-muted mt-1">
+                                            CB-022 <span class="mx-1">•</span> 09:30 - 13:30
+                                            <span class="badge bg-warning text-dark ms-1 badge-estado">próximo</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm btn-light" title="Devolver">
+                                        <i class="bi bi-check-circle text-success"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="prestamo-item vencido">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-light text-dark me-2">#03</span>
+                                        <strong class="small">Carlos Pérez</strong>
+                                        <div class="small text-muted mt-1">
+                                            CB-008 <span class="mx-1">•</span> 10:00 - 18:00
+                                            <span class="badge bg-danger ms-1 badge-estado">vencido</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm btn-light" title="Urgente">
+                                        <i class="bi bi-exclamation-triangle text-danger"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Estadísticas -->
+                            <div class="row g-2 mt-3">
+                                <div class="col-6">
+                                    <div class="stat-mini">
+                                        <small class="text-muted">Hoy</small>
+                                        <div class="numero">5</div>
+                                        <small class="text-muted">préstamos</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="stat-mini">
+                                        <small class="text-muted">Libres</small>
+                                        <div class="numero">12</div>
+                                        <small class="text-muted">equipos</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Selector de tiempo (chips)
+    document.querySelectorAll('.tiempo-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            document.querySelectorAll('.tiempo-chip').forEach(c => c.classList.remove('activo'));
+            this.classList.add('activo');
+        });
+    });
+    
+    // Buscar Chromebook
+    document.getElementById('btnBuscarChromebook').addEventListener('click', function() {
+        const codigo = document.getElementById('codigoChromebook').value;
+        const div = document.getElementById('infoChromebook');
+        if (codigo === '015') {
+            div.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>CB-015 • HP 11 G8 • <strong>Disponible</strong></span>';
+        } else if (codigo) {
+            div.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>No encontrado</span>';
+        }
+    });
+    
+    // Buscar Estudiante
+    document.getElementById('btnBuscarEstudiante').addEventListener('click', function() {
+        const cedula = document.getElementById('cedulaEstudiante').value;
+        const div = document.getElementById('infoEstudiante');
+        if (cedula === '0923456789') {
+            div.innerHTML = '<span class="text-info"><i class="bi bi-person-check me-1"></i>Anderson Merchán • Ing. Software</span>';
+        } else if (cedula) {
+            div.innerHTML = '<span class="text-warning"><i class="bi bi-person-x me-1"></i>No encontrado</span>';
+        }
+    });
+    
+    // Prestar
+    document.getElementById('btnPrestarAhora').addEventListener('click', function() {
+        const codigo = document.getElementById('codigoChromebook').value;
+        const cedula = document.getElementById('cedulaEstudiante').value;
+        if (!codigo || !cedula) {
+            alert('Complete los campos requeridos');
+            return;
+        }
+        if (confirm('¿Confirmar préstamo?')) {
+            alert('✅ Préstamo registrado');
+            document.getElementById('codigoChromebook').value = '';
+            document.getElementById('cedulaEstudiante').value = '';
+            document.getElementById('infoChromebook').innerHTML = '';
+            document.getElementById('infoEstudiante').innerHTML = '';
+        }
+    });
+    
+});
+</script>
+{% endblock %}
