@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block estilos_extra %}
+<style>
+    .reservar-container {
+        min-height: 100vh;
+        background: #f4f6f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .reservar-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 2rem;
+        max-width: 500px;
+        width: 100%;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .codigo-display {
+        background: #f0f6ff;
+        border: 2px dashed #1a73e8;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1a73e8;
+        letter-spacing: 8px;
+        margin: 1rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block titulo %}Reservar Chromebook - CRAI UNEMI{% endblock %}
+
+{% block contenido %}
+<div class="reservar-container">
+    <div class="reservar-card">
+        
+        <a href="{% url 'estudiantes:portal_estudiante' %}" class="btn btn-outline-secondary btn-sm mb-3">
+            <i class="bi bi-arrow-left me-1"></i>Volver
+        </a>
+        
+        <h5 class="fw-bold mb-1">💻 Reservar Chromebook</h5>
+        <p class="text-muted small mb-4">Selecciona el tiempo que necesitas el equipo</p>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success small">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label small fw-semibold">Duración del préstamo</label>
+                <select class="form-select">
+                    <option>2 horas</option>
+                    <option selected>4 horas</option>
+                    <option>8 horas</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label small fw-semibold">Motivo</label>
+                <textarea class="form-control" rows="2" placeholder="Ej: Clase de Programación, Investigación..."></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                <i class="bi bi-send me-2"></i>Solicitar Reserva
+            </button>
+        </form>
+        
+        {% if codigo %}
+        <div class="mt-4 text-center">
+            <p class="small text-muted mb-2">Tu código de verificación:</p>
+            <div class="codigo-display">{{ codigo }}</div>
+            <p class="small text-muted">Muestra este código al recepcionista del CRAI</p>
+            <p class="small text-muted">También lo enviamos a tu correo institucional 📧</p>
+        </div>
+        {% endif %}
+        
+    </div>
+</div>
+{% endblock %}

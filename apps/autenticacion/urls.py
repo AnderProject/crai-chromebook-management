@@ -1,23 +1,22 @@
-# apps/autenticacion/urls.py
-
 from django.urls import path
 from . import views
 
 app_name = 'autenticacion'
 
 urlpatterns = [
-    # Login
+    # Selector de perfil (página inicial)
+    path('', views.seleccionar_perfil, name='seleccionar_perfil'),
+    
+    # Login por rol
+    path('login/estudiante/', views.login_estudiante, name='login_estudiante'),
+    path('login/administrador/', views.login_administrador, name='login_administrador'),
+    
+    # Login genérico (redirige al selector)
     path('login/', views.pagina_login, name='login'),
     
-    # Logout
+    # Otras
     path('cerrar-sesion/', views.cerrar_sesion, name='cerrar_sesion'),
-    
-    # Recuperar contraseña
     path('recuperar-contraseña/', views.recuperar_contraseña, name='recuperar_contraseña'),
-    
-    # Cambiar contraseña (con token)
     path('cambiar-contraseña/<str:uidb64>/<str:token>/', views.cambiar_contraseña, name='cambiar_contraseña'),
-    
-    # Soporte
     path('soporte/', views.soporte, name='soporte'),
 ]

@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block estilos_extra %}
+<style>
+    .portal-estudiante {
+        min-height: 100vh;
+        background: #f4f6f9;
+    }
+    .navbar-estudiante {
+        background: #fff;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        padding: 0.6rem 1.5rem;
+    }
+    .hero-estudiante {
+        background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 0 0 20px 20px;
+    }
+    .modulo-card-estudiante {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e8eaed;
+        transition: 0.2s;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    .modulo-card-estudiante:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transform: translateY(-2px);
+    }
+    .modulo-icono-grande {
+        font-size: 2rem;
+        margin-bottom: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block titulo %}Portal Estudiante - CRAI UNEMI{% endblock %}
+
+{% block contenido %}
+<div class="portal-estudiante">
+    
+    <nav class="navbar-estudiante d-flex justify-content-between align-items-center">
+        <span class="fw-bold text-primary"><i class="bi bi-book me-2"></i>CRAI by UNEMI</span>
+        <div class="d-flex align-items-center gap-3">
+            <span class="small text-muted">{{ user.first_name }} {{ user.last_name }}</span>
+            <a href="{% url 'autenticacion:cerrar_sesion' %}" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-box-arrow-right me-1"></i>Salir
+            </a>
+        </div>
+    </nav>
+    
+    <div class="hero-estudiante text-center">
+        <h4 class="fw-bold mb-1">¡Hola, {{ user.first_name }}! 👋</h4>
+        <p class="mb-0 opacity-75">Bienvenido/a al sistema de préstamos del CRAI</p>
+    </div>
+    
+    <div class="container py-4">
+        <h6 class="fw-bold text-muted mb-3">¿Qué deseas hacer?</h6>
+        
+        <div class="row g-3">
+            <div class="col-md-6">
+                <a href="{% url 'estudiantes:reservar' %}" class="modulo-card-estudiante text-center">
+                    <div class="modulo-icono-grande">💻</div>
+                    <h6 class="fw-bold">Reservar Chromebook</h6>
+                    <small class="text-muted">Solicita un equipo para tus clases</small>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a href="{% url 'estudiantes:mis_reservas' %}" class="modulo-card-estudiante text-center">
+                    <div class="modulo-icono-grande">📋</div>
+                    <h6 class="fw-bold">Mis Reservas</h6>
+                    <small class="text-muted">Revisa tu historial y códigos</small>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a href="{% url 'autenticacion:soporte' %}" class="modulo-card-estudiante text-center">
+                    <div class="modulo-icono-grande">🎧</div>
+                    <h6 class="fw-bold">Soporte</h6>
+                    <small class="text-muted">¿Necesitas ayuda? Contáctanos</small>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

@@ -22,9 +22,10 @@ from django.shortcuts import redirect
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', lambda request: redirect('autenticacion:login')),
+    path('', lambda request: redirect('autenticacion:seleccionar_perfil')),
     path('autenticacion/', include('apps.autenticacion.urls')),
     path('prestamos/', include('apps.prestamos.urls')),
+    path('estudiantes/', include('apps.estudiantes.urls')),
 ]
 
 if settings.DEBUG:
