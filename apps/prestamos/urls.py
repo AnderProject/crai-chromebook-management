@@ -18,4 +18,8 @@ urlpatterns = [
     # Préstamos - Registro Rápido
     path('prestamos/', views.registro_rapido, name='lista_prestamos'),
     path('prestamos/nuevo/', views.registro_rapido, name='nuevo_prestamo'),
+
+
+    path('estudiantes/', views.lista_estudiantes, name='lista_estudiantes'),
+
 ]

@@ -65,3 +65,15 @@ def registro_rapido(request):
         'titulo_pagina': 'Registro Rápido - CRAI UNEMI',
     }
     return render(request, 'prestamos/prestamos/registro_rapido.html', contexto)
+
+
+
+
+@login_required
+def lista_estudiantes(request):
+    """Vista principal de estudiantes con pestañas"""
+    contexto = {
+        'titulo_pagina': 'Estudiantes - CRAI UNEMI',
+        'pestana_activa': request.GET.get('tab', 'directorio'),
+    }
+    return render(request, 'prestamos/estudiantes/lista.html', contexto)
