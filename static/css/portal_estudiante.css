@@ -1,113 +1,418 @@
 /* ==========================================
    PORTAL ESTUDIANTE - CRAI UNEMI
+   Diseño limpio con chatbot IA
    ========================================== */
 
-/* Fondo general */
-.portal-estudiante {
+.estudiante-portal {
     min-height: 100vh;
-    background: var(--gris-fondo);
+    background: #f5f6fa;
 }
 
-/* Navbar */
-.navbar-estudiante {
-    background: var(--blanco);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-    padding: 0.6rem 1.5rem;
+/* ==========================================
+   NAVBAR SUPERIOR - AZUL
+   ========================================== */
+.portal-navbar {
+    background: linear-gradient(135deg, var(--primario) 0%, var(--primario-claro) 100%);
+    padding: 0.8rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 50;
 }
 
-.navbar-marca {
+.navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
-    color: var(--primario);
+    color: #fff;
+}
+
+.navbar-logo i {
+    font-size: 1.4rem;
+    color: #fff;
 }
 
 .navbar-usuario {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.8rem;
 }
 
-.navbar-nombre {
-    font-size: 0.85rem;
-    color: var(--texto-claro);
-}
-
-/* Hero */
-.hero-estudiante {
-    background: linear-gradient(135deg, var(--info) 0%, #0d47a1 100%);
+.usuario-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.2);
     color: white;
-    padding: 2rem;
-    border-radius: 0 0 20px 20px;
-    text-align: center;
-}
-
-.hero-descripcion {
-    margin: 0;
-    opacity: 0.85;
-}
-
-/* Contenedor de módulos */
-.modulos-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-}
-
-.modulos-titulo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-weight: 700;
-    color: var(--texto-claro);
-    margin-bottom: 1rem;
+    font-size: 0.85rem;
 }
 
-/* Tarjetas de módulo */
-.modulo-card {
-    background: var(--blanco);
-    border-radius: var(--radius);
+.usuario-nombre {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.9);
+}
+
+.btn-salir-icon {
+    color: rgba(255,255,255,0.7);
+    font-size: 1.2rem;
+    transition: color 0.2s;
+    text-decoration: none;
+}
+
+.btn-salir-icon:hover {
+    color: #fff;
+}
+/* ==========================================
+   CONTENIDO PRINCIPAL
+   ========================================== */
+.portal-contenido {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+/* Header */
+.portal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.disponibilidad-badge {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    padding: 0.6rem 1.2rem;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.punto-verde {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--exito);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ==========================================
+   CARDS DE ACCIONES
+   ========================================== */
+.acciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.accion-card {
+    background: #fff;
+    border-radius: 16px;
     padding: 1.5rem;
-    border: 1px solid #e8eaed;
-    transition: all 0.2s ease;
-    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
     text-decoration: none;
     color: inherit;
-    display: block;
-    text-align: center;
+    border: 2px solid #eef0f5;
+    transition: all 0.25s ease;
+    cursor: pointer;
 }
 
-.modulo-card:hover {
-    box-shadow: var(--sombra);
-    transform: translateY(-2px);
+.accion-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
 }
 
-.modulo-reservar:hover {
-    border-color: var(--info);
-}
-
-.modulo-historial:hover {
+.accion-card.destacada {
     border-color: var(--primario);
+    background: linear-gradient(135deg, #fafbff, #f0f3ff);
 }
 
-.modulo-soporte:hover {
-    border-color: var(--exito);
+.accion-card.destacada:hover {
+    border-color: var(--primario-oscuro);
+    box-shadow: 0 8px 25px rgba(26,35,126,0.12);
 }
 
-.modulo-icono {
-    font-size: 2rem;
-    margin-bottom: 0.8rem;
+.accion-icono {
+    width: 55px;
+    height: 55px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    color: white;
 }
 
-/* Responsive */
+.bg-primario { background: var(--primario); }
+.bg-exito { background: var(--exito); }
+.bg-advertencia { background: var(--secundario); }
+
+.accion-info {
+    flex: 1;
+}
+
+.accion-info h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+}
+
+.accion-info p {
+    font-size: 0.8rem;
+    color: #888;
+    margin: 0;
+}
+
+.accion-flecha {
+    color: #ccc;
+    font-size: 1.3rem;
+    transition: all 0.3s;
+}
+
+.accion-card:hover .accion-flecha {
+    color: var(--primario);
+    transform: translateX(4px);
+}
+
+/* ==========================================
+   ACTIVIDAD RECIENTE
+   ========================================== */
+.actividad-seccion {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid #eef0f5;
+}
+
+.actividad-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.actividad-item:last-child {
+    border-bottom: none;
+}
+
+.actividad-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.actividad-dot.activo { background: var(--exito); }
+.actividad-dot.devuelto { background: #999; }
+
+.actividad-item div:first-of-type(2) {
+    flex: 1;
+}
+
+.actividad-badge {
+    font-size: 0.75rem;
+    padding: 0.3em 0.8em;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+/* ==========================================
+   CHATBOT FLOTANTE
+   ========================================== */
+.chatbot-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+}
+
+/* Botón flotante */
+.chatbot-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primario), #4a5fd8);
+    color: white;
+    border: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(26,35,126,0.3);
+    transition: all 0.3s;
+    position: relative;
+}
+
+.chatbot-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(26,35,126,0.4);
+}
+
+.chatbot-pulso {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--primario);
+    opacity: 0.3;
+    animation: pulso 2s infinite;
+    top: 0;
+    left: 0;
+}
+
+@keyframes pulso {
+    0% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.4); opacity: 0; }
+    100% { transform: scale(1); opacity: 0; }
+}
+
+/* Ventana del chat */
+.chatbot-ventana {
+    display: none;
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    width: 340px;
+    height: 450px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chatbot-ventana.abierta {
+    display: flex;
+}
+
+/* Header del chat */
+.chatbot-header {
+    background: var(--primario);
+    color: white;
+    padding: 0.8rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chatbot-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+/* Mensajes */
+.chatbot-mensajes {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    background: #f9fafc;
+}
+
+.mensaje-bot {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.mensaje-contenido {
+    background: #fff;
+    padding: 0.8rem 1rem;
+    border-radius: 0 12px 12px 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    max-width: 95%;
+}
+
+.mensaje-usuario {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.5rem;
+}
+
+.mensaje-usuario .mensaje-contenido {
+    background: var(--primario);
+    color: white;
+    border-radius: 12px 0 12px 12px;
+}
+
+/* Input del chat */
+.chatbot-input {
+    padding: 0.6rem;
+    background: #fff;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.chatbot-input .form-control {
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+}
+
+.chatbot-input .btn {
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
 @media (max-width: 768px) {
-    .hero-estudiante {
-        padding: 1.5rem;
+    .portal-navbar {
+        padding: 0.6rem 1rem;
     }
     
-    .navbar-estudiante {
-        padding: 0.5rem 1rem;
+    .portal-contenido {
+        padding: 1.5rem 1rem;
     }
     
-    .navbar-nombre {
-        display: none;
+    .portal-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .acciones-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chatbot-ventana {
+        width: calc(100vw - 40px);
+        right: -10px;
     }
 }

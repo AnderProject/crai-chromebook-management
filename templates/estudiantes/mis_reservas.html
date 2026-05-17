@@ -9,57 +9,111 @@
 {% endblock %}
 
 {% block contenido %}
-<div class="reservas-fondo">
-    <div class="reservas-tarjeta">
-        
-        <!-- Botón volver -->
-        <a href="{% url 'estudiantes:portal_estudiante' %}" class="btn btn-outline-secondary btn-sm mb-3">
-            <i class="bi bi-arrow-left me-1"></i>Volver
+<div class="reservas-layout">
+    
+    <!-- Navbar -->
+    <nav class="reservas-navbar">
+        <a href="{% url 'estudiantes:portal_estudiante' %}" class="btn-volver">
+            <i class="bi bi-arrow-left"></i>
         </a>
+        <span class="navbar-titulo">Mis Reservas</span>
+        <div class="navbar-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+    </nav>
+    
+    <!-- Contenido centrado -->
+    <div class="reservas-contenido">
         
-        <!-- Título -->
-        <h5 class="fw-bold mb-3">📋 Mis Reservas</h5>
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-item">
+                <span class="stat-numero">3</span>
+                <span class="stat-etiqueta">Total</span>
+            </div>
+            <div class="stat-item stat-activo">
+                <span class="stat-numero">1</span>
+                <span class="stat-etiqueta">Activo</span>
+            </div>
+            <div class="stat-item stat-devuelto">
+                <span class="stat-numero">1</span>
+                <span class="stat-etiqueta">Devuelto</span>
+            </div>
+            <div class="stat-item stat-vencido">
+                <span class="stat-numero">1</span>
+                <span class="stat-etiqueta">Vencido</span>
+            </div>
+        </div>
         
-        <!-- Reserva Pendiente -->
-        <div class="reserva-item reserva-pendiente">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>CB-015</strong> - HP Chromebook 11 G8
-                    <br><small class="text-muted">12/05/2025 • 4 horas</small>
+        <!-- Reserva Activa -->
+        <div class="reserva-card estado-activo">
+            <div class="reserva-header">
+                <div class="reserva-codigo">
+                    <i class="bi bi-laptop"></i> CB-015
                 </div>
-                <div class="text-end">
-                    <span class="badge bg-warning text-dark">Pendiente</span>
-                    <br><small class="text-muted">Código: 482931</small>
+                <span class="estado-badge activo">Activo</span>
+            </div>
+            <div class="reserva-body">
+                <div>
+                    <p><strong>HP Chromebook 11 G8</strong></p>
+                    <div class="detalle-grid">
+                        <span><i class="bi bi-calendar"></i> 12/05/2025</span>
+                        <span><i class="bi bi-clock"></i> 4 horas</span>
+                        <span><i class="bi bi-hourglass-split"></i> Vence 18:00</span>
+                    </div>
+                    <div class="codigo-mini">
+                        <span class="codigo-texto">482931</span>
+                        <small>Código de retiro</small>
+                    </div>
+                </div>
+            </div>
+            <div class="reserva-footer">
+                <span class="progreso-texto">En curso</span>
+                <div class="progreso-barra">
+                    <div class="progreso-relleno" style="width: 60%;"></div>
                 </div>
             </div>
         </div>
         
         <!-- Reserva Devuelta -->
-        <div class="reserva-item reserva-devuelta">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>CB-022</strong> - Lenovo 100e
-                    <br><small class="text-muted">10/05/2025 • 2 horas</small>
+        <div class="reserva-card estado-devuelto">
+            <div class="reserva-header">
+                <div class="reserva-codigo">
+                    <i class="bi bi-laptop"></i> CB-022
                 </div>
-                <div class="text-end">
-                    <span class="badge bg-success">Devuelto</span>
+                <span class="estado-badge devuelto">Devuelto</span>
+            </div>
+            <div class="reserva-body">
+                <div>
+                    <p><strong>Lenovo 100e Chromebook</strong></p>
+                    <div class="detalle-grid">
+                        <span><i class="bi bi-calendar"></i> 10/05/2025</span>
+                        <span><i class="bi bi-clock"></i> 2 horas</span>
+                        <span class="text-success"><i class="bi bi-check-circle"></i> A tiempo</span>
+                    </div>
                 </div>
             </div>
         </div>
         
         <!-- Reserva Vencida -->
-        <div class="reserva-item reserva-vencida">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>CB-008</strong> - Dell 3100
-                    <br><small class="text-muted">08/05/2025 • 8 horas</small>
+        <div class="reserva-card estado-vencido">
+            <div class="reserva-header">
+                <div class="reserva-codigo">
+                    <i class="bi bi-laptop"></i> CB-008
                 </div>
-                <div class="text-end">
-                    <span class="badge bg-danger">Vencido</span>
+                <span class="estado-badge vencido">Vencido</span>
+            </div>
+            <div class="reserva-body">
+                <div>
+                    <p><strong>Dell Chromebook 3100</strong></p>
+                    <div class="detalle-grid">
+                        <span><i class="bi bi-calendar"></i> 08/05/2025</span>
+                        <span><i class="bi bi-clock"></i> 8 horas</span>
+                        <span class="text-danger"><i class="bi bi-exclamation-triangle"></i> No devuelto</span>
+                    </div>
                 </div>
             </div>
         </div>
         
     </div>
+    
 </div>
 {% endblock %}

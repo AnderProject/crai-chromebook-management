@@ -12,121 +12,34 @@ from .forms import FormularioLogin, FormularioRecuperarContraseña
 
 
 # ==========================================
-# SELECTOR DE PERFIL (Página inicial)
+# FUNCIONES AUXILIARES
 # ==========================================
-def seleccionar_perfil(request):
-    """Página inicial: elegir entre Estudiante o Administrador"""
-    
-    # Si ya está autenticado, redirigir según su rol
-    if request.user.is_authenticated:
-        return redireccionar_por_rol(request.user)
-    
-    return render(request, 'autenticacion/seleccionar_perfil.html')
+
+def limpiar_mensajes(request):
+    """Elimina TODOS los mensajes almacenados"""
+    storage = messages.get_messages(request)
+    for _ in storage:
+        pass
+    if 'messages' in request.session:
+        del request.session['messages']
 
 
-# ==========================================
-# LOGIN DE ESTUDIANTE
-# ==========================================
-def login_estudiante(request):
-    """Login exclusivo para estudiantes"""
-    
-    if request.user.is_authenticated:
-        return redirect('estudiantes:portal_estudiante')
-    
-    formulario = FormularioLogin()
-    
-    if request.method == 'POST':
-        formulario = FormularioLogin(request.POST)
-        
-        if formulario.is_valid():
-            usuario_ingresado = formulario.cleaned_data['usuario']
-            contraseña = formulario.cleaned_data['contraseña']
-            
-            user = None
-            user = authenticate(request, username=usuario_ingresado, password=contraseña)
-            
-            if user is None:
-                try:
-                    usuario_por_email = User.objects.get(email=usuario_ingresado)
-                    user = authenticate(request, username=usuario_por_email.username, password=contraseña)
-                except User.DoesNotExist:
-                    user = None
-            
-            if user is not None and user.is_active:
-                grupos = [g.name for g in user.groups.all()]
-                
-                # Verificar que sea estudiante
-                if 'Estudiante' in grupos or (not user.is_staff and not user.is_superuser):
-                    login(request, user)
-                    messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}!')
-                    return redirect('estudiantes:portal_estudiante')
-                else:
-                    messages.error(request, '❌ Esta cuenta no es de estudiante. Usa el acceso de administrador.')
-            else:
-                messages.error(request, '❌ Usuario o contraseña incorrectos.')
-    
-    contexto = {
-        'formulario': formulario,
-        'tipo': 'estudiante',
-        'titulo_pagina': 'Login Estudiante - CRAI UNEMI'
-    }
-    return render(request, 'autenticacion/login_estudiante.html', contexto)
+def obtener_rol(user):
+    """Devuelve el rol del usuario como string"""
+    if user.is_superuser:
+        return 'Administrador'
+    grupos = [g.name for g in user.groups.all()]
+    if 'Administrador' in grupos:
+        return 'Administrador'
+    elif 'Recepcionista' in grupos:
+        return 'Recepcionista'
+    elif 'Estudiante' in grupos:
+        return 'Estudiante'
+    return 'Estudiante'
 
 
-# ==========================================
-# LOGIN DE ADMINISTRADOR
-# ==========================================
-def login_administrador(request):
-    """Login exclusivo para administradores/recepcionistas"""
-    
-    if request.user.is_authenticated:
-        return redirect('prestamos:portal')
-    
-    formulario = FormularioLogin()
-    
-    if request.method == 'POST':
-        formulario = FormularioLogin(request.POST)
-        
-        if formulario.is_valid():
-            usuario_ingresado = formulario.cleaned_data['usuario']
-            contraseña = formulario.cleaned_data['contraseña']
-            
-            user = None
-            user = authenticate(request, username=usuario_ingresado, password=contraseña)
-            
-            if user is None:
-                try:
-                    usuario_por_email = User.objects.get(email=usuario_ingresado)
-                    user = authenticate(request, username=usuario_por_email.username, password=contraseña)
-                except User.DoesNotExist:
-                    user = None
-            
-            if user is not None and user.is_active:
-                grupos = [g.name for g in user.groups.all()]
-                
-                # Verificar que sea admin o recepcionista
-                if 'Administrador' in grupos or 'Recepcionista' in grupos or user.is_staff or user.is_superuser:
-                    login(request, user)
-                    messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}!')
-                    return redirect('prestamos:portal')
-                else:
-                    messages.error(request, '❌ Esta cuenta no es de administrador. Usa el acceso de estudiante.')
-            else:
-                messages.error(request, '❌ Usuario o contraseña incorrectos.')
-    
-    contexto = {
-        'formulario': formulario,
-        'tipo': 'administrador',
-        'titulo_pagina': 'Login Administrador - CRAI UNEMI'
-    }
-    return render(request, 'autenticacion/login_admin.html', contexto)
-
-
-# ==========================================
-# REDIRECCIÓN POR ROL
-# ==========================================
 def redireccionar_por_rol(user):
-    """Redirige según el rol del usuario"""
+    """Redirige al portal correspondiente según el rol del usuario"""
     grupos = [g.name for g in user.groups.all()]
     
     if 'Administrador' in grupos or 'Recepcionista' in grupos or user.is_staff or user.is_superuser:
@@ -135,18 +48,136 @@ def redireccionar_por_rol(user):
         return redirect('estudiantes:portal_estudiante')
 
 
+def autenticar_usuario(usuario_ingresado, contraseña):
+    """Intenta autenticar por username o email. Retorna el user o None"""
+    user = authenticate(username=usuario_ingresado, password=contraseña)
+    
+    if user is None:
+        try:
+            usuario_por_email = User.objects.get(email=usuario_ingresado)
+            user = authenticate(username=usuario_por_email.username, password=contraseña)
+        except User.DoesNotExist:
+            user = None
+    
+    return user
+
+
 # ==========================================
-# LOGIN ORIGINAL (por si acaso)
+# SELECTOR DE PERFIL (Página inicial)
 # ==========================================
+
+def seleccionar_perfil(request):
+    """Página inicial: elegir entre Estudiante o Administrador"""
+    
+    if request.user.is_authenticated:
+        return redireccionar_por_rol(request.user)
+    
+    limpiar_mensajes(request)
+    
+    return render(request, 'autenticacion/seleccionar_perfil.html')
+
+
+# ==========================================
+# LOGIN DE ESTUDIANTE
+# ==========================================
+
+def login_estudiante(request):
+    """Login exclusivo para estudiantes"""
+    
+    if request.user.is_authenticated:
+        return redirect('estudiantes:portal_estudiante')
+    
+    limpiar_mensajes(request)
+    formulario = FormularioLogin()
+    
+    if request.method == 'POST':
+        formulario = FormularioLogin(request.POST)
+        
+        if formulario.is_valid():
+            usuario_ingresado = formulario.cleaned_data['usuario']
+            contraseña = formulario.cleaned_data['contraseña']
+            
+            user = autenticar_usuario(usuario_ingresado, contraseña)
+            
+            if user is not None and user.is_active:
+                grupos = [g.name for g in user.groups.all()]
+                
+                if 'Estudiante' in grupos or (not user.is_staff and not user.is_superuser):
+                    login(request, user)
+                    limpiar_mensajes(request)
+                    messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}! 🎓')
+                    return redirect('estudiantes:portal_estudiante')
+                else:
+                    messages.error(request, 'Esta cuenta no es de estudiante. Usa el acceso de administrador.')
+            else:
+                messages.error(request, 'Usuario o contraseña incorrectos.')
+    
+    contexto = {
+        'formulario': formulario,
+        'titulo_pagina': 'Login Estudiante - CRAI UNEMI'
+    }
+    return render(request, 'autenticacion/login_estudiante.html', contexto)
+
+
+# ==========================================
+# LOGIN DE ADMINISTRADOR
+# ==========================================
+
+def login_administrador(request):
+    """Login exclusivo para administradores/recepcionistas"""
+    
+    if request.user.is_authenticated:
+        return redirect('prestamos:portal')
+    
+    limpiar_mensajes(request)
+    formulario = FormularioLogin()
+    
+    if request.method == 'POST':
+        formulario = FormularioLogin(request.POST)
+        
+        if formulario.is_valid():
+            usuario_ingresado = formulario.cleaned_data['usuario']
+            contraseña = formulario.cleaned_data['contraseña']
+            
+            user = autenticar_usuario(usuario_ingresado, contraseña)
+            
+            if user is not None and user.is_active:
+                grupos = [g.name for g in user.groups.all()]
+                
+                if 'Administrador' in grupos or 'Recepcionista' in grupos or user.is_staff or user.is_superuser:
+                    login(request, user)
+                    limpiar_mensajes(request)
+                    messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}! 🛡️')
+                    return redirect('prestamos:portal')
+                else:
+                    messages.error(request, 'Esta cuenta no es de administrador. Usa el acceso de estudiante.')
+            else:
+                messages.error(request, 'Usuario o contraseña incorrectos.')
+    
+    contexto = {
+        'formulario': formulario,
+        'titulo_pagina': 'Login Administrador - CRAI UNEMI'
+    }
+    return render(request, 'autenticacion/login_admin.html', contexto)
+
+
+# ==========================================
+# LOGIN GENÉRICO (Redirige al selector)
+# ==========================================
+
 def pagina_login(request):
-    """Login genérico - Redirige al selector"""
+    """Login genérico - Redirige al selector de perfil"""
     return redirect('autenticacion:seleccionar_perfil')
 
 
 # ==========================================
-# RECUPERACIÓN, CAMBIO, ETC (se mantienen igual)
+# RECUPERACIÓN DE CONTRASEÑA
 # ==========================================
+
 def recuperar_contraseña(request):
+    """Vista para recuperar contraseña"""
+    
+    limpiar_mensajes(request)
     formulario = FormularioRecuperarContraseña()
     
     if request.method == 'POST':
@@ -161,48 +192,69 @@ def recuperar_contraseña(request):
                 
                 send_mail(
                     'Recuperación de Contraseña - CRAI UNEMI',
-                    f'Para restablecer tu contraseña, haz clic aquí: {enlace}',
+                    f'Para restablecer tu contraseña, haz clic aquí:\n\n{enlace}\n\nEste enlace expira en 24 horas.',
                     settings.DEFAULT_FROM_EMAIL,
                     [email],
                     fail_silently=False,
                 )
-                messages.success(request, '✅ Se ha enviado un enlace a tu correo.')
-                return redirect('autenticacion:login_estudiante')
+                messages.success(request, 'Se ha enviado un enlace de recuperación a tu correo.')
+                return redirect('autenticacion:seleccionar_perfil')
             except User.DoesNotExist:
-                messages.error(request, '❌ No existe una cuenta con ese correo.')
+                messages.error(request, 'No existe una cuenta con ese correo electrónico.')
     
     return render(request, 'autenticacion/recuperar_contraseña.html', {'formulario': formulario})
 
 
+# ==========================================
+# CAMBIAR CONTRASEÑA
+# ==========================================
+
 def cambiar_contraseña(request, uidb64, token):
+    """Vista para cambiar contraseña con enlace de recuperación"""
+    
+    limpiar_mensajes(request)
+    
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
-    except:
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
     
-    if user and default_token_generator.check_token(user, token):
+    if user is not None and default_token_generator.check_token(user, token):
         if request.method == 'POST':
             nueva = request.POST.get('nueva_contraseña')
             confirmar = request.POST.get('confirmar_contraseña')
+            
             if nueva == confirmar and len(nueva) >= 8:
                 user.set_password(nueva)
                 user.save()
-                messages.success(request, '✅ Contraseña cambiada. Ya puedes iniciar sesión.')
-                return redirect('autenticacion:login_estudiante')
+                messages.success(request, 'Contraseña cambiada exitosamente. Ya puedes iniciar sesión.')
+                return redirect('autenticacion:seleccionar_perfil')
             else:
-                messages.error(request, '❌ Las contraseñas no coinciden o son muy cortas.')
+                messages.error(request, 'Las contraseñas no coinciden o son muy cortas (mínimo 8 caracteres).')
+        
         return render(request, 'autenticacion/cambiar_contraseña.html')
     else:
-        messages.error(request, '❌ Enlace inválido o expirado.')
-        return redirect('autenticacion:login_estudiante')
+        messages.error(request, 'El enlace de recuperación es inválido o ha expirado.')
+        return redirect('autenticacion:seleccionar_perfil')
 
+
+# ==========================================
+# CERRAR SESIÓN
+# ==========================================
 
 def cerrar_sesion(request):
+    """Cerrar sesión del usuario"""
+    limpiar_mensajes(request)
     logout(request)
-    messages.success(request, '👋 Has cerrado sesión.')
+    request.session.flush()
     return redirect('autenticacion:seleccionar_perfil')
 
 
+# ==========================================
+# SOPORTE TÉCNICO
+# ==========================================
+
 def soporte(request):
-    return render(request, 'autenticacion/soporte.html', {'titulo_pagina': 'Soporte - CRAI UNEMI'})
+    """Página de soporte técnico"""
+    return render(request, 'autenticacion/soporte.html', {'titulo_pagina': 'Soporte Técnico - CRAI UNEMI'})

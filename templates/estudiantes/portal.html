@@ -9,60 +9,165 @@
 {% endblock %}
 
 {% block contenido %}
-<div class="portal-estudiante">
+<div class="estudiante-portal">
     
-    <!-- Navbar -->
-    <nav class="navbar-estudiante">
-        <span class="navbar-marca">
-            <i class="bi bi-book me-2"></i>CRAI by UNEMI
-        </span>
+    <!-- Navbar superior -->
+    <nav class="portal-navbar">
+        <div class="navbar-logo">
+            <i class="bi bi-book"></i>
+            <span>CRAI</span>
+        </div>
         <div class="navbar-usuario">
-            <span class="navbar-nombre">{{ user.first_name }} {{ user.last_name }}</span>
-            <a href="{% url 'autenticacion:cerrar_sesion' %}" class="btn btn-outline-danger btn-sm">
-                <i class="bi bi-box-arrow-right me-1"></i>Salir
+            <div class="usuario-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+            <span class="usuario-nombre">{{ user.first_name }}</span>
+            <a href="{% url 'autenticacion:cerrar_sesion' %}" class="btn-salir-icon" title="Salir">
+                <i class="bi bi-box-arrow-right"></i>
             </a>
         </div>
     </nav>
     
-    <!-- Hero -->
-    <div class="hero-estudiante">
-        <h4 class="fw-bold mb-1">¡Hola, {{ user.first_name }}! 👋</h4>
-        <p class="hero-descripcion">Bienvenido/a al sistema de préstamos del CRAI</p>
-    </div>
-    
-    <!-- Módulos -->
-    <div class="modulos-container">
-        <h6 class="modulos-titulo">¿Qué deseas hacer?</h6>
+    <!-- Contenido principal -->
+    <main class="portal-contenido">
         
-        <div class="row g-3">
-            <!-- Reservar -->
-            <div class="col-md-6">
-                <a href="{% url 'estudiantes:reservar' %}" class="modulo-card modulo-reservar">
-                    <div class="modulo-icono">💻</div>
-                    <h6 class="fw-bold">Reservar Chromebook</h6>
-                    <small class="text-muted">Solicita un equipo para tus clases</small>
-                </a>
+        <!-- Header con saludo -->
+        <div class="portal-header">
+            <div>
+                <h3 class="fw-bold mb-1">¡Hola, {{ user.first_name }}! 👋</h3>
+                <p class="text-muted">¿Qué deseas hacer hoy?</p>
             </div>
+            <div class="disponibilidad-badge">
+                <span class="punto-verde"></span>
+                12 Chromebooks disponibles
+            </div>
+        </div>
+        
+        <!-- Cards de acciones -->
+        <div class="acciones-grid">
+            
+            <!-- Reservar -->
+            <a href="{% url 'estudiantes:reservar' %}" class="accion-card destacada">
+                <div class="accion-icono bg-primario">
+                    <i class="bi bi-laptop"></i>
+                </div>
+                <div class="accion-info">
+                    <h4>Reservar Chromebook</h4>
+                    <p>Solicita un equipo ahora para tus clases</p>
+                </div>
+                <div class="accion-flecha">
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+            </a>
             
             <!-- Mis Reservas -->
-            <div class="col-md-6">
-                <a href="{% url 'estudiantes:mis_reservas' %}" class="modulo-card modulo-historial">
-                    <div class="modulo-icono">📋</div>
-                    <h6 class="fw-bold">Mis Reservas</h6>
-                    <small class="text-muted">Revisa tu historial y códigos</small>
-                </a>
-            </div>
+            <a href="{% url 'estudiantes:mis_reservas' %}" class="accion-card">
+                <div class="accion-icono bg-exito">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                <div class="accion-info">
+                    <h4>Mis Reservas</h4>
+                    <p>Historial y estado de tus préstamos</p>
+                </div>
+                <div class="accion-flecha">
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+            </a>
             
             <!-- Soporte -->
-            <div class="col-md-6">
-                <a href="{% url 'autenticacion:soporte' %}" class="modulo-card modulo-soporte">
-                    <div class="modulo-icono">🎧</div>
-                    <h6 class="fw-bold">Soporte</h6>
-                    <small class="text-muted">¿Necesitas ayuda? Contáctanos</small>
-                </a>
+            <a href="{% url 'autenticacion:soporte' %}" class="accion-card">
+                <div class="accion-icono bg-advertencia">
+                    <i class="bi bi-headset"></i>
+                </div>
+                <div class="accion-info">
+                    <h4>Soporte</h4>
+                    <p>Contacta al equipo del CRAI</p>
+                </div>
+                <div class="accion-flecha">
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+            </a>
+            
+        </div>
+        
+        <!-- Actividad reciente -->
+        <div class="actividad-seccion">
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-clock-history me-2 text-primary"></i>Actividad Reciente
+            </h5>
+            
+            <div class="actividad-lista">
+                <div class="actividad-item">
+                    <div class="actividad-dot activo"></div>
+                    <div>
+                        <strong>CB-015</strong> - HP Chromebook 11 G8
+                        <br><small class="text-muted">Préstamo activo • Vence hoy 18:00</small>
+                    </div>
+                    <span class="actividad-badge bg-success">Activo</span>
+                </div>
+                
+                <div class="actividad-item">
+                    <div class="actividad-dot devuelto"></div>
+                    <div>
+                        <strong>CB-022</strong> - Lenovo 100e
+                        <br><small class="text-muted">Devuelto ayer • A tiempo</small>
+                    </div>
+                    <span class="actividad-badge bg-secondary">Devuelto</span>
+                </div>
+            </div>
+        </div>
+        
+    </main>
+    
+    <!-- ========================================== -->
+    <!-- CHATBOT FLOTANTE CON IA                     -->
+    <!-- ========================================== -->
+    <div class="chatbot-container" id="chatbotContainer">
+        <!-- Botón flotante -->
+        <button class="chatbot-btn" id="chatbotBtn" onclick="toggleChatbot()">
+            <i class="bi bi-robot"></i>
+            <span class="chatbot-pulso"></span>
+        </button>
+        
+        <!-- Ventana del chat -->
+        <div class="chatbot-ventana" id="chatbotVentana">
+            <div class="chatbot-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="chatbot-avatar">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div>
+                        <strong>CRAI Assistant</strong>
+                        <br><small class="text-success">En línea</small>
+                    </div>
+                </div>
+                <button class="btn-close btn-close-white" onclick="toggleChatbot()"></button>
+            </div>
+            
+            <div class="chatbot-mensajes" id="chatbotMensajes">
+                <!-- Mensaje del bot -->
+                <div class="mensaje-bot">
+                    <div class="mensaje-contenido">
+                        ¡Hola {{ user.first_name }}! 👋 Soy el asistente virtual del CRAI. Puedo ayudarte con:
+                        <br><br>
+                        💻 • Consultar disponibilidad<br>
+                        📅 • Reservar un Chromebook<br>
+                        📋 • Ver tus reservas activas<br>
+                        ❓ • Resolver dudas
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chatbot-input">
+                <input type="text" class="form-control" placeholder="Escribe tu mensaje..." id="chatbotInput" onkeypress="enviarMensaje(event)">
+                <button class="btn btn-primary btn-sm" onclick="procesarMensaje()">
+                    <i class="bi bi-send"></i>
+                </button>
             </div>
         </div>
     </div>
     
 </div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/chatbot.js' %}"></script>
 {% endblock %}
