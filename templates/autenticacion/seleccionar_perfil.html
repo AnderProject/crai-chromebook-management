@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block titulo %}CRAI UNEMI - Seleccionar Perfil{% endblock %}
+{% block titulo %}CRAI UNEMI - Iniciar Sesión{% endblock %}
 
 {% block estilos_extra %}
 <link href="{% static 'css/base.css' %}" rel="stylesheet">
@@ -37,61 +37,152 @@
             </div>
         </div>
         
-        <!-- Panel Derecho - Selector de Perfil -->
+        <!-- Panel Derecho - Dinámico -->
         <div class="col-lg-6 d-flex justify-content-center align-items-center panel-derecho p-4">
-            <div class="selector-contenedor">
+            <div class="panel-dinamico" id="panelDinamico">
                 
-                <!-- Logo móvil -->
-                <div class="text-center mb-4 d-lg-none">
-                    <i class="bi bi-book display-4 texto-primario"></i>
-                    <h2 class="fw-bold texto-primario mt-2">CRAI - UNEMI</h2>
+                <!-- ================================ -->
+                <!-- VISTA 1: SELECTOR DE PERFIL       -->
+                <!-- ================================ -->
+                <div id="vista-selector" class="vista-activa">
+                    <div class="text-center mb-4 d-lg-none">
+                        <i class="bi bi-book display-4 texto-primario"></i>
+                        <h2 class="fw-bold texto-primario mt-2">CRAI - UNEMI</h2>
+                    </div>
+                    
+                    <div class="text-center mb-4">
+                        <h1 class="fw-bold texto-primario mb-2">Bienvenido</h1>
+                        <p class="selector-subtitulo">Selecciona tu perfil para acceder al sistema</p>
+                    </div>
+                    
+                    <div class="opcion-perfil opcion-estudiante" onclick="mostrarLogin('estudiante')">
+                        <div class="opcion-icono icono-estudiante">
+                            <i class="bi bi-mortarboard"></i>
+                        </div>
+                        <div class="opcion-texto">
+                            <strong>Estudiante</strong>
+                            <small>Reserva de Chromebooks y consultas</small>
+                        </div>
+                        <i class="bi bi-chevron-right opcion-flecha"></i>
+                    </div>
+                    
+                    <div class="opcion-perfil opcion-admin" onclick="mostrarLogin('administrador')">
+                        <div class="opcion-icono icono-admin">
+                            <i class="bi bi-shield-lock"></i>
+                        </div>
+                        <div class="opcion-texto">
+                            <strong>Administrador</strong>
+                            <small>Gestión de inventario, préstamos y estudiantes</small>
+                        </div>
+                        <i class="bi bi-chevron-right opcion-flecha"></i>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <small class="text-muted">
+                            <i class="bi bi-envelope me-1"></i>crai@unemi.edu.ec |
+                            <i class="bi bi-telephone me-1"></i>Ext. 1234
+                        </small>
+                    </div>
                 </div>
                 
-                <!-- Encabezado -->
-                <div class="text-center mb-4">
-                    <h1 class="fw-bold texto-primario mb-2">Bienvenido</h1>
-                    <p class="selector-subtitulo">
-                        Selecciona tu perfil para acceder al sistema
-                    </p>
-                </div>
-                
-                <!-- Opción Estudiante -->
-                <a href="{% url 'autenticacion:login_estudiante' %}" class="opcion-perfil opcion-estudiante">
-                    <div class="opcion-icono icono-estudiante">
+                <!-- ================================ -->
+                <!-- VISTA 2: LOGIN ESTUDIANTE         -->
+                <!-- ================================ -->
+                <div id="vista-login-estudiante" class="vista-oculta">
+                    <button class="btn btn-outline-secondary btn-sm mb-3" onclick="volverSelector()">
+                        <i class="bi bi-arrow-left me-1"></i>Volver
+                    </button>
+                    
+                    <div class="login-icono login-icono-estudiante">
                         <i class="bi bi-mortarboard"></i>
                     </div>
-                    <div class="opcion-texto">
-                        <strong>Estudiante</strong>
-                        <small>Reserva de Chromebooks y consulta de préstamos</small>
+                    
+                    <h4 class="fw-bold text-center mb-1">Estudiante</h4>
+                    <p class="text-muted text-center small mb-4">Inicia sesión para reservar Chromebooks</p>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if '❌' in message.message %}danger{% else %}success{% endif %} alert-dismissible fade show small">
+                                {{ message }}
+                                <button class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="POST" action="{% url 'autenticacion:login_estudiante' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Usuario o Correo</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                                <input type="text" name="usuario" class="form-control" placeholder="Ingrese su usuario o correo" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Contraseña</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                                <input type="password" name="contraseña" class="form-control" placeholder="Ingrese su contraseña" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-estudiante w-100 py-2 fw-semibold">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Ingresar
+                        </button>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'autenticacion:recuperar_contraseña' %}" class="small text-decoration-none">¿Olvidaste tu contraseña?</a>
                     </div>
-                    <i class="bi bi-chevron-right opcion-flecha"></i>
-                </a>
-                
-                <!-- Opción Administrador -->
-                <a href="{% url 'autenticacion:login_administrador' %}" class="opcion-perfil opcion-admin">
-                    <div class="opcion-icono icono-admin">
-                        <i class="bi bi-shield-lock"></i>
-                    </div>
-                    <div class="opcion-texto">
-                        <strong>Administrador</strong>
-                        <small>Gestión de inventario, préstamos y estudiantes</small>
-                    </div>
-                    <i class="bi bi-chevron-right opcion-flecha"></i>
-                </a>
-                
-                <!-- Información de contacto -->
-                <div class="text-center mt-4">
-                    <small class="text-muted">
-                        <i class="bi bi-envelope me-1"></i>crai@unemi.edu.ec |
-                        <i class="bi bi-telephone me-1"></i>Ext. 1234
-                    </small>
                 </div>
                 
-                <!-- Link a soporte -->
-                <div class="text-center mt-3">
-                    <a href="{% url 'autenticacion:soporte' %}" class="text-decoration-none enlace-ayuda small">
-                        <i class="bi bi-headset me-1"></i>Soporte técnico
-                    </a>
+                <!-- ================================ -->
+                <!-- VISTA 3: LOGIN ADMINISTRADOR      -->
+                <!-- ================================ -->
+                <div id="vista-login-admin" class="vista-oculta">
+                    <button class="btn btn-outline-secondary btn-sm mb-3" onclick="volverSelector()">
+                        <i class="bi bi-arrow-left me-1"></i>Volver
+                    </button>
+                    
+                    <div class="login-icono login-icono-admin">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    
+                    <h4 class="fw-bold text-center mb-1">Administrador</h4>
+                    <p class="text-muted text-center small mb-4">Inicia sesión para gestionar el sistema</p>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if '❌' in message.message %}danger{% else %}success{% endif %} alert-dismissible fade show small">
+                                {{ message }}
+                                <button class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="POST" action="{% url 'autenticacion:login_administrador' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Usuario o Correo</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                                <input type="text" name="usuario" class="form-control" placeholder="Ingrese su usuario o correo" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Contraseña</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                                <input type="password" name="contraseña" class="form-control" placeholder="Ingrese su contraseña" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-admin w-100 py-2 fw-semibold">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Ingresar
+                        </button>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'autenticacion:recuperar_contraseña' %}" class="small text-decoration-none">¿Olvidaste tu contraseña?</a>
+                    </div>
                 </div>
                 
             </div>
@@ -99,4 +190,8 @@
         
     </div>
 </div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/selector_perfil.js' %}"></script>
 {% endblock %}

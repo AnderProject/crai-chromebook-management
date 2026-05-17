@@ -1,11 +1,34 @@
 /* ==========================================
-   SELECTOR DE PERFIL - CRAI UNEMI
+   SELECTOR DE PERFIL + LOGIN DINÁMICO
+   CRAI UNEMI
    ========================================== */
 
-/* Contenedor del selector */
-.selector-contenedor {
+/* Panel dinámico */
+.panel-dinamico {
     width: 100%;
-    max-width: 450px;
+    max-width: 420px;
+    position: relative;
+}
+
+/* Vistas */
+.vista-activa {
+    display: block;
+    animation: fadeInVista 0.4s ease-out;
+}
+
+.vista-oculta {
+    display: none;
+}
+
+@keyframes fadeInVista {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 /* Subtítulo */
@@ -26,7 +49,6 @@
     margin-bottom: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    text-decoration: none;
     color: var(--texto);
     background: var(--blanco);
 }
@@ -35,14 +57,12 @@
     transform: translateY(-3px);
 }
 
-/* Hover estudiante */
 .opcion-estudiante:hover {
     border-color: var(--exito);
     background: #f6fef6;
     box-shadow: 0 6px 20px rgba(52, 168, 83, 0.12);
 }
 
-/* Hover administrador */
 .opcion-admin:hover {
     border-color: var(--primario);
     background: #f8f9ff;
@@ -104,16 +124,10 @@
     color: var(--exito);
 }
 
-/* Animación de entrada */
+/* Animación entrada */
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .opcion-perfil:nth-child(1) {
@@ -125,9 +139,86 @@
     animation-fill-mode: backwards;
 }
 
-/* Responsive */
+/* ==========================================
+   LOGIN ICONOS (dentro del panel)
+   ========================================== */
+.login-icono {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: white;
+    margin: 0 auto 0.8rem;
+}
+
+.login-icono-estudiante {
+    background: var(--exito);
+}
+
+.login-icono-admin {
+    background: var(--primario);
+}
+
+/* ==========================================
+   BOTONES DE LOGIN
+   ========================================== */
+.btn-estudiante {
+    background: var(--exito);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transicion);
+}
+
+.btn-estudiante:hover {
+    background: #2d8e47;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-admin {
+    background: var(--primario);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transicion);
+}
+
+.btn-admin:hover {
+    background: var(--primario-claro);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* ==========================================
+   CAMPOS DE FORMULARIO EN LOGIN
+   ========================================== */
+.panel-dinamico .form-control {
+    border: 1px solid var(--borde);
+    font-size: 0.9rem;
+    padding: 0.6rem 0.8rem;
+}
+
+.panel-dinamico .form-control:focus {
+    border-color: var(--primario);
+    box-shadow: 0 0 0 0.15rem rgba(26,35,126,0.1);
+}
+
+.panel-dinamico .input-group-text {
+    border: 1px solid var(--borde);
+    background: #f8f9fa;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
 @media (max-width: 991.98px) {
-    .selector-contenedor {
+    .panel-dinamico {
         max-width: 100%;
     }
 }
