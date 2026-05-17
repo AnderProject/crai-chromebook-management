@@ -1,0 +1,74 @@
+/* ==========================================
+   MIS RESERVAS - CRAI UNEMI
+   Portal del estudiante
+   ========================================== */
+
+/* Fondo general */
+.reservas-fondo {
+    min-height: 100vh;
+    background: var(--gris-fondo);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+/* Tarjeta principal */
+.reservas-tarjeta {
+    background: var(--blanco);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 700px;
+    width: 100%;
+    box-shadow: var(--sombra);
+    animation: fadeInCard 0.5s ease-out;
+}
+
+@keyframes fadeInCard {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Item de reserva */
+.reserva-item {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-left: 4px solid var(--info);
+    transition: var(--transicion);
+}
+
+.reserva-item:hover {
+    background: #f0f2f5;
+}
+
+/* Estados de reserva */
+.reserva-devuelta {
+    border-left-color: var(--exito);
+}
+
+.reserva-vencida {
+    border-left-color: var(--error);
+}
+
+.reserva-pendiente {
+    border-left-color: var(--advertencia);
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .reservas-tarjeta {
+        padding: 1.5rem;
+    }
+    
+    .reservas-fondo {
+        padding: 1rem;
+    }
+}

@@ -1,0 +1,113 @@
+/* ==========================================
+   PORTAL ESTUDIANTE - CRAI UNEMI
+   ========================================== */
+
+/* Fondo general */
+.portal-estudiante {
+    min-height: 100vh;
+    background: var(--gris-fondo);
+}
+
+/* Navbar */
+.navbar-estudiante {
+    background: var(--blanco);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    padding: 0.6rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-marca {
+    font-weight: 700;
+    color: var(--primario);
+}
+
+.navbar-usuario {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.navbar-nombre {
+    font-size: 0.85rem;
+    color: var(--texto-claro);
+}
+
+/* Hero */
+.hero-estudiante {
+    background: linear-gradient(135deg, var(--info) 0%, #0d47a1 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 0 0 20px 20px;
+    text-align: center;
+}
+
+.hero-descripcion {
+    margin: 0;
+    opacity: 0.85;
+}
+
+/* Contenedor de módulos */
+.modulos-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.modulos-titulo {
+    font-weight: 700;
+    color: var(--texto-claro);
+    margin-bottom: 1rem;
+}
+
+/* Tarjetas de módulo */
+.modulo-card {
+    background: var(--blanco);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    border: 1px solid #e8eaed;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    text-align: center;
+}
+
+.modulo-card:hover {
+    box-shadow: var(--sombra);
+    transform: translateY(-2px);
+}
+
+.modulo-reservar:hover {
+    border-color: var(--info);
+}
+
+.modulo-historial:hover {
+    border-color: var(--primario);
+}
+
+.modulo-soporte:hover {
+    border-color: var(--exito);
+}
+
+.modulo-icono {
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-estudiante {
+        padding: 1.5rem;
+    }
+    
+    .navbar-estudiante {
+        padding: 0.5rem 1rem;
+    }
+    
+    .navbar-nombre {
+        display: none;
+    }
+}

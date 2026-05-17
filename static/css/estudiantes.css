@@ -1,0 +1,209 @@
+/* ==========================================
+   ESTUDIANTES - CRAI UNEMI
+   Directorio, monitoreo y registro
+   ========================================== */
+
+/* Contenedor */
+.estudiantes-container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Encabezado */
+.estudiantes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+/* Pestañas */
+.estudiantes-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--borde);
+}
+
+.tab-btn {
+    border: none;
+    background: transparent;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--texto-claro);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    color: var(--info);
+    border-bottom-color: var(--info);
+}
+
+.tab-btn:hover {
+    color: var(--info);
+}
+
+.tab-contenido {
+    animation: fadeInTab 0.3s ease-out;
+}
+
+@keyframes fadeInTab {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Cards de estadísticas */
+.estudiantes-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.stat-card {
+    background: var(--blanco);
+    border-radius: 10px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.stat-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.stat-valor {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0.3rem 0;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--texto-claro);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Filas de estudiantes */
+.estudiante-row {
+    background: var(--blanco);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    border: 1px solid #f0f0f0;
+    margin-bottom: 0.4rem;
+    transition: all 0.15s;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.estudiante-row:hover {
+    background: #f8faff;
+    border-color: #d0d8e8;
+}
+
+.estudiante-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.estudiante-estado {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Avatar pequeño */
+.avatar-sm {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+/* Puntos de estado */
+.estado-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.3rem;
+}
+
+.dot-verde { background: var(--exito); }
+.dot-amarillo { background: var(--advertencia); }
+.dot-rojo { background: var(--error); }
+.dot-gris { background: #dadce0; }
+
+/* Modal lateral */
+.modal-lateral {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 400px;
+    height: 100vh;
+    background: var(--blanco);
+    box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+    transition: right 0.3s ease;
+    z-index: 1050;
+    overflow-y: auto;
+}
+
+.modal-lateral.abierto {
+    right: 0;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    z-index: 1040;
+    display: none;
+}
+
+.overlay.visible {
+    display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .estudiantes-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .modal-lateral {
+        width: 100%;
+        right: -100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .estudiantes-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .estudiantes-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .tab-btn {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.75rem;
+    }
+}

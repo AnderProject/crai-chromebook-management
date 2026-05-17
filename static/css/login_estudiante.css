@@ -1,0 +1,36 @@
+/* ==========================================
+   LOGIN ESTUDIANTE - CRAI UNEMI
+   ========================================== */
+
+.login-estudiante-card {
+    border-radius: 16px;
+    box-shadow: var(--sombra);
+}
+
+.login-estudiante-icono {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--exito);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+    margin: 0 auto 1rem;
+}
+
+.btn-estudiante {
+    background: var(--exito);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transicion);
+}
+
+.btn-estudiante:hover {
+    background: #2d8e47;
+    color: white;
+    transform: translateY(-1px);
+}

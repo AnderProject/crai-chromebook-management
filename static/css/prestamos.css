@@ -1,0 +1,205 @@
+/* ==========================================
+   REGISTRO RÁPIDO - CRAI UNEMI
+   Préstamo de Chromebooks
+   ========================================== */
+
+.registro-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.registro-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+/* Cards de pasos */
+.paso-card {
+    background: var(--blanco);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s;
+    margin-bottom: 0.8rem;
+}
+
+.paso-card:hover {
+    border-color: #cbd5e0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.paso-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.paso-numero {
+    width: 28px;
+    height: 28px;
+    background: #e8f0fe;
+    color: var(--info);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    margin-right: 0.6rem;
+}
+
+/* Input elegante */
+.input-elegante {
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    background: #fafafa;
+    flex-grow: 1;
+}
+
+.input-elegante:focus {
+    border-color: var(--info);
+    box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+    background: var(--blanco);
+    outline: none;
+}
+
+/* Botón elegante */
+.btn-elegante {
+    border-radius: 8px;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+/* Botón préstamo */
+.btn-prestamo {
+    background: var(--info);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-prestamo:hover {
+    background: #1557b0;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+}
+
+/* Chips de tiempo */
+.selector-tiempo {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.tiempo-chip {
+    border: 1.5px solid var(--borde);
+    border-radius: 20px;
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--blanco);
+}
+
+.tiempo-chip:hover {
+    border-color: var(--info);
+    background: #f8faff;
+}
+
+.tiempo-chip.activo {
+    border-color: var(--info);
+    background: #e8f0fe;
+    color: var(--info);
+    font-weight: 600;
+}
+
+/* Resumen */
+.resumen-contenido {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Préstamos activos */
+.prestamos-activos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.prestamo-item {
+    background: var(--blanco);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    border-left: 4px solid var(--borde);
+    margin-bottom: 0.5rem;
+    transition: all 0.2s;
+}
+
+.prestamo-item:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.prestamo-item.activo {
+    border-left-color: var(--exito);
+}
+
+.prestamo-item.proximo {
+    border-left-color: var(--advertencia);
+}
+
+.prestamo-item.vencido {
+    border-left-color: var(--error);
+}
+
+.prestamo-item-contenido {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Badge estado */
+.badge-estado {
+    font-size: 0.7rem;
+    padding: 0.25em 0.6em;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+/* Estadísticas */
+.prestamos-estadisticas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.stat-mini {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    text-align: center;
+}
+
+.stat-mini-numero {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--info);
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .registro-container {
+        padding: 0 0.5rem;
+    }
+}

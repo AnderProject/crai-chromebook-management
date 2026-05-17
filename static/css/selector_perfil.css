@@ -1,0 +1,133 @@
+/* ==========================================
+   SELECTOR DE PERFIL - CRAI UNEMI
+   ========================================== */
+
+/* Contenedor del selector */
+.selector-contenedor {
+    width: 100%;
+    max-width: 450px;
+}
+
+/* Subtítulo */
+.selector-subtitulo {
+    font-size: 0.85rem;
+    color: var(--texto-claro);
+    line-height: 1.5;
+}
+
+/* Opción de perfil */
+.opcion-perfil {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem 1.5rem;
+    border: 2px solid var(--borde);
+    border-radius: 14px;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: var(--texto);
+    background: var(--blanco);
+}
+
+.opcion-perfil:hover {
+    transform: translateY(-3px);
+}
+
+/* Hover estudiante */
+.opcion-estudiante:hover {
+    border-color: var(--exito);
+    background: #f6fef6;
+    box-shadow: 0 6px 20px rgba(52, 168, 83, 0.12);
+}
+
+/* Hover administrador */
+.opcion-admin:hover {
+    border-color: var(--primario);
+    background: #f8f9ff;
+    box-shadow: 0 6px 20px rgba(26, 35, 126, 0.12);
+}
+
+/* Ícono de la opción */
+.opcion-icono {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.icono-estudiante {
+    background: #e6f4ea;
+    color: var(--exito);
+}
+
+.icono-admin {
+    background: #e8f0fe;
+    color: var(--primario);
+}
+
+/* Texto de la opción */
+.opcion-texto {
+    text-align: left;
+    flex-grow: 1;
+}
+
+.opcion-texto strong {
+    display: block;
+    font-size: 0.95rem;
+    margin-bottom: 0.1rem;
+}
+
+.opcion-texto small {
+    color: var(--texto-claro);
+    font-size: 0.8rem;
+}
+
+/* Flecha */
+.opcion-flecha {
+    color: #adb5bd;
+    font-size: 1.2rem;
+    transition: transform 0.3s, color 0.3s;
+}
+
+.opcion-perfil:hover .opcion-flecha {
+    transform: translateX(5px);
+    color: var(--primario);
+}
+
+.opcion-estudiante:hover .opcion-flecha {
+    color: var(--exito);
+}
+
+/* Animación de entrada */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.opcion-perfil:nth-child(1) {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.opcion-perfil:nth-child(2) {
+    animation: fadeInUp 0.5s ease-out 0.1s;
+    animation-fill-mode: backwards;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .selector-contenedor {
+        max-width: 100%;
+    }
+}

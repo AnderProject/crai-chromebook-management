@@ -1,0 +1,78 @@
+/* ==========================================
+   LOGIN - CRAI UNEMI
+   ========================================== */
+
+.contenedor-login {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Campos de formulario */
+.form-control {
+    border: 2px solid var(--borde);
+    border-radius: 0 8px 8px 0;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.9rem;
+    transition: var(--transicion);
+}
+
+.form-control:focus {
+    border-color: var(--primario);
+    box-shadow: 0 0 0 0.2rem rgba(26,35,126,0.15);
+}
+
+.input-group-text {
+    border: 2px solid var(--borde);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    background: #f8f9fa;
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+.input-group .btn-outline-secondary {
+    border: 2px solid var(--borde);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+}
+
+.input-group .btn-outline-secondary:hover {
+    background: #e9ecef;
+}
+
+.input-group:focus-within .input-group-text,
+.input-group:focus-within .form-control,
+.input-group:focus-within .btn-outline-secondary {
+    border-color: var(--primario);
+}
+
+/* Animación shake */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake {
+    animation: shake 0.6s ease-in-out;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .contenedor-login {
+        max-width: 100% !important;
+        padding: 1.5rem;
+    }
+}

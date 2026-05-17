@@ -1,0 +1,105 @@
+/* ==========================================
+   CAMBIAR CONTRASEÑA - CRAI UNEMI
+   ========================================== */
+
+.cambiar-contraseña-fondo {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--gris-fondo);
+    padding: 1.5rem;
+}
+
+.cambiar-contraseña-card {
+    background: var(--blanco);
+    border-radius: var(--radius);
+    padding: 2.5rem;
+    box-shadow: var(--sombra);
+    animation: fadeInCard 0.5s ease-out;
+}
+
+@keyframes fadeInCard {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.icono-titulo {
+    color: var(--primario);
+    font-size: 1.8rem;
+}
+
+/* Campos del formulario */
+.cambiar-contraseña-card .form-control {
+    border: 2px solid var(--borde);
+    border-radius: 0 8px 8px 0;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.9rem;
+    transition: var(--transicion);
+}
+
+.cambiar-contraseña-card .form-control:focus {
+    border-color: var(--primario);
+    box-shadow: 0 0 0 0.2rem rgba(26, 35, 126, 0.15);
+}
+
+.cambiar-contraseña-card .input-group-text {
+    border: 2px solid var(--borde);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    background: #f8f9fa;
+}
+
+.cambiar-contraseña-card .input-group .form-control {
+    border-left: none;
+}
+
+.cambiar-contraseña-card .input-group .btn-outline-secondary {
+    border: 2px solid var(--borde);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+}
+
+.cambiar-contraseña-card .input-group .btn-outline-secondary:hover {
+    background: #e9ecef;
+}
+
+.cambiar-contraseña-card .input-group:focus-within .input-group-text,
+.cambiar-contraseña-card .input-group:focus-within .form-control,
+.cambiar-contraseña-card .input-group:focus-within .btn-outline-secondary {
+    border-color: var(--primario);
+}
+
+/* Botón cambiar */
+.btn-cambiar {
+    background: var(--primario);
+    color: var(--blanco);
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: var(--transicion);
+}
+
+.btn-cambiar:hover {
+    background: var(--primario-claro);
+    color: var(--blanco);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26, 35, 126, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .cambiar-contraseña-card {
+        padding: 1.5rem;
+    }
+    
+    .cambiar-contraseña-fondo {
+        padding: 1rem;
+    }
+}

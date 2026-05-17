@@ -1,50 +1,27 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block estilos_extra %}
-<style>
-    .reservas-container {
-        min-height: 100vh;
-        background: #f4f6f9;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-    }
-    .reservas-card {
-        background: #fff;
-        border-radius: 16px;
-        padding: 2rem;
-        max-width: 700px;
-        width: 100%;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    }
-    .reserva-item {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-        border-left: 4px solid #1a73e8;
-    }
-    .reserva-item.devuelto { border-left-color: #34a853; }
-    .reserva-item.vencido { border-left-color: #ea4335; }
-    .reserva-item.pendiente { border-left-color: #fbbc04; }
-</style>
-{% endblock %}
-
 {% block titulo %}Mis Reservas - CRAI UNEMI{% endblock %}
 
+{% block estilos_extra %}
+<link href="{% static 'css/base.css' %}" rel="stylesheet">
+<link href="{% static 'css/mis_reservas.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block contenido %}
-<div class="reservas-container">
-    <div class="reservas-card">
+<div class="reservas-fondo">
+    <div class="reservas-tarjeta">
         
+        <!-- Botón volver -->
         <a href="{% url 'estudiantes:portal_estudiante' %}" class="btn btn-outline-secondary btn-sm mb-3">
             <i class="bi bi-arrow-left me-1"></i>Volver
         </a>
         
+        <!-- Título -->
         <h5 class="fw-bold mb-3">📋 Mis Reservas</h5>
         
-        <div class="reserva-item pendiente">
+        <!-- Reserva Pendiente -->
+        <div class="reserva-item reserva-pendiente">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <strong>CB-015</strong> - HP Chromebook 11 G8
@@ -57,7 +34,8 @@
             </div>
         </div>
         
-        <div class="reserva-item devuelto">
+        <!-- Reserva Devuelta -->
+        <div class="reserva-item reserva-devuelta">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <strong>CB-022</strong> - Lenovo 100e
@@ -69,7 +47,8 @@
             </div>
         </div>
         
-        <div class="reserva-item vencido">
+        <!-- Reserva Vencida -->
+        <div class="reserva-item reserva-vencida">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <strong>CB-008</strong> - Dell 3100

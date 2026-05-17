@@ -1,0 +1,36 @@
+/* ==========================================
+   LOGIN ADMINISTRADOR - CRAI UNEMI
+   ========================================== */
+
+.login-admin-card {
+    border-radius: 16px;
+    box-shadow: var(--sombra);
+}
+
+.login-admin-icono {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--primario);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+    margin: 0 auto 1rem;
+}
+
+.btn-admin {
+    background: var(--primario);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transicion);
+}
+
+.btn-admin:hover {
+    background: var(--primario-claro);
+    color: white;
+    transform: translateY(-1px);
+}

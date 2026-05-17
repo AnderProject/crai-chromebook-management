@@ -3,126 +3,23 @@
 
 {% block titulo %}CRAI UNEMI - Seleccionar Perfil{% endblock %}
 
-{% block contenido %}
-<style>
-    /* Estilos específicos del selector */
-    .opcion-perfil {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1.2rem 1.5rem;
-        border: 2px solid #e0e0e0;
-        border-radius: 14px;
-        margin-bottom: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        color: #212529;
-        background: #fff;
-    }
-    
-    .opcion-perfil:hover {
-        transform: translateY(-3px);
-    }
-    
-    .opcion-estudiante:hover {
-        border-color: #34a853;
-        background: #f6fef6;
-        box-shadow: 0 6px 20px rgba(52,168,83,0.12);
-    }
-    
-    .opcion-admin:hover {
-        border-color: #1a237e;
-        background: #f8f9ff;
-        box-shadow: 0 6px 20px rgba(26,35,126,0.12);
-    }
-    
-    .opcion-icono {
-        width: 50px;
-        height: 50px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.4rem;
-        flex-shrink: 0;
-    }
-    
-    .icono-estudiante {
-        background: #e6f4ea;
-        color: #34a853;
-    }
-    
-    .icono-admin {
-        background: #e8f0fe;
-        color: #1a237e;
-    }
-    
-    .opcion-texto {
-        text-align: left;
-        flex-grow: 1;
-    }
-    
-    .opcion-texto strong {
-        display: block;
-        font-size: 0.95rem;
-        margin-bottom: 0.1rem;
-    }
-    
-    .opcion-texto small {
-        color: #6c757d;
-        font-size: 0.8rem;
-    }
-    
-    .opcion-flecha {
-        color: #adb5bd;
-        font-size: 1.2rem;
-        transition: transform 0.3s;
-    }
-    
-    .opcion-perfil:hover .opcion-flecha {
-        transform: translateX(5px);
-        color: #1a237e;
-    }
-    
-    .opcion-estudiante:hover .opcion-flecha {
-        color: #34a853;
-    }
-    
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .opcion-perfil:nth-child(1) {
-        animation: fadeInUp 0.5s ease-out;
-    }
-    
-    .opcion-perfil:nth-child(2) {
-        animation: fadeInUp 0.5s ease-out 0.1s;
-        animation-fill-mode: backwards;
-    }
-    
-    .selector-subtitulo-texto {
-        font-size: 0.85rem;
-        color: #6c757d;
-        line-height: 1.5;
-    }
-</style>
+{% block estilos_extra %}
+<link href="{% static 'css/base.css' %}" rel="stylesheet">
+<link href="{% static 'css/selector_perfil.css' %}" rel="stylesheet">
+{% endblock %}
 
+{% block contenido %}
 <div class="container-fluid vh-100">
     <div class="row h-100">
         
-        <!-- Panel Izquierdo - Información (igual al login) -->
+        <!-- Panel Izquierdo - Información -->
         <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-center align-items-center panel-izquierdo p-5">
             <div class="text-center text-white">
                 <div class="mb-4">
                     <i class="bi bi-book display-1"></i>
                 </div>
-                
                 <h2 class="fw-bold mb-3">CRAI - UNEMI</h2>
                 <p class="lead mb-4">Centro de Recursos para el Aprendizaje y la Investigación</p>
-                
                 <div class="mt-5 text-start">
                     <div class="d-flex align-items-center mb-3">
                         <i class="bi bi-laptop fs-3 me-3"></i>
@@ -142,7 +39,7 @@
         
         <!-- Panel Derecho - Selector de Perfil -->
         <div class="col-lg-6 d-flex justify-content-center align-items-center panel-derecho p-4">
-            <div class="w-100" style="max-width: 450px;">
+            <div class="selector-contenedor">
                 
                 <!-- Logo móvil -->
                 <div class="text-center mb-4 d-lg-none">
@@ -153,7 +50,7 @@
                 <!-- Encabezado -->
                 <div class="text-center mb-4">
                     <h1 class="fw-bold texto-primario mb-2">Bienvenido</h1>
-                    <p class="selector-subtitulo-texto">
+                    <p class="selector-subtitulo">
                         Selecciona tu perfil para acceder al sistema
                     </p>
                 </div>

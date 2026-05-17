@@ -1,0 +1,103 @@
+/* ==========================================
+   RESERVAR CHROMEBOOK - CRAI UNEMI
+   Portal del estudiante
+   ========================================== */
+
+/* Fondo */
+.reservar-fondo {
+    min-height: 100vh;
+    background: var(--gris-fondo);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+/* Tarjeta */
+.reservar-tarjeta {
+    background: var(--blanco);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: var(--sombra);
+    animation: fadeInCard 0.5s ease-out;
+}
+
+@keyframes fadeInCard {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Descripción */
+.reservar-descripcion {
+    color: var(--texto-claro);
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Botón de reserva */
+.btn-reservar {
+    background: var(--primario);
+    color: var(--blanco);
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: var(--transicion);
+}
+
+.btn-reservar:hover {
+    background: var(--primario-claro);
+    color: var(--blanco);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26, 35, 126, 0.3);
+}
+
+/* Sección del código */
+.codigo-seccion {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.codigo-label {
+    font-size: 0.8rem;
+    color: var(--texto-claro);
+    margin-bottom: 0.5rem;
+}
+
+.codigo-display {
+    background: #f0f6ff;
+    border: 2px dashed var(--info);
+    border-radius: 12px;
+    padding: 1.5rem;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--info);
+    letter-spacing: 8px;
+    margin: 1rem 0;
+}
+
+.codigo-info {
+    font-size: 0.8rem;
+    color: var(--texto-claro);
+    margin-bottom: 0.25rem;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .reservar-tarjeta {
+        padding: 1.5rem;
+    }
+    
+    .codigo-display {
+        font-size: 2rem;
+        letter-spacing: 6px;
+        padding: 1rem;
+    }
+}
