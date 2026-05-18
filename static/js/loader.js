@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (loader) {
         setTimeout(function() {
             loader.classList.add('oculto');
-        }, 2000);
+        }, 1950);
     }
     
 });

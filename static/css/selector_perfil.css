@@ -172,6 +172,9 @@
     border-radius: 8px;
     font-weight: 600;
     transition: var(--transicion);
+    padding: 0.65rem;
+    font-size: 0.9rem;
+    cursor: pointer;
 }
 
 .btn-estudiante:hover {
@@ -187,11 +190,36 @@
     border-radius: 8px;
     font-weight: 600;
     transition: var(--transicion);
+    padding: 0.65rem;
+    font-size: 0.9rem;
+    cursor: pointer;
 }
 
 .btn-admin:hover {
     background: var(--primario-claro);
     color: white;
+    transform: translateY(-1px);
+}
+
+/* ==========================================
+   BOTÓN VOLVER (mismo estilo que Ingresar)
+   ========================================== */
+.btn-volver-login {
+    background: #e74c3c;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.65rem 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-volver-login:hover {
+    background: #c0392b;
+    color: #fff;
     transform: translateY(-1px);
 }
 

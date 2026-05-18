@@ -89,9 +89,6 @@
                 <!-- VISTA 2: LOGIN ESTUDIANTE         -->
                 <!-- ================================ -->
                 <div id="vista-login-estudiante" class="vista-oculta">
-                    <button class="btn btn-outline-secondary btn-sm mb-3" onclick="volverSelector()">
-                        <i class="bi bi-arrow-left me-1"></i>Volver
-                    </button>
                     
                     <div class="login-icono login-icono-estudiante">
                         <i class="bi bi-mortarboard"></i>
@@ -125,9 +122,16 @@
                                 <input type="password" name="contraseña" class="form-control" placeholder="Ingrese su contraseña" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-estudiante w-100 py-2 fw-semibold">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Ingresar
-                        </button>
+                        
+                        <!-- Botones en la misma fila: Volver + Ingresar -->
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-volver-login" onclick="volverSelector()">
+                                <i class="bi bi-arrow-left me-1"></i>Volver
+                            </button>
+                            <button type="submit" class="btn btn-estudiante flex-grow-1 py-2 fw-semibold">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Ingresar
+                            </button>
+                        </div>
                     </form>
                     
                     <div class="text-center mt-3">
@@ -139,9 +143,6 @@
                 <!-- VISTA 3: LOGIN ADMINISTRADOR      -->
                 <!-- ================================ -->
                 <div id="vista-login-admin" class="vista-oculta">
-                    <button class="btn btn-outline-secondary btn-sm mb-3" onclick="volverSelector()">
-                        <i class="bi bi-arrow-left me-1"></i>Volver
-                    </button>
                     
                     <div class="login-icono login-icono-admin">
                         <i class="bi bi-shield-lock"></i>
@@ -175,9 +176,16 @@
                                 <input type="password" name="contraseña" class="form-control" placeholder="Ingrese su contraseña" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-admin w-100 py-2 fw-semibold">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Ingresar
-                        </button>
+                        
+                        <!-- Botones en la misma fila: Volver + Ingresar -->
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-volver-login" onclick="volverSelector()">
+                                <i class="bi bi-arrow-left me-1"></i>Volver
+                            </button>
+                            <button type="submit" class="btn btn-admin flex-grow-1 py-2 fw-semibold">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Ingresar
+                            </button>
+                        </div>
                     </form>
                     
                     <div class="text-center mt-3">
