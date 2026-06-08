@@ -1,40 +1,14 @@
 # Entorno virtual
-venv/
 env/
-env.bak/
-venv.bak/
+venv/
 .venv/
 
 # Python
 __pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-.Python
 *.pyc
 
 # Django
-*.log
-local_settings.py
 db.sqlite3
-db.sqlite3-journal
-media/
-staticfiles/
-
-# PostgreSQL
-*.pgdump
 
 # Variables de entorno
 .env
-*.env
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Sistema
-.DS_Store
-Thumbs.db
