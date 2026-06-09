@@ -1,385 +1,179 @@
-/* ==========================================
-   PORTAL ESTUDIANTE - CRAI UNEMI
-   Diseño elegante con sidebar
-   ========================================== */
-
-/* Layout principal */
-.estudiante-layout {
-    display: flex;
+.portal-container {
     min-height: 100vh;
-    background: #f5f6fa;
-}
-
-/* ==========================================
-   SIDEBAR
-   ========================================== */
-.estudiante-sidebar {
-    width: 240px;
-    background: #fff;
-    border-right: 1px solid #eef0f5;
     display: flex;
     flex-direction: column;
-    padding: 1.5rem 0;
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    z-index: 100;
-}
-
-.sidebar-logo {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0 1.5rem 1.5rem;
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--primario);
-    border-bottom: 1px solid #eef0f5;
-    margin-bottom: 1rem;
-}
-
-.sidebar-logo i {
-    font-size: 1.5rem;
-}
-
-.sidebar-nav {
-    flex: 1;
-    padding: 0 0.75rem;
-}
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.7rem 0.75rem;
-    border-radius: 10px;
-    color: #5a5f6e;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s;
-    margin-bottom: 0.2rem;
-}
-
-.nav-item:hover {
     background: #f5f6fa;
-    color: var(--primario);
 }
 
-.nav-item.active {
-    background: #eef1ff;
-    color: var(--primario);
-    font-weight: 600;
+.navbar-portal {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
 }
 
-.nav-item i {
-    font-size: 1.1rem;
-    width: 22px;
-    text-align: center;
+.navbar-portal .navbar-toggler-icon {
+    filter: brightness(0) invert(1);
 }
 
-/* Footer del sidebar */
-.sidebar-footer {
-    padding: 1rem 1.5rem 0;
-    border-top: 1px solid #eef0f5;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.usuario-mini {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-}
-
-.usuario-avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    background: var(--primario);
-    color: white;
+.avatar-portal {
+    width: 32px;
+    height: 32px;
+    background: #ff6f00;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
+    color: white;
     font-size: 0.8rem;
+    font-weight: bold;
 }
 
-.usuario-info strong {
-    display: block;
-    font-size: 0.8rem;
-    line-height: 1.2;
-}
-
-.usuario-info small {
-    font-size: 0.7rem;
-    color: #999;
-}
-
-.btn-salir {
-    color: #ccc;
-    font-size: 1.2rem;
-    transition: color 0.2s;
-    text-decoration: none;
-}
-
-.btn-salir:hover {
-    color: var(--error);
-}
-
-/* ==========================================
-   CONTENIDO PRINCIPAL
-   ========================================== */
-.estudiante-main {
+.portal-main {
     flex: 1;
-    margin-left: 240px;
-    padding: 1.5rem 2rem;
+    padding-bottom: 2rem;
 }
 
-/* Header */
-.estudiante-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.badge-disponibles {
+.saludo-container {
     background: #fff;
-    border: 1px solid #e0e0e0;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    color: #666;
-}
-
-/* ==========================================
-   MÓDULOS (CARDS)
-   ========================================== */
-.estudiante-content {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-.modulos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem;
+    padding: 1.5rem;
+    border-radius: 0.8rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border-left: 4px solid #1a237e;
 }
 
 .modulo-card {
     background: #fff;
-    border-radius: 16px;
+    border-radius: 0.8rem;
     padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    text-decoration: none;
-    color: inherit;
-    border: 1px solid #eef0f5;
-    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 2px solid transparent;
+    transition: all 0.3s;
     cursor: pointer;
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
 .modulo-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    border-color: #1a237e;
 }
 
-.card-reservar:hover {
-    border-color: #4a7cff;
+.modulo-crai {
+    border: 2px solid #0066cc;
+    background: linear-gradient(135deg, #f0f6ff 0%, #e8f0fe 100%);
 }
 
-.card-reservas:hover {
-    border-color: #34a853;
+.modulo-crai:hover {
+    border-color: #0066cc;
+    background: linear-gradient(135deg, #e8f0fe 0%, #d0e0ff 100%);
+    box-shadow: 0 8px 25px rgba(0,102,204,0.2);
 }
 
-.card-soporte:hover {
-    border-color: #ff9800;
+.modulo-crai .modulo-icono {
+    background: #0066cc;
+    color: white;
 }
 
-.card-icono {
-    width: 52px;
-    height: 52px;
+.modulo-inactivo {
+    cursor: default;
+}
+
+.modulo-inactivo:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-color: transparent;
+}
+
+.modulo-icono {
+    width: 55px;
+    height: 55px;
     border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
-    flex-shrink: 0;
+    font-size: 1.5rem;
+    margin-bottom: 0.8rem;
+    background: #e9ecef;
+    color: #6c757d;
 }
 
-.bg-azul { background: #e8f0fe; color: #4a7cff; }
-.bg-verde { background: #e6f4ea; color: #34a853; }
-.bg-naranja { background: #fff3e0; color: #ff9800; }
-
-.card-contenido {
+.modulo-info {
     flex: 1;
 }
 
-.card-contenido h5 {
-    font-size: 0.95rem;
+.modulo-titulo {
+    font-size: 0.9rem;
     font-weight: 600;
-    margin-bottom: 0.2rem;
+    color: #212529;
+    margin-bottom: 0.3rem;
 }
 
-.card-contenido p {
-    font-size: 0.8rem;
-    color: #888;
-    margin: 0;
-    line-height: 1.4;
+.modulo-descripcion {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 0;
+    line-height: 1.3;
 }
 
-.card-flecha {
-    color: #ccc;
+.modulo-flecha {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    color: #0066cc;
     font-size: 1.2rem;
-    transition: all 0.3s;
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
-.modulo-card:hover .card-flecha {
-    color: var(--primario);
-    transform: translateX(4px);
+.modulo-crai:hover .modulo-flecha {
+    opacity: 1;
 }
 
-/* ==========================================
-   ACTIVIDAD RECIENTE
-   ========================================== */
-.actividad-reciente {
+.modulo-badge {
+    margin-top: 0.5rem;
+}
+
+.modulo-badge .badge {
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.portal-footer {
     background: #fff;
-    border-radius: 16px;
-    padding: 1.5rem;
-    border: 1px solid #eef0f5;
-}
-
-.actividad-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+    border-top: 1px solid #e0e0e0;
     padding: 0.8rem 0;
-    border-bottom: 1px solid #f5f5f5;
+    margin-top: auto;
 }
 
-.actividad-item:last-child {
-    border-bottom: none;
-}
-
-.actividad-icono {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    flex-shrink: 0;
-}
-
-.bg-azul-claro { background: #e8f0fe; color: #4a7cff; }
-.bg-verde-claro { background: #e6f4ea; color: #34a853; }
-.bg-rojo-claro { background: #fdecea; color: #ea4335; }
-
-.actividad-info {
-    flex: 1;
-}
-
-.actividad-info strong {
-    display: block;
-    font-size: 0.85rem;
-}
-
-.actividad-info small {
-    color: #999;
+.texto-footer {
+    color: #adb5bd;
     font-size: 0.75rem;
 }
 
-.actividad-fecha {
-    font-size: 0.75rem;
-    color: #bbb;
+.texto-oscuro {
+    color: #212529;
 }
 
-/* ==========================================
-   RESPONSIVE
-   ========================================== */
-@media (max-width: 991.98px) {
-    .estudiante-sidebar {
-        width: 70px;
-        padding: 1rem 0;
-    }
-    
-    .sidebar-logo span,
-    .nav-item span,
-    .usuario-info,
-    .sidebar-footer .btn-salir {
-        display: none;
-    }
-    
-    .sidebar-logo {
-        justify-content: center;
-        padding: 0 0 1rem;
-    }
-    
-    .nav-item {
-        justify-content: center;
-        padding: 0.7rem;
-    }
-    
-    .nav-item i {
-        margin: 0;
-    }
-    
-    .sidebar-footer {
-        justify-content: center;
-    }
-    
-    .estudiante-main {
-        margin-left: 70px;
-        padding: 1rem;
-    }
+.texto-gris {
+    color: #6c757d;
 }
 
-@media (max-width: 576px) {
-    .estudiante-sidebar {
-        width: 100%;
-        height: auto;
-        position: fixed;
-        bottom: 0;
-        top: auto;
-        flex-direction: row;
-        padding: 0.5rem;
-        border-right: none;
-        border-top: 1px solid #eef0f5;
-    }
-    
-    .sidebar-logo,
-    .sidebar-footer {
-        display: none;
-    }
-    
-    .sidebar-nav {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-        width: 100%;
-        padding: 0;
-    }
-    
-    .nav-item {
-        flex-direction: column;
-        gap: 0.2rem;
-        font-size: 0.7rem;
-        padding: 0.5rem;
-    }
-    
-    .estudiante-main {
-        margin-left: 0;
-        margin-bottom: 60px;
+@media (max-width: 768px) {
+    .modulo-card {
         padding: 1rem;
     }
     
-    .modulos-grid {
-        grid-template-columns: 1fr;
+    .modulo-icono {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+    }
+    
+    .saludo-container h3 {
+        font-size: 1.1rem;
     }
 }

@@ -3,6 +3,7 @@
 {% load static %}
 
 {% block estilos_extra %}
+<link href="{% static 'css/base.css' %}" rel="stylesheet">
 <link href="{% static 'css/portal.css' %}" rel="stylesheet">
 {% endblock %}
 
@@ -66,7 +67,7 @@
             
             <div class="row g-3">
                 
-                <!-- Módulo: Mundo CRAI (ÚNICO visible) -->
+                <!-- Módulo: Mundo CRAI -->
                 <div class="col-sm-6 col-lg-4 col-xl-3">
                     <a href="{% url 'prestamos:dashboard' %}" class="text-decoration-none">
                         <div class="modulo-card modulo-crai">
@@ -86,6 +87,7 @@
                     </a>
                 </div>
 
+                <!-- Módulo inactivo -->
                 <div class="col-sm-6 col-lg-4 col-xl-3">
                     <div class="modulo-card modulo-inactivo opacity-50">
                         <div class="modulo-icono">
@@ -100,6 +102,10 @@
                         </div>
                     </div>
                 </div>
+                
+            </div><!-- Cierre de row -->
+            
+        </div><!-- Cierre de container -->
     </main>
 
     <!-- Footer -->
