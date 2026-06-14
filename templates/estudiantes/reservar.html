@@ -11,7 +11,6 @@
 {% block contenido %}
 <div class="reservar-layout">
     
-    <!-- Navbar superior -->
     <nav class="reservar-navbar">
         <a href="{% url 'estudiantes:portal_estudiante' %}" class="btn-volver">
             <i class="bi bi-arrow-left"></i>
@@ -20,132 +19,142 @@
         <div class="navbar-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
     </nav>
     
-    <!-- Contenido principal -->
     <div class="reservar-contenido">
         
-        <!-- Columna izquierda: Formulario -->
         <div class="reservar-formulario">
             
-            <!-- Progreso visual -->
             <div class="pasos-indicador">
-                <div class="paso activo">
-                    <div class="paso-circulo">1</div>
-                    <span>Duración</span>
-                </div>
+                <div class="paso activo"><div class="paso-circulo">1</div><span>Fecha</span></div>
                 <div class="paso-linea"></div>
-                <div class="paso">
-                    <div class="paso-circulo">2</div>
-                    <span>Motivo</span>
-                </div>
+                <div class="paso"><div class="paso-circulo">2</div><span>Hora</span></div>
                 <div class="paso-linea"></div>
-                <div class="paso">
-                    <div class="paso-circulo">3</div>
-                    <span>Confirmar</span>
-                </div>
+                <div class="paso"><div class="paso-circulo">3</div><span>Confirmar</span></div>
             </div>
             
-            <!-- Card del formulario -->
             <div class="formulario-card">
                 
-                <!-- Info del equipo disponible -->
                 <div class="equipo-preview">
-                    <div class="equipo-icono">
-                        <i class="bi bi-laptop"></i>
-                    </div>
+                    <div class="equipo-icono"><i class="bi bi-laptop"></i></div>
                     <div class="equipo-info">
                         <strong>Se te asignará un Chromebook disponible</strong>
-                        <small>12 equipos libres en este momento</small>
+                        <small>
+                            <span id="disponiblesTexto">{{ disponibles }} equipos libres</span> de {{ total_chromebooks }} en total
+                        </small>
                     </div>
-                    <span class="equipo-badge">Disponible</span>
+                                        <span class="equipo-badge">Disponible</span>
                 </div>
                 
-                <!-- Mensajes -->
                 {% if messages %}
                     {% for message in messages %}
                         <div class="alert alert-success alert-sm">{{ message }}</div>
                     {% endfor %}
                 {% endif %}
                 
-                <!-- Formulario -->
-                <form method="POST">
+                <form method="POST" id="formReserva" onsubmit="enviarReserva(event)">
                     {% csrf_token %}
                     
-                    <!-- Duración -->
-                    <div class="campo-grupo">
-                        <label class="campo-label">
-                            <i class="bi bi-clock me-2"></i>Duración del préstamo
+                    <!-- FECHA -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">
+                            <i class="bi bi-calendar3 me-1"></i>Fecha de Uso
                         </label>
+                        <div class="fecha-selector">
+                            <button type="button" class="btn-fecha activo" onclick="seleccionarFecha('hoy')">Hoy</button>
+                            <button type="button" class="btn-fecha" onclick="seleccionarFecha('manana')">Mañana</button>
+                            <input type="date" id="fechaManual" name="fecha_uso" class="input-fecha" onchange="fechaManualSeleccionada()">
+                        </div>
+                        <input type="hidden" id="fechaSeleccionada" name="fecha_uso" value="">
+                    </div>
+                    
+                    <!-- HORA -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">
+                            <i class="bi bi-clock me-1"></i>Hora de Inicio
+                        </label>
+                        <div class="hora-selector" id="horaSelector">
+                            <button type="button" class="btn-hora activo" onclick="seleccionarHora('08:00')">08:00</button>
+                            <button type="button" class="btn-hora" onclick="seleccionarHora('09:00')">09:00</button>
+                            <button type="button" class="btn-hora" onclick="seleccionarHora('10:00')">10:00</button>
+                            <button type="button" class="btn-hora" onclick="seleccionarHora('11:00')">11:00</button>
+                            <button type="button" class="btn-hora" onclick="seleccionarHora('12:00')">12:00</button>
+                            <button type="button" class="btn-hora" onclick="seleccionarHora('14:00')">14:00</button>
+                            <button type="button" class="btn-hora" onclick="seleccionarHora('15:00')">15:00</button>
+                            <button type="button" class="btn-hora" onclick="seleccionarHora('16:00')">16:00</button>
+                        </div>
+                        <input type="hidden" id="horaSeleccionada" name="hora_inicio" value="08:00">
+                    </div>
+                    
+                    <!-- DURACIÓN -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Duración del préstamo</label>
                         <div class="duracion-opciones">
                             <label class="duracion-option">
                                 <input type="radio" name="duracion" value="2" class="duracion-radio">
-                                <div class="duracion-card">
-                                    <span class="duracion-numero">2</span>
-                                    <span class="duracion-texto">Horas</span>
-                                </div>
+                                <div class="duracion-card"><span class="duracion-numero">2</span><span class="duracion-texto">Horas</span></div>
                             </label>
                             <label class="duracion-option">
                                 <input type="radio" name="duracion" value="4" class="duracion-radio" checked>
-                                <div class="duracion-card activo">
-                                    <span class="duracion-numero">4</span>
-                                    <span class="duracion-texto">Horas</span>
-                                </div>
+                                <div class="duracion-card activo"><span class="duracion-numero">4</span><span class="duracion-texto">Horas</span></div>
                             </label>
                             <label class="duracion-option">
                                 <input type="radio" name="duracion" value="8" class="duracion-radio">
-                                <div class="duracion-card">
-                                    <span class="duracion-numero">8</span>
-                                    <span class="duracion-texto">Horas</span>
-                                </div>
+                                <div class="duracion-card"><span class="duracion-numero">8</span><span class="duracion-texto">Horas</span></div>
                             </label>
                         </div>
                     </div>
                     
-                    <!-- Motivo -->
-                    <div class="campo-grupo">
-                        <label class="campo-label">
-                            <i class="bi bi-pencil me-2"></i>Motivo de la reserva
-                        </label>
-                        <textarea class="campo-textarea" rows="3" placeholder="Ej: Clase de Programación Avanzada, Investigación de tesis, Proyecto final..."></textarea>
+                    <!-- MOTIVO -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Motivo</label>
+                        <textarea class="form-control" name="motivo" rows="2" placeholder="Ej: Clase de Programación, Investigación..."></textarea>
                     </div>
                     
-                    <!-- Botón -->
-                    <button type="submit" class="btn-reservar-submit">
+                    <button type="submit" class="btn btn-reservar-submit w-100 py-2 fw-semibold" id="btnSubmitReserva">
                         <i class="bi bi-send me-2"></i>Solicitar Reserva
                     </button>
                 </form>
+                
+                <!-- Loader -->
+                <div id="loaderReserva" style="display: none; text-align: center; padding: 2rem 0;">
+                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                    <h6 class="fw-bold">Enviando solicitud...</h6>
+                    <small class="text-muted">Estamos procesando tu reserva</small>
+                </div>
+                
+                <!-- Confirmación -->
+                <div id="confirmacionReserva" style="display: none; text-align: center;">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                    <h5 class="fw-bold mt-2">¡Reserva Exitosa!</h5>
+                    <p class="text-muted small">Tu código de verificación es:</p>
+                    <div class="codigo-display" id="codigoConfirmacion" style="margin: 1rem auto; max-width: 300px;">------</div>
+                    <p class="text-muted small">Preséntalo en el CRAI para retirar tu equipo</p>
+                    <div class="d-flex gap-2 mt-3 justify-content-center">
+                        <a href="{% url 'estudiantes:mis_reservas' %}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-list-check me-1"></i>Ir a Mis Reservas
+                        </a>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="nuevaReserva()">
+                            <i class="bi bi-plus-circle me-1"></i>Nueva Reserva
+                        </button>
+                    </div>
+                </div>
+                
             </div>
         </div>
         
-        <!-- Columna derecha: Info y código -->
         <div class="reservar-sidebar">
-            
-            <!-- Info de disponibilidad -->
             <div class="info-card">
                 <h6><i class="bi bi-info-circle me-2"></i>Información</h6>
                 <ul class="info-lista">
-                    <li><i class="bi bi-check-circle text-success me-2"></i>12 equipos disponibles</li>
+                    <li><i class="bi bi-check-circle text-success me-2"></i>{{ disponibles }} equipos disponibles</li>
                     <li><i class="bi bi-clock me-2"></i>Préstamo máximo: 8 horas</li>
                     <li><i class="bi bi-building me-2"></i>Retiro en CRAI, Planta Baja</li>
                     <li><i class="bi bi-person-badge me-2"></i>Presentar credencial y código</li>
                 </ul>
             </div>
-            
-            <!-- Código de verificación (si ya reservó) -->
-            {% if codigo %}
-            <div class="codigo-card">
-                <h6><i class="bi bi-shield-check me-2"></i>Código de Verificación</h6>
-                <div class="codigo-display">{{ codigo }}</div>
-                <p class="codigo-instruccion">Muestra este código al recepcionista</p>
-                <p class="codigo-email">📧 También enviado a tu correo institucional</p>
-            </div>
-            {% endif %}
-            
-            <!-- Ilustración decorativa -->
             <div class="ilustracion-card">
                 <i class="bi bi-laptop ilustracion-icono"></i>
                 <p class="ilustracion-texto">Retira tu equipo y disfruta de tu sesión de trabajo</p>
             </div>
-            
         </div>
         
     </div>

@@ -37,10 +37,9 @@
             </div>
             <div class="disponibilidad-badge">
                 <span class="punto-verde"></span>
-                12 Chromebooks disponibles
+                {{ disponibles }} Chromebooks disponibles
             </div>
         </div>
-        
         <!-- Cards de acciones -->
         <div class="acciones-grid">
             
@@ -78,7 +77,7 @@
                     <i class="bi bi-headset"></i>
                 </div>
                 <div class="accion-info">
-                    <h4>Soporte</h4>
+                    <h4>Soporte Chatbot IA</h4>
                     <p>Contacta al equipo del CRAI</p>
                 </div>
                 <div class="accion-flecha">
@@ -95,23 +94,27 @@
             </h5>
             
             <div class="actividad-lista">
-                <div class="actividad-item">
-                    <div class="actividad-dot activo"></div>
-                    <div>
-                        <strong>CB-015</strong> - HP Chromebook 11 G8
-                        <br><small class="text-muted">Préstamo activo • Vence hoy 18:00</small>
+                {% if actividad %}
+                    {% for item in actividad %}
+                    <div class="actividad-item">
+                        <div class="actividad-dot {{ item.dot }}"></div>
+                        <div>
+                            <strong>{{ item.codigo }}</strong> - {{ item.equipo }}
+                            <br><small class="text-muted">{{ item.estado }} • {{ item.fecha|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        <span class="actividad-badge {{ item.badge }}">{{ item.estado }}</span>
                     </div>
-                    <span class="actividad-badge bg-success">Activo</span>
-                </div>
-                
-                <div class="actividad-item">
-                    <div class="actividad-dot devuelto"></div>
-                    <div>
-                        <strong>CB-022</strong> - Lenovo 100e
-                        <br><small class="text-muted">Devuelto ayer • A tiempo</small>
+                    {% endfor %}
+                {% else %}
+                    <div class="actividad-item">
+                        <div class="actividad-dot"></div>
+                        <div>
+                            <strong>Sin actividad</strong>
+                            <br><small class="text-muted">Aún no tienes préstamos ni reservas</small>
+                        </div>
+                        <span class="actividad-badge bg-light text-muted">Nuevo</span>
                     </div>
-                    <span class="actividad-badge bg-secondary">Devuelto</span>
-                </div>
+                {% endif %}
             </div>
         </div>
         

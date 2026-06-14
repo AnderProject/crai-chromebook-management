@@ -2,6 +2,91 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+# ==========================================
+# TABLAS CATÁLOGO (NUEVAS)
+# ==========================================
+
+class Facultad(models.Model):
+    """Facultades de la UNEMI"""
+    nombre = models.CharField(max_length=150, unique=True, verbose_name='Nombre de Facultad')
+    
+    class Meta:
+        db_table = 'tb_facultad'
+        verbose_name = 'Facultad'
+        verbose_name_plural = 'Facultades'
+        ordering = ['nombre']
+    
+    def __str__(self):
+        return self.nombre
+
+
+class Carrera(models.Model):
+    """Carreras universitarias"""
+    facultad = models.ForeignKey(Facultad, on_delete=models.CASCADE, related_name='carreras')
+    nombre = models.CharField(max_length=150, unique=True, verbose_name='Nombre de Carrera')
+    
+    class Meta:
+        db_table = 'tb_carrera'
+        verbose_name = 'Carrera'
+        verbose_name_plural = 'Carreras'
+        ordering = ['nombre']
+    
+    def __str__(self):
+        return self.nombre
+
+
+class TipoUsuario(models.Model):
+    """Roles del sistema"""
+    nombre = models.CharField(max_length=50, unique=True, verbose_name='Nombre del Rol')
+    
+    class Meta:
+        db_table = 'tb_tipo_usuario'
+        verbose_name = 'Tipo de Usuario'
+        verbose_name_plural = 'Tipos de Usuario'
+    
+    def __str__(self):
+        return self.nombre
+
+
+# ==========================================
+# TABLAS DE USUARIOS (NUEVAS)
+# ==========================================
+
+class Usuario(models.Model):
+    """Usuarios del sistema (extiende User de Django)"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
+    tipo_usuario = models.ForeignKey(TipoUsuario, on_delete=models.PROTECT, verbose_name='Tipo de Usuario')
+    cedula = models.CharField(max_length=10, unique=True, verbose_name='Cédula')
+    telefono = models.CharField(max_length=10, blank=True, null=True, verbose_name='Teléfono')
+    
+    class Meta:
+        db_table = 'tb_usuario'
+        verbose_name = 'Usuario'
+        verbose_name_plural = 'Usuarios'
+    
+    def __str__(self):
+        return self.user.get_full_name() or self.user.username
+
+
+class Estudiante(models.Model):
+    """Datos adicionales de estudiantes"""
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='estudiante')
+    carrera = models.ForeignKey(Carrera, on_delete=models.PROTECT, related_name='estudiantes')
+    semestre = models.IntegerField(verbose_name='Semestre')
+    
+    class Meta:
+        db_table = 'tb_estudiante'
+        verbose_name = 'Estudiante'
+        verbose_name_plural = 'Estudiantes'
+    
+    def __str__(self):
+        return f'{self.usuario} - {self.carrera}'
+
+
+# ==========================================
+# CHROMEBOOK (SE MANTIENE IGUAL)
+# ==========================================
+
 class Chromebook(models.Model):
     """Inventario de Chromebooks"""
     
@@ -38,6 +123,53 @@ class Chromebook(models.Model):
         return f'{self.codigo} - {self.marca} {self.modelo}'
 
 
+# ==========================================
+# RESERVA (NUEVA)
+# ==========================================
+
+class Reserva(models.Model):
+    """Reservas de Chromebooks"""
+    ESTADOS = [
+        ('pendiente', 'Pendiente'),
+        ('confirmada', 'Confirmada'),
+        ('cancelada', 'Cancelada'),
+        ('completada', 'Completada'),
+    ]
+    
+    estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='reservas')
+    carrera = models.ForeignKey(Carrera, on_delete=models.PROTECT)
+    fecha_uso = models.DateField(verbose_name='Fecha de Uso')
+    hora_inicio = models.TimeField(verbose_name='Hora de Inicio')
+    hora_fin = models.TimeField(verbose_name='Hora de Fin')
+    cantidad_solicitada = models.IntegerField(default=1, verbose_name='Cantidad Solicitada')
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente', verbose_name='Estado')
+    motivo = models.TextField(blank=True, null=True, verbose_name='Motivo')
+    codigo_verificacion = models.CharField(max_length=6, unique=True, verbose_name='Código de Verificación')
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    def calcular_duracion(self):
+        """Calcula la duración en horas entre hora_inicio y hora_fin"""
+        from datetime import datetime, timedelta
+        inicio = datetime.combine(self.fecha_uso, self.hora_inicio)
+        fin = datetime.combine(self.fecha_uso, self.hora_fin)
+        duracion = fin - inicio
+        return int(duracion.total_seconds() / 3600)
+    
+    class Meta:
+        db_table = 'tb_reserva'
+        verbose_name = 'Reserva'
+        verbose_name_plural = 'Reservas'
+        ordering = ['-creado']
+    
+    def __str__(self):
+        return f'Reserva #{self.id} - {self.estudiante}'
+
+
+# ==========================================
+# PRÉSTAMO (SE MANTIENE TU ESTRUCTURA)
+# ==========================================
+
 class Prestamo(models.Model):
     """Registro de préstamos"""
     
@@ -49,14 +181,20 @@ class Prestamo(models.Model):
     
     estudiante = models.ForeignKey(User, on_delete=models.CASCADE)
     chromebook = models.ForeignKey(Chromebook, on_delete=models.CASCADE)
+    reserva = models.ForeignKey(Reserva, on_delete=models.SET_NULL, null=True, blank=True, related_name='prestamos')
     fecha_prestamo = models.DateTimeField(auto_now_add=True)
     fecha_devolucion = models.DateTimeField()
     fecha_devuelto = models.DateTimeField(null=True, blank=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='activo')
     duracion_horas = models.IntegerField(default=4)
+    codigo_verificacion = models.CharField(max_length=6, blank=True, null=True)
     notas = models.TextField(blank=True, null=True)
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
+
+    qr_token = models.CharField(max_length=36, unique=True, null=True, blank=True)
+    qr_tipo = models.CharField(max_length=20, null=True, blank=True)
+    qr_expiracion = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'Préstamo'
@@ -65,3 +203,113 @@ class Prestamo(models.Model):
 
     def __str__(self):
         return f'Préstamo #{self.id} - {self.estudiante.username}'
+
+
+# ==========================================
+# TABLAS DE SOPORTE (NUEVAS)
+# ==========================================
+
+class Evidencia(models.Model):
+    """Fotos de entrega/devolución"""
+    TIPOS = [
+        ('entrega', 'Entrega'),
+        ('devolucion', 'Devolución'),
+        ('incidencia', 'Incidencia'),
+    ]
+    
+    prestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE, related_name='evidencias')
+    tipo = models.CharField(max_length=20, choices=TIPOS, verbose_name='Tipo de Evidencia')
+    foto = models.ImageField(upload_to='evidencias/', blank=True, null=True, verbose_name='Foto')
+    descripcion = models.TextField(blank=True, null=True, verbose_name='Descripción')
+    fecha_subida = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Subida')
+    
+    class Meta:
+        db_table = 'tb_evidencia'
+        verbose_name = 'Evidencia'
+        verbose_name_plural = 'Evidencias'
+    
+    def __str__(self):
+        return f'Evidencia #{self.id} - {self.tipo}'
+
+
+class Mantenimiento(models.Model):
+    """Registro de mantenimientos"""
+    TIPOS = [
+        ('preventivo', 'Preventivo'),
+        ('correctivo', 'Correctivo'),
+    ]
+    
+    ESTADOS = [
+        ('en_proceso', 'En proceso'),
+        ('finalizado', 'Finalizado'),
+    ]
+    
+    chromebook = models.ForeignKey(Chromebook, on_delete=models.CASCADE, related_name='mantenimientos')
+    tipo = models.CharField(max_length=20, choices=TIPOS, verbose_name='Tipo')
+    descripcion_problema = models.TextField(blank=True, null=True)
+    descripcion_solucion = models.TextField(blank=True, null=True)
+    tecnico = models.CharField(max_length=150, blank=True, null=True)
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField(null=True, blank=True)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='en_proceso')
+    
+    class Meta:
+        db_table = 'tb_mantenimiento'
+        verbose_name = 'Mantenimiento'
+        verbose_name_plural = 'Mantenimientos'
+        ordering = ['-fecha_inicio']
+    
+    def __str__(self):
+        return f'Mantenimiento #{self.id} - {self.chromebook}'
+
+
+class Notificacion(models.Model):
+    """Notificaciones del sistema"""
+    TIPOS = [
+        ('prestamo', 'Préstamo'),
+        ('vencimiento', 'Vencimiento'),
+        ('reserva', 'Reserva'),
+        ('general', 'General'),
+    ]
+    
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notificaciones')
+    titulo = models.CharField(max_length=200)
+    mensaje = models.TextField()
+    tipo = models.CharField(max_length=20, choices=TIPOS, default='general')
+    leida = models.BooleanField(default=False)
+    fecha_envio = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'tb_notificacion'
+        verbose_name = 'Notificación'
+        verbose_name_plural = 'Notificaciones'
+        ordering = ['-fecha_envio']
+    
+    def __str__(self):
+        return f'{self.tipo} - {self.titulo}'
+
+
+class ChatbotConversacion(models.Model):
+    """Historial del chatbot"""
+    CANALES = [
+        ('web', 'Web'),
+        ('whatsapp', 'WhatsApp'),
+    ]
+    
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='conversaciones', null=True, blank=True)
+    mensaje_usuario = models.TextField()
+    respuesta_bot = models.TextField(blank=True, null=True)
+    canal = models.CharField(max_length=20, choices=CANALES, default='web')
+    intencion_detectada = models.CharField(max_length=50, blank=True, null=True)
+    fecha_interaccion = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'tb_chatbot_conversacion'
+        verbose_name = 'Conversación del Chatbot'
+        verbose_name_plural = 'Conversaciones del Chatbot'
+        ordering = ['-fecha_interaccion']
+    
+    def __str__(self):
+        return f'Chat #{self.id} - {self.canal}'
+    
+

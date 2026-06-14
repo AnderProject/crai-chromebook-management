@@ -1,0 +1,58 @@
+/* ==========================================
+   ANIMACIONES PARA INVENTARIO DE CHROMEBOOKS
+   ========================================== */
+
+/* Cards de estadísticas */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-warning,
+.card.bg-danger {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.card.bg-primary:hover,
+.card.bg-success:hover,
+.card.bg-warning:hover,
+.card.bg-danger:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* Números en cards */
+.card h3 {
+    transition: all 0.3s ease;
+}
+
+.card:hover h3 {
+    transform: scale(1.15);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Filas de la tabla */
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background: #f0f4ff !important;
+    transform: scale(1.005);
+}
+
+/* Badges */
+.badge {
+    transition: all 0.2s ease;
+}
+
+tr:hover .badge {
+    transform: scale(1.1);
+}
+
+/* Botones de acción */
+.btn-sm {
+    transition: all 0.2s ease;
+}
+
+.btn-sm:hover {
+    transform: scale(1.15);
+}

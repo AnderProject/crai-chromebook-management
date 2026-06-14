@@ -1,6 +1,6 @@
 /* ==========================================
    LOADER DE CARGA - CRAI UNEMI
-   Animación al iniciar sesión
+   Animación cinematográfica con letras enormes
    ========================================== */
 
 .crai-loader {
@@ -9,16 +9,22 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #0d47a1 100%);
+    background: linear-gradient(135deg, #0a0a2e 0%, #1a237e 40%, #0d47a1 70%, #0a0a2e 100%);
+    background-size: 400% 400%;
+    animation: fondoAnim 8s ease infinite;
     z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Estado oculto (se activa con JS) */
+@keyframes fondoAnim {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
 .crai-loader.oculto {
-    animation: loaderFadeOut 0.5s ease forwards;
+    animation: loaderFadeOut 0.6s ease forwards;
 }
 
 @keyframes loaderFadeOut {
@@ -34,139 +40,176 @@
 }
 
 /* ==========================================
-   LOGO
+   LOGO ENORME
    ========================================== */
 .loader-logo {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 1.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
+    width: 130px;
+    height: 130px;
+    margin: 0 auto 2rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: logoPulse 2s ease-in-out infinite;
+    animation: logoPulse 2.5s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.loader-logo::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+    animation: logoShine 3s ease-in-out infinite;
+}
+
+@keyframes logoShine {
+    0%, 100% { transform: translateX(-100%) rotate(45deg); }
+    50% { transform: translateX(100%) rotate(45deg); }
 }
 
 .loader-icono {
-    font-size: 2.5rem;
+    font-size: 4rem;
     color: white;
-    animation: logoFloat 2s ease-in-out infinite;
+    animation: logoFloat 2.5s ease-in-out infinite;
 }
 
 @keyframes logoPulse {
     0%, 100% {
         transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2);
     }
     50% {
-        transform: scale(1.06);
-        box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+        transform: scale(1.08);
+        box-shadow: 0 0 0 40px rgba(255, 255, 255, 0);
     }
 }
 
 @keyframes logoFloat {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-6px);
-    }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
 /* ==========================================
-   ONDAS DE CARGA
+   ONDAS DE CARGA - MÁS GRANDES
    ========================================== */
 .loader-ondas {
     position: relative;
-    width: 120px;
-    height: 4px;
-    margin: 0 auto 1.5rem;
+    width: 200px;
+    height: 5px;
+    margin: 0 auto 2.5rem;
 }
 
 .onda {
     position: absolute;
     width: 100%;
     height: 100%;
-    border-radius: 2px;
-    background: rgba(255, 255, 255, 0.3);
-    animation: ondaAnim 1.8s ease-in-out infinite;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.4);
+    animation: ondaAnim 2s ease-in-out infinite;
 }
 
-.onda-2 {
-    animation-delay: 0.2s;
-}
-
-.onda-3 {
-    animation-delay: 0.4s;
-}
+.onda-2 { animation-delay: 0.25s; }
+.onda-3 { animation-delay: 0.5s; }
 
 @keyframes ondaAnim {
-    0% {
-        transform: scaleX(0);
-        opacity: 1;
-        transform-origin: left;
-    }
-    50% {
-        transform: scaleX(1);
-        opacity: 0.8;
-        transform-origin: left;
-    }
-    50.1% {
-        transform: scaleX(1);
-        opacity: 0.8;
-        transform-origin: right;
-    }
-    100% {
-        transform: scaleX(0);
-        opacity: 1;
-        transform-origin: right;
-    }
+    0% { transform: scaleX(0); opacity: 1; transform-origin: left; }
+    50% { transform: scaleX(1); opacity: 0.6; transform-origin: left; }
+    50.1% { transform: scaleX(1); opacity: 0.6; transform-origin: right; }
+    100% { transform: scaleX(0); opacity: 1; transform-origin: right; }
 }
 
 /* ==========================================
-   TEXTO
+   TEXTO ENORME CON ANIMACIÓN DE ARMADO
    ========================================== */
 .loader-texto {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .loader-marca {
-    display: block;
-    font-size: 1.8rem;
-    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.loader-marca .letra {
+    display: inline-block;
+    font-size: 5rem;
+    font-weight: 900;
     color: white;
-    letter-spacing: 4px;
-    animation: fadeInText 0.5s ease 0.2s both;
+    letter-spacing: 8px;
+    text-shadow: 0 0 40px rgba(255,255,255,0.3), 0 4px 8px rgba(0,0,0,0.3);
+    animation: letraEntrada 0.6s ease both;
+    opacity: 0;
+    transform: translateY(30px) rotateX(-90deg);
+}
+
+.loader-marca .letra:nth-child(1) { animation-delay: 0.1s; }
+.loader-marca .letra:nth-child(2) { animation-delay: 0.2s; }
+.loader-marca .letra:nth-child(3) { animation-delay: 0.3s; }
+.loader-marca .letra:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes letraEntrada {
+    to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0deg);
+    }
 }
 
 .loader-unemi {
-    display: block;
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.7);
-    letter-spacing: 3px;
-    margin-top: 0.2rem;
-    animation: fadeInText 0.5s ease 0.4s both;
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
 }
 
-@keyframes fadeInText {
-    from {
-        opacity: 0;
-        transform: translateY(5px);
-    }
+.loader-unemi .letra-unemi {
+    display: inline-block;
+    font-size: 1.8rem;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    animation: letraUnemi 0.5s ease both;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.loader-unemi .letra-unemi:nth-child(1) { animation-delay: 0.5s; }
+.loader-unemi .letra-unemi:nth-child(2) { animation-delay: 0.55s; }
+.loader-unemi .letra-unemi:nth-child(3) { animation-delay: 0.6s; }
+.loader-unemi .letra-unemi:nth-child(4) { animation-delay: 0.65s; }
+.loader-unemi .letra-unemi:nth-child(5) { animation-delay: 0.7s; }
+
+@keyframes letraUnemi {
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
+/* ==========================================
+   CARGANDO
+   ========================================== */
 .loader-cargando {
     color: rgba(255, 255, 255, 0.8);
-    font-size: 0.85rem;
-    animation: fadeInText 0.5s ease 0.6s both;
+    font-size: 1.2rem;
+    font-weight: 300;
+    letter-spacing: 3px;
+    margin-top: 1rem;
+    animation: fadeInText 0.5s ease 1s both;
 }
 
-/* Puntos animados "..." */
+@keyframes fadeInText {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .loader-puntos::after {
     content: '';
     animation: puntosAnim 1.5s infinite;

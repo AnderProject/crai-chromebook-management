@@ -11,109 +11,120 @@
 {% block contenido %}
 <div class="reservas-layout">
     
-    <!-- Navbar -->
     <nav class="reservas-navbar">
-        <a href="{% url 'estudiantes:portal_estudiante' %}" class="btn-volver">
-            <i class="bi bi-arrow-left"></i>
-        </a>
+        <a href="{% url 'estudiantes:portal_estudiante' %}" class="btn-volver"><i class="bi bi-arrow-left"></i></a>
         <span class="navbar-titulo">Mis Reservas</span>
         <div class="navbar-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
     </nav>
     
-    <!-- Contenido centrado -->
     <div class="reservas-contenido">
         
         <!-- Stats -->
         <div class="stats-row">
             <div class="stat-item">
-                <span class="stat-numero">3</span>
-                <span class="stat-etiqueta">Total</span>
+                <div class="stat-icono bg-primary-light"><i class="bi bi-collection"></i></div>
+                <div class="stat-info"><span class="stat-numero">{{ total_reservas }}</span><span class="stat-etiqueta">Total</span></div>
             </div>
-            <div class="stat-item stat-activo">
-                <span class="stat-numero">1</span>
-                <span class="stat-etiqueta">Activo</span>
+            <div class="stat-item">
+                <div class="stat-icono bg-warning-light"><i class="bi bi-hourglass-split"></i></div>
+                <div class="stat-info"><span class="stat-numero">{{ activas }}</span><span class="stat-etiqueta">Pendientes</span></div>
             </div>
-            <div class="stat-item stat-devuelto">
-                <span class="stat-numero">1</span>
-                <span class="stat-etiqueta">Devuelto</span>
-            </div>
-            <div class="stat-item stat-vencido">
-                <span class="stat-numero">1</span>
-                <span class="stat-etiqueta">Vencido</span>
+            <div class="stat-item">
+                <div class="stat-icono bg-success-light"><i class="bi bi-check-circle"></i></div>
+                <div class="stat-info"><span class="stat-numero">{{ completadas }}</span><span class="stat-etiqueta">Completadas</span></div>
             </div>
         </div>
         
-        <!-- Reserva Activa -->
-        <div class="reserva-card estado-activo">
-            <div class="reserva-header">
-                <div class="reserva-codigo">
-                    <i class="bi bi-laptop"></i> CB-015
+        {% if reservas %}
+        <!-- GRID HORIZONTAL -->
+        <div class="reservas-grid" id="reservasGrid">
+            {% for r in reservas %}
+            <div class="reserva-card-compact 
+                {% if r.estado == 'pendiente' %}borde-pendiente
+                {% elif r.estado == 'confirmada' %}borde-activa
+                {% elif r.estado == 'completada' %}borde-completada
+                {% else %}borde-cancelada{% endif %}">
+                
+                <div class="card-top">
+                    <span class="card-id">#{{ r.id|stringformat:"04d" }}</span>
+                    <span class="card-estado-chip 
+                        {% if r.estado == 'pendiente' %}chip-pendiente
+                        {% elif r.estado == 'confirmada' %}chip-activa
+                        {% elif r.estado == 'completada' %}chip-completada
+                        {% else %}chip-cancelada{% endif %}">
+                        {{ r.estado|title }}
+                    </span>
                 </div>
-                <span class="estado-badge activo">Activo</span>
-            </div>
-            <div class="reserva-body">
-                <div>
-                    <p><strong>HP Chromebook 11 G8</strong></p>
-                    <div class="detalle-grid">
-                        <span><i class="bi bi-calendar"></i> 12/05/2025</span>
-                        <span><i class="bi bi-clock"></i> 4 horas</span>
-                        <span><i class="bi bi-hourglass-split"></i> Vence 18:00</span>
+                
+                <div class="card-body-compact">
+                    <div class="card-line"><i class="bi bi-calendar3"></i> {{ r.fecha_uso|date:"d/m/Y" }}</div>
+                    <div class="card-line"><i class="bi bi-clock"></i> {{ r.hora_inicio|time:"H:i" }} - {{ r.hora_fin|time:"H:i" }}</div>
+                    <div class="card-line"><i class="bi bi-hourglass-split"></i> {{ r.calcular_duracion }}h</div>
+                </div>
+                
+                {% if r.estado == 'pendiente' %}
+                <div class="card-footer-compact">
+                    <div class="footer-icono-grande pendiente-icon">
+                        <i class="bi bi-hourglass-split"></i>
+                        <span>En espera</span>
                     </div>
-                    <div class="codigo-mini">
-                        <span class="codigo-texto">482931</span>
-                        <small>Código de retiro</small>
+                    <span class="codigo-txt">{{ r.codigo_verificacion }}</span>
+                </div>
+                
+                {% elif r.estado == 'confirmada' %}
+                <div class="card-footer-compact">
+                    <div class="footer-icono-grande activa-icon">
+                        <i class="bi bi-laptop"></i>
+                        <span>En curso</span>
+                    </div>
+                    <div class="progreso-live" data-inicio="{{ r.hora_inicio|time:'H:i' }}" data-fin="{{ r.hora_fin|time:'H:i' }}">
+                        <div class="progreso-live-bar"><div class="progreso-live-fill" style="width: 0%;"></div></div>
+                        <span class="progreso-live-time">--</span>
                     </div>
                 </div>
-            </div>
-            <div class="reserva-footer">
-                <span class="progreso-texto">En curso</span>
-                <div class="progreso-barra">
-                    <div class="progreso-relleno" style="width: 60%;"></div>
+                
+                {% elif r.estado == 'completada' %}
+                <div class="card-footer-compact done">
+                    <div class="footer-icono-grande completada-icon">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Completada</span>
+                    </div>
                 </div>
+                
+                {% else %}
+                <div class="card-footer-compact done" style="color: #ea4335;">
+                    <div class="footer-icono-grande vencida-icon">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>Vencida</span>
+                    </div>
+                </div>
+                {% endif %}
+                
             </div>
+            {% endfor %}
         </div>
         
-        <!-- Reserva Devuelta -->
-        <div class="reserva-card estado-devuelto">
-            <div class="reserva-header">
-                <div class="reserva-codigo">
-                    <i class="bi bi-laptop"></i> CB-022
-                </div>
-                <span class="estado-badge devuelto">Devuelto</span>
-            </div>
-            <div class="reserva-body">
-                <div>
-                    <p><strong>Lenovo 100e Chromebook</strong></p>
-                    <div class="detalle-grid">
-                        <span><i class="bi bi-calendar"></i> 10/05/2025</span>
-                        <span><i class="bi bi-clock"></i> 2 horas</span>
-                        <span class="text-success"><i class="bi bi-check-circle"></i> A tiempo</span>
-                    </div>
-                </div>
-            </div>
+        <!-- Paginación -->
+        <div class="paginacion" id="paginacionReservas">
+            <button class="btn-pag" onclick="cambiarPagina('anterior')" id="btnAnterior"><i class="bi bi-chevron-left"></i></button>
+            <div class="pag-nums" id="paginasNumeros"></div>
+            <button class="btn-pag" onclick="cambiarPagina('siguiente')" id="btnSiguiente"><i class="bi bi-chevron-right"></i></button>
         </div>
         
-        <!-- Reserva Vencida -->
-        <div class="reserva-card estado-vencido">
-            <div class="reserva-header">
-                <div class="reserva-codigo">
-                    <i class="bi bi-laptop"></i> CB-008
-                </div>
-                <span class="estado-badge vencido">Vencido</span>
-            </div>
-            <div class="reserva-body">
-                <div>
-                    <p><strong>Dell Chromebook 3100</strong></p>
-                    <div class="detalle-grid">
-                        <span><i class="bi bi-calendar"></i> 08/05/2025</span>
-                        <span><i class="bi bi-clock"></i> 8 horas</span>
-                        <span class="text-danger"><i class="bi bi-exclamation-triangle"></i> No devuelto</span>
-                    </div>
-                </div>
-            </div>
+        {% else %}
+        <div class="estado-vacio">
+            <div class="vacio-icono"><i class="bi bi-inbox"></i></div>
+            <h5 class="fw-bold">No tienes reservas</h5>
+            <p class="text-muted">Realiza tu primera reserva de Chromebook</p>
+            <a href="{% url 'estudiantes:reservar' %}" class="btn btn-primary mt-3"><i class="bi bi-laptop me-2"></i>Reservar Ahora</a>
         </div>
+        {% endif %}
         
     </div>
     
 </div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/mis_reservas.js' %}"></script>
 {% endblock %}

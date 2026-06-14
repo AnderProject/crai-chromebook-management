@@ -108,7 +108,7 @@ def login_estudiante(request):
                     messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}! 🎓')
                     return redirect('estudiantes:portal_estudiante')
                 else:
-                    messages.error(request, 'Esta cuenta no es de estudiante. Usa el acceso de administrador.')
+                    messages.error(request, 'Credenciales Incorrectas.')
             else:
                 messages.error(request, 'Usuario o contraseña incorrectos.')
     
@@ -150,7 +150,7 @@ def login_administrador(request):
                     messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}! 🛡️')
                     return redirect('prestamos:portal')
                 else:
-                    messages.error(request, 'Esta cuenta no es de administrador. Usa el acceso de estudiante.')
+                    messages.error(request, 'Credenciales Incorrectas')
             else:
                 messages.error(request, 'Usuario o contraseña incorrectos.')
     
@@ -192,7 +192,7 @@ def recuperar_contraseña(request):
                 
                 send_mail(
                     'Recuperación de Contraseña - CRAI UNEMI',
-                    f'Para restablecer tu contraseña, haz clic aquí:\n\n{enlace}\n\nEste enlace expira en 24 horas.',
+                    f'Para restablecer tu contraseña, haz clic aquí:\n\n{enlace}\n\nEste enlace expira en 5 minutos.',
                     settings.DEFAULT_FROM_EMAIL,
                     [email],
                     fail_silently=False,

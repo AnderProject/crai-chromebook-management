@@ -12,7 +12,6 @@
 {% block contenido %}
 <div class="dashboard-container">
     
-    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dashboard sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand fw-bold text-white" href="{% url 'prestamos:dashboard' %}">
@@ -41,7 +40,6 @@
     <div class="container-fluid">
         <div class="row">
             
-            <!-- Sidebar -->
             <div class="col-md-3 col-lg-2 sidebar-dashboard collapse d-md-block">
                 <ul class="nav flex-column">
                     <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
@@ -57,45 +55,33 @@
                 </ul>
             </div>
 
-            <!-- Contenido principal -->
             <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
                 <div class="estudiantes-container">
                     
-                    <!-- Encabezado + Pestañas -->
                     <div class="estudiantes-header">
                         <div>
                             <h5 class="fw-bold mb-0"><i class="bi bi-people-fill me-2 text-primary"></i>Estudiantes</h5>
-                            <small class="text-muted">Directorio, monitoreo y registro</small>
+                            <small class="text-muted">Directorio y monitoreo</small>
                         </div>
-                        <button class="btn btn-primary btn-sm" onclick="mostrarRegistro()">
-                            <i class="bi bi-person-plus me-1"></i>Nuevo Estudiante
-                        </button>
                     </div>
                     
-                    <!-- Pestañas -->
                     <div class="estudiantes-tabs">
                         <button class="tab-btn active" onclick="cambiarTab('directorio')">📋 Directorio</button>
                         <button class="tab-btn" onclick="cambiarTab('monitoreo')">📊 Monitoreo</button>
-                        <button class="tab-btn" onclick="cambiarTab('registro')">📝 Registro</button>
                     </div>
                     
-                    <!-- Cards de resumen -->
                     <div class="estudiantes-stats">
                         <div class="stat-card">
                             <div class="stat-label">Total</div>
-                            <div class="stat-valor">245</div>
+                            <div class="stat-valor">{{ total_estudiantes }}</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">Activos hoy</div>
-                            <div class="stat-valor text-success">30</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Por devolver</div>
-                            <div class="stat-valor text-warning">8</div>
+                            <div class="stat-label">Con préstamo</div>
+                            <div class="stat-valor text-success">{{ estudiantes_activos }}</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-label">Vencidos</div>
-                            <div class="stat-valor text-danger">3</div>
+                            <div class="stat-valor text-danger">{{ vencidos }}</div>
                         </div>
                     </div>
                     
@@ -103,87 +89,77 @@
                     <div id="tab-directorio" class="tab-contenido">
                         <div class="input-group mb-3">
                             <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                            <input type="text" class="form-control" placeholder="Buscar por nombre, cédula o carrera...">
-                            <select class="form-select" style="max-width: 150px;">
-                                <option>Todos</option><option>Software</option><option>Industrial</option><option>Enfermería</option>
+                            <input type="text" class="form-control" placeholder="Buscar por nombre, cédula o carrera..." id="buscarEstudiante" onkeyup="filtrarEstudiantes()">
+                            <select class="form-select" style="max-width: 180px;" id="filtroCarrera" onchange="filtrarEstudiantes()">
+                                <option value="">Todas las carreras</option>
+                                {% for carrera in carreras %}
+                                <option value="{{ carrera.nombre }}">{{ carrera.nombre }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         
-                        {% for i in "12345678" %}
-                        <div class="estudiante-row" onclick="abrirPerfil('Anderson Merchán')">
-                            <div class="estudiante-info">
-                                <div class="avatar-sm bg-primary">AM</div>
-                                <div>
-                                    <strong class="small">Anderson Alexander Merchán Balcázar</strong>
-                                    <div class="small text-muted">0923456789 • Ing. Software • 6to Semestre</div>
+                        <div id="listaEstudiantes">
+                            {% for estudiante in estudiantes %}
+                            <div class="estudiante-row" data-nombre="{{ estudiante.usuario.user.get_full_name|lower }}" data-cedula="{{ estudiante.usuario.cedula }}" data-carrera="{{ estudiante.carrera.nombre|lower }}" onclick="abrirPerfil('{{ estudiante.id }}')">
+                                <div class="estudiante-info">
+                                    <div class="avatar-sm bg-primary">
+                                        {{ estudiante.usuario.user.first_name|first|upper }}{{ estudiante.usuario.user.last_name|first|upper }}
+                                    </div>
+                                    <div>
+                                        <strong class="small">{{ estudiante.usuario.user.get_full_name }}</strong>
+                                        <div class="small text-muted">
+                                            {{ estudiante.usuario.cedula }} • {{ estudiante.carrera.nombre }} • {{ estudiante.semestre }}to Semestre
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="estudiante-estado">
+                                    {% if estudiante.usuario.user.id in prestamos_activos_ids %}
+                                        <span class="small"><span class="estado-dot dot-verde"></span>Con préstamo</span>
+                                    {% else %}
+                                        <span class="small"><span class="estado-dot dot-gris"></span>Sin préstamo</span>
+                                    {% endif %}
+                                    <i class="bi bi-chevron-right text-muted"></i>
                                 </div>
                             </div>
-                            <div class="estudiante-estado">
-                                <span class="small"><span class="estado-dot dot-verde"></span>Con préstamo</span>
-                                <i class="bi bi-chevron-right text-muted"></i>
-                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-                        <div class="text-center text-muted small py-3">Mostrando 8 de 245 estudiantes</div>
+                        
+                        <div class="text-center text-muted small py-3">
+                            Mostrando {{ estudiantes|length }} de {{ total_estudiantes }} estudiantes
+                        </div>
                     </div>
                     
                     <!-- Tab 2: MONITOREO -->
                     <div id="tab-monitoreo" class="tab-contenido" style="display:none;">
                         <h6 class="fw-bold mb-2"><i class="bi bi-broadcast me-2 text-success"></i>Préstamos Activos</h6>
-                        <div class="estudiante-row border-start border-success border-3">
-                            <div><strong>Anderson Merchán</strong><br><small class="text-muted">CB-015 • Desde 08:00 • Dev: 12:00</small></div>
-                            <span class="badge bg-success">Activo</span>
-                        </div>
-                        
-                        <h6 class="fw-bold mb-2 mt-3"><i class="bi bi-hourglass-split me-2 text-warning"></i>Próximos a Vencer</h6>
-                        <div class="estudiante-row border-start border-warning border-3">
-                            <div><strong>Lady Loaiza</strong><br><small class="text-muted">CB-022 • Desde 09:30 • Dev: 13:30</small></div>
-                            <span class="badge bg-warning text-dark">Próximo</span>
-                        </div>
+                        {% if prestamos_activos_lista %}
+                            {% for p in prestamos_activos_lista %}
+                            <div class="estudiante-row border-start border-success border-3">
+                                <div>
+                                    <strong>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong>
+                                    <br><small class="text-muted">{{ p.chromebook.codigo }} • Desde {{ p.fecha_prestamo|date:"d/m/Y H:i" }} • Dev: {{ p.fecha_devolucion|date:"H:i" }}</small>
+                                </div>
+                                <span class="badge bg-success">Activo</span>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted small py-2">No hay préstamos activos</div>
+                        {% endif %}
                         
                         <h6 class="fw-bold mb-2 mt-3"><i class="bi bi-exclamation-triangle me-2 text-danger"></i>Vencidos</h6>
-                        <div class="estudiante-row border-start border-danger border-3">
-                            <div><strong>Carlos Pérez</strong><br><small class="text-muted">CB-008 • Vencido desde ayer</small></div>
-                            <span class="badge bg-danger">Vencido</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Tab 3: REGISTRO -->
-                    <div id="tab-registro" class="tab-contenido" style="display:none;">
-                        <div class="card border-0 shadow-sm p-4">
-                            <h6 class="fw-bold mb-3">📝 Registrar Nuevo Estudiante</h6>
-                            <div class="row g-2">
-                                <div class="col-md-6">
-                                    <label class="small fw-semibold">Cédula</label>
-                                    <input type="text" class="form-control form-control-sm" placeholder="10 dígitos" maxlength="10">
+                        {% if prestamos_vencidos_lista %}
+                            {% for p in prestamos_vencidos_lista %}
+                            <div class="estudiante-row border-start border-danger border-3">
+                                <div>
+                                    <strong>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong>
+                                    <br><small class="text-muted">{{ p.chromebook.codigo }} • Vencido desde {{ p.fecha_devolucion|date:"d/m/Y" }}</small>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="small fw-semibold">Nombres Completos</label>
-                                    <input type="text" class="form-control form-control-sm" placeholder="Nombres y Apellidos">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="small fw-semibold">Carrera</label>
-                                    <select class="form-select form-select-sm">
-                                        <option>Ingeniería de Software</option>
-                                        <option>Ingeniería Industrial</option>
-                                        <option>Enfermería</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="small fw-semibold">Semestre</label>
-                                    <select class="form-select form-select-sm">
-                                        <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="small fw-semibold">Correo</label>
-                                    <input type="email" class="form-control form-control-sm" placeholder="@unemi.edu.ec">
-                                </div>
-                                <div class="col-12 mt-2">
-                                    <button class="btn btn-primary btn-sm">Registrar Estudiante</button>
-                                </div>
+                                <span class="badge bg-danger">Vencido</span>
                             </div>
-                        </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted small py-2">No hay préstamos vencidos</div>
+                        {% endif %}
                     </div>
                     
                 </div>
@@ -197,21 +173,20 @@
 <div class="modal-lateral" id="modalPerfil">
     <div class="p-4">
         <button class="btn-close float-end" onclick="cerrarPerfil()"></button>
-        <div class="text-center mb-3">
-            <div class="avatar-sm bg-primary mx-auto mb-2" style="width:60px;height:60px;font-size:1.5rem;">AM</div>
-            <h6 class="fw-bold mb-1">Anderson Merchán</h6>
-            <small class="text-muted">0923456789</small>
+        <div id="perfilContenido">
+            <div class="text-center mb-3">
+                <div class="avatar-sm bg-primary mx-auto mb-2" style="width:60px;height:60px;font-size:1.5rem;" id="perfilAvatar">-</div>
+                <h6 class="fw-bold mb-1" id="perfilNombre">-</h6>
+                <small class="text-muted" id="perfilCedula">-</small>
+            </div>
+            <hr>
+            <p class="small"><strong>Carrera:</strong> <span id="perfilCarrera">-</span></p>
+            <p class="small"><strong>Semestre:</strong> <span id="perfilSemestre">-</span></p>
+            <p class="small"><strong>Email:</strong> <span id="perfilEmail">-</span></p>
+            <hr>
+            <h6 class="fw-bold small">📜 Historial de Préstamos</h6>
+            <div id="perfilHistorial">-</div>
         </div>
-        <hr>
-        <p class="small"><strong>Carrera:</strong> Ing. de Software</p>
-        <p class="small"><strong>Semestre:</strong> 6to</p>
-        <p class="small"><strong>Email:</strong> amerchanb@unemi.edu.ec</p>
-        <hr>
-        <h6 class="fw-bold small">📜 Historial de Préstamos</h6>
-        <div class="small text-muted">12/05 - CB-015 • 4h • <span class="text-success">Devuelto</span></div>
-        <div class="small text-muted">10/05 - CB-022 • 2h • <span class="text-success">Devuelto</span></div>
-        <div class="small text-muted">08/05 - CB-008 • 8h • <span class="text-danger">Vencido</span></div>
-        <p class="small mt-2"><strong>Total préstamos:</strong> 15 | <strong>Promedio:</strong> ⭐ 4.8</p>
     </div>
 </div>
 

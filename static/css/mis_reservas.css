@@ -1,229 +1,184 @@
-/* ==========================================
-   MIS RESERVAS - CRAI UNEMI
-   ========================================== */
-
-.reservas-layout {
-    min-height: 100vh;
-    background: #f5f6fa;
-}
-
+.reservas-layout { min-height: 100vh; background: #f5f6fa; }
 .reservas-navbar {
     background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
-    padding: 0.8rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: white;
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 0.8rem 1.5rem; display: flex; justify-content: space-between;
+    align-items: center; color: white; position: sticky; top: 0; z-index: 50;
 }
-
-.btn-volver {
-    color: white;
-    font-size: 1.3rem;
-    text-decoration: none;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255,255,255,0.15);
-}
-
-.btn-volver:hover {
-    background: rgba(255,255,255,0.25);
-    color: white;
-}
-
-.navbar-titulo {
-    font-weight: 600;
-    font-size: 1rem;
-}
-
-.navbar-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 0.85rem;
-}
-
-/* Contenido centrado */
-.reservas-contenido {
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-}
+.btn-volver { color: white; font-size: 1.3rem; text-decoration: none; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.15); transition: 0.2s; }
+.btn-volver:hover { background: rgba(255,255,255,0.25); color: white; }
+.navbar-titulo { font-weight: 600; font-size: 1rem; }
+.navbar-avatar { width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; }
+.reservas-contenido { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem; }
 
 /* Stats */
-.stats-row {
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+.stat-item { background: #fff; border-radius: 12px; padding: 1rem 1.2rem; display: flex; align-items: center; gap: 0.8rem; border: 1px solid #eef0f5; transition: 0.2s; }
+.stat-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.stat-icono { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+.bg-primary-light { background: #e8f0fe; color: #1a73e8; }
+.bg-warning-light { background: #fff3cd; color: #fbbc04; }
+.bg-success-light { background: #e6f4ea; color: #34a853; }
+.stat-info { display: flex; flex-direction: column; }
+.stat-numero { font-size: 1.4rem; font-weight: 700; color: #212529; line-height: 1.2; }
+.stat-etiqueta { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ==========================================
+   GRID RECTANGULAR
+   ========================================== */
+.reservas-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+    padding: 0.2rem;
 }
 
-.stat-item {
-    background: #fff;
-    border-radius: 12px;
-    padding: 0.8rem;
-    text-align: center;
-    border: 1px solid #eef0f5;
+/* Card rectangular 3D */
+.reserva-card-compact {
+    border-radius: 14px; padding: 1rem 1.5rem;
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: row; align-items: center; gap: 1.5rem;
+    position: relative; overflow: hidden;
+    transform: perspective(800px) rotateX(1deg);
 }
 
-.stat-numero {
-    display: block;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #555;
+/* Fondos pastel por estado */
+.borde-pendiente { background: linear-gradient(135deg, #fffbeb 0%, #fff7e0 100%); border-left: 4px solid #fbbc04; }
+.borde-activa { background: linear-gradient(135deg, #f0faf3 0%, #e8f5e9 100%); border-left: 4px solid #34a853; }
+.borde-completada { background: linear-gradient(135deg, #f5f8ff 0%, #e8f0fe 100%); border-left: 4px solid #1a73e8; }
+.borde-cancelada { background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%); border-left: 4px solid #999; }
+
+/* Brillo superior 3D */
+.reserva-card-compact::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 40%; background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+    border-radius: 14px 14px 0 0; pointer-events: none;
 }
 
-.stat-etiqueta {
-    font-size: 0.7rem;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+/* Efecto hover 3D */
+.reserva-card-compact:hover {
+    transform: perspective(800px) rotateX(0deg) translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
 }
 
-.stat-activo .stat-numero { color: #34a853; }
-.stat-devuelto .stat-numero { color: #1a73e8; }
-.stat-vencido .stat-numero { color: #ea4335; }
+.card-top { display: flex; align-items: center; gap: 0.5rem; position: relative; z-index: 1; min-width: 140px; }
+.card-id { font-weight: 700; font-size: 0.8rem; color: #555; }
+.card-estado-chip { font-size: 0.65rem; padding: 0.2em 0.6em; border-radius: 8px; font-weight: 600; }
+.chip-pendiente { background: rgba(251,188,4,0.15); color: #92600a; }
+.chip-activa { background: rgba(52,168,83,0.15); color: #1a6b30; }
+.chip-completada { background: rgba(26,115,232,0.15); color: #0d47a1; }
+.chip-cancelada { background: rgba(0,0,0,0.08); color: #666; }
 
-/* Cards */
-.reserva-card {
-    background: #fff;
-    border-radius: 14px;
-    border: 1px solid #eef0f5;
-    overflow: hidden;
-    margin-bottom: 0.8rem;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+.card-body-compact { display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1; flex: 1; }
+.card-line { font-size: 0.75rem; color: #666; display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; }
+
+.card-line i { font-size: 0.8rem; width: 16px; text-align: center; transition: 0.3s; }
+.reserva-card-compact:hover .card-line i { animation: iconPulse 0.6s ease; }
+
+@keyframes iconPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
 }
 
-.estado-activo { border-left: 4px solid #34a853; }
-.estado-devuelto { border-left: 4px solid #1a73e8; }
-.estado-vencido { border-left: 4px solid #ea4335; }
+.borde-pendiente .card-line i { color: #fbbc04; }
+.borde-activa .card-line i { color: #34a853; }
+.borde-completada .card-line i { color: #1a73e8; }
 
-.reserva-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.8rem 1.2rem;
-    border-bottom: 1px solid #f5f5f5;
+.card-footer-compact {
+    display: flex; align-items: center; gap: 0.8rem;
+    position: relative; z-index: 1; min-width: 180px; justify-content: flex-end;
+}
+.card-footer-compact.done { color: #1a73e8; font-size: 0.8rem; font-weight: 600; gap: 0.3rem; }
+.card-footer-compact.done i { animation: checkBounce 1s ease infinite; }
+
+@keyframes checkBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
 }
 
-.reserva-codigo {
-    font-weight: 700;
-    font-size: 1rem;
-    color: #333;
+.codigo-txt { 
+    background: rgba(255,255,255,0.8); padding: 0.3rem 0.6rem; border-radius: 6px; 
+    font-weight: 700; font-size: 0.8rem; color: #1a237e; letter-spacing: 2px; 
+    border: 1px solid rgba(26,35,126,0.15); 
 }
 
-.reserva-codigo i {
-    color: #1a237e;
-    margin-right: 0.4rem;
+/* Progreso live */
+.progreso-live { flex: 1; }
+.progreso-live-bar { 
+    height: 6px; background: rgba(52,168,83,0.12); border-radius: 4px; 
+    overflow: hidden; margin-bottom: 0.3rem; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+.progreso-live-fill { 
+    height: 100%; border-radius: 4px; 
+    background: linear-gradient(90deg, #34a853, #40c463, #34a853);
+    background-size: 200% 100%; animation: barraVerde 2s linear infinite;
+    transition: width 1s linear; box-shadow: 0 0 6px rgba(52,168,83,0.4);
+}
+@keyframes barraVerde {
+    0% { background-position: 200% 0; }
+    100% { background-position: 0 0; }
+}
+.progreso-live-time { 
+    font-size: 0.7rem; color: #1e7e34; font-weight: 700;
+    display: flex; align-items: center; gap: 0.3rem;
+}
+.progreso-live-time::before {
+    content: '⏱️'; font-size: 0.7rem; animation: relojPulse 1s ease infinite;
+}
+@keyframes relojPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
 }
 
-.estado-badge {
-    font-size: 0.7rem;
-    padding: 0.3em 0.7em;
-    border-radius: 10px;
-    font-weight: 600;
+/* Íconos grandes de estado */
+.footer-icono-grande {
+    display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
+}
+.footer-icono-grande i { font-size: 1.8rem; animation: iconoBounce 2s ease infinite; }
+.footer-icono-grande span { font-size: 0.65rem; font-weight: 600; }
+
+@keyframes iconoBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
 }
 
-.estado-badge.activo { background: #e6f4ea; color: #1e7e34; }
-.estado-badge.devuelto { background: #e8f0fe; color: #1a73e8; }
-.estado-badge.vencido { background: #fdecea; color: #c62828; }
+.pendiente-icon i { color: #fbbc04; }
+.pendiente-icon span { color: #92600a; }
+.activa-icon i { color: #34a853; }
+.activa-icon span { color: #1a6b30; }
+.completada-icon i { color: #1a73e8; font-size: 2.2rem; animation: checkGrande 1.5s ease infinite; }
+.completada-icon span { color: #0d47a1; }
+.vencida-icon i { color: #ea4335; animation: shakeIcon 0.5s ease infinite; }
+.vencida-icon span { color: #c62828; }
 
-.reserva-body {
-    padding: 1rem 1.2rem;
+@keyframes checkGrande {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+@keyframes shakeIcon {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
 }
 
-.reserva-body p {
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
+/* Paginación */
+.paginacion { display: flex; justify-content: center; align-items: center; gap: 0.4rem; margin-top: 1.5rem; }
+.btn-pag { width: 36px; height: 36px; border-radius: 10px; border: 1px solid #e0e0e0; background: #fff; color: #555; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; transition: 0.2s; }
+.btn-pag:hover { background: #f0f0f0; transform: translateY(-1px); }
+.btn-pag:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-pag.activo { background: #1a237e; color: white; border-color: #1a237e; box-shadow: 0 2px 8px rgba(26,35,126,0.3); }
+.pag-nums { display: flex; gap: 0.3rem; }
+
+/* Vacío */
+.estado-vacio { text-align: center; padding: 3rem 2rem; background: #fff; border-radius: 16px; border: 1px solid #eef0f5; }
+.vacio-icono { font-size: 4rem; color: #ddd; margin-bottom: 1rem; }
+
+@media (max-width: 768px) {
+    .reserva-card-compact { flex-wrap: wrap; gap: 0.8rem; padding: 1rem; }
+    .card-footer-compact { min-width: auto; justify-content: center; }
 }
-
-.detalle-grid {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    font-size: 0.8rem;
-    color: #777;
-    margin-bottom: 0.8rem;
-}
-
-.detalle-grid i {
-    margin-right: 0.2rem;
-}
-
-.text-success { color: #34a853; }
-.text-danger { color: #ea4335; }
-
-.codigo-mini {
-    background: #f8faff;
-    border: 1px dashed #c5cde8;
-    border-radius: 8px;
-    padding: 0.5rem 0.8rem;
-    display: inline-block;
-    text-align: center;
-}
-
-.codigo-texto {
-    display: block;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #1a237e;
-    letter-spacing: 4px;
-}
-
-.codigo-mini small {
-    font-size: 0.65rem;
-    color: #999;
-}
-
-.reserva-footer {
-    padding: 0.6rem 1.2rem;
-    background: #fafafa;
-    border-top: 1px solid #f5f5f5;
-}
-
-.progreso-texto {
-    font-size: 0.7rem;
-    color: #888;
-    display: block;
-    margin-bottom: 0.2rem;
-}
-
-.progreso-barra {
-    height: 4px;
-    background: #eef0f5;
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.progreso-relleno {
-    height: 100%;
-    background: #34a853;
-    border-radius: 2px;
-}
-
-@media (max-width: 576px) {
-    .stats-row {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .reservas-contenido {
-        padding: 1rem;
-    }
-    
-    .detalle-grid {
-        flex-direction: column;
-        gap: 0.3rem;
-    }
+@media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .card-body-compact { flex-wrap: wrap; }
 }

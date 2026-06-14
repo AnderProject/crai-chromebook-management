@@ -25,8 +25,12 @@ SECRET_KEY = 'django-insecure-+34481el4e_mmfz4$)1fy(7njw(b6#rc0#x!+(+@0k^3ud_mv_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['immunize-bronco-graveyard.ngrok-free.dev', '127.0.0.1', 'localhost']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://immunize-bronco-graveyard.ngrok-free.dev',
+    'http://immunize-bronco-graveyard.ngrok-free.dev',
+]
 
 # Application definition
 

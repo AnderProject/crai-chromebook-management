@@ -416,3 +416,6 @@
         right: -10px;
     }
 }
+/* Dots de actividad */
+.actividad-dot.pendiente { background: #fbbc04; }
+.actividad-dot.devuelto { background: #999; }

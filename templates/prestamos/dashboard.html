@@ -4,7 +4,6 @@
 {% load static %}
 
 {% block estilos_extra %}
-<!-- Estilos exclusivos del dashboard -->
 <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
 {% endblock %}
 
@@ -13,50 +12,47 @@
 {% block contenido %}
 <div class="dashboard-container">
     
-    <!-- Navbar superior -->
     <nav class="navbar navbar-expand-lg navbar-dashboard sticky-top">
         <div class="container-fluid">
-            <!-- Logo -->
             <a class="navbar-brand fw-bold text-white" href="#">
                 <i class="bi bi-book me-2"></i>CRAI UNEMI
             </a>
-            
-            <!-- Botón móvil -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarDashboard">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
-            <!-- Menú -->
             <div class="collapse navbar-collapse" id="navbarDashboard">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <!-- Notificaciones -->
                     <li class="nav-item dropdown me-3">
                         <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-bell fs-5"></i>
                             <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill notificacion-badge">
-                                3
+                                {{ total_notificaciones }}
                             </span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end p-2 shadow" style="width: 300px;">
                             <h6 class="dropdown-header fw-semibold">📬 Notificaciones</h6>
-                            <div class="dropdown-item small rounded">
-                                <i class="bi bi-laptop text-primary me-2"></i>
-                                <strong>CB-015</strong> - Préstamo activo
-                                <br><small class="text-muted">⏰ Hace 30 min</small>
-                            </div>
-                            <div class="dropdown-item small rounded">
-                                <i class="bi bi-exclamation-triangle text-warning me-2"></i>
-                                <strong>Reserva #045</strong> - Pendiente
-                                <br><small class="text-muted">⏰ Hace 1 hora</small>
-                            </div>
+                            {% if notificaciones %}
+                                {% for notif in notificaciones %}
+                                <div class="dropdown-item small rounded">
+                                    {% if notif.tipo == 'prestamo' %}
+                                        <i class="bi bi-laptop text-primary me-2"></i>
+                                    {% elif notif.tipo == 'vencimiento' %}
+                                        <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                                    {% else %}
+                                        <i class="bi bi-bell text-info me-2"></i>
+                                    {% endif %}
+                                    <strong>{{ notif.titulo }}</strong>
+                                    <br><small class="text-muted">{{ notif.fecha_envio|date:"d/m/Y H:i" }}</small>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="dropdown-item small text-muted text-center">No hay notificaciones</div>
+                            {% endif %}
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item small text-center text-primary" href="#">
-                                Ver todas las notificaciones
-                            </a>
+                            <a class="dropdown-item small text-center text-primary" href="#">Ver todas las notificaciones</a>
                         </div>
                     </li>
                     
-                    <!-- Perfil -->
                     <li class="nav-item dropdown dropdown-perfil">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
                             <div class="avatar-dashboard me-2">
@@ -70,12 +66,8 @@
                                 <small class="text-muted">{{ user.email }}</small>
                             </div>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#">
-                                <i class="bi bi-person me-2"></i>Mi Perfil
-                            </a>
-                            <a class="dropdown-item" href="#">
-                                <i class="bi bi-gear me-2"></i>Configuración
-                            </a>
+                            <a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Mi Perfil</a>
+                            <a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Configuración</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item text-danger" href="{% url 'autenticacion:cerrar_sesion' %}">
                                 <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
@@ -87,206 +79,102 @@
         </div>
     </nav>
 
-    <!-- Contenido principal -->
     <div class="container-fluid">
         <div class="row">
             
-            <!-- Sidebar -->
             <div class="col-md-3 col-lg-2 sidebar-dashboard collapse d-md-block" id="sidebarMenu">
                 <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#">
-                            <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'prestamos:lista_chromebooks' %}">
-                            <i class="bi bi-laptop me-2"></i>Chromebooks
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'prestamos:lista_prestamos' %}">
-                            <i class="bi bi-journal-check me-2"></i>Préstamos
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'prestamos:lista_estudiantes' %}">
-                            <i class="bi bi-people me-2"></i>Estudiantes
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-bar-chart me-2"></i>Reportes
-                        </a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link active" href="#"><i class="bi bi-speedometer2 me-2"></i>Panel de Control</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_chromebooks' %}"><i class="bi bi-laptop me-2"></i>Chromebooks</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_prestamos' %}"><i class="bi bi-journal-check me-2"></i>Préstamos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_estudiantes' %}"><i class="bi bi-people me-2"></i>Estudiantes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-bar-chart me-2"></i>Reportes</a></li>
                 </ul>
-                
                 <h6 class="sidebar-heading">Configuración</h6>
                 <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-gear me-2"></i>Ajustes
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="{% url 'autenticacion:cerrar_sesion' %}">
-                            <i class="bi bi-box-arrow-right me-2"></i>Salir
-                        </a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-gear me-2"></i>Ajustes</a></li>
+                    <li class="nav-item"><a class="nav-link text-danger" href="{% url 'autenticacion:cerrar_sesion' %}"><i class="bi bi-box-arrow-right me-2"></i>Salir</a></li>
                 </ul>
             </div>
 
-            <!-- Área de contenido -->
             <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
                 
-                <!-- Encabezado -->
                 <div class="d-flex justify-content-between flex-wrap align-items-center mb-4">
                     <h2 class="fw-bold texto-oscuro mb-0">
                         <i class="bi bi-speedometer2 me-2 text-primary"></i>Panel de Control
                     </h2>
                     <div class="btn-toolbar">
-                        <button type="button" class="btn btn-outline-secondary btn-sm me-2">
-                            <i class="bi bi-download me-1"></i>Exportar
-                        </button>
-                        <button type="button" class="btn btn-primario btn-sm">
-                            <i class="bi bi-plus-lg me-1"></i>Nuevo Préstamo
+                        <button type="button" class="btn btn-primario btn-sm" data-bs-toggle="modal" data-bs-target="#modalCodigoReservacion">
+                            <i class="bi bi-plus-lg me-1"></i>Ingresar Código de Reservación
                         </button>
                     </div>
                 </div>
                 
-                <!-- Tarjetas de resumen -->
                 <div class="row g-3 mb-4">
-                    <!-- Total Chromebooks -->
                     <div class="col-xl-3 col-md-6">
                         <div class="card tarjeta-resumen">
                             <div class="card-body d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="titulo-tarjeta">Chromebooks</p>
-                                    <h3 class="valor-tarjeta">48</h3>
-                                    <p class="subtitulo-tarjeta text-success">
-                                        <i class="bi bi-arrow-up"></i> 12 disponibles
-                                    </p>
-                                </div>
-                                <div class="icono-resumen icono-azul">
-                                    <i class="bi bi-laptop"></i>
-                                </div>
+                                <div><p class="titulo-tarjeta">Chromebooks</p><h3 class="valor-tarjeta">{{ total_chromebooks }}</h3><p class="subtitulo-tarjeta text-success"><i class="bi bi-check-circle"></i> {{ disponibles }} disponibles</p></div>
+                                <div class="icono-resumen icono-azul"><i class="bi bi-laptop"></i></div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Préstamos Activos -->
                     <div class="col-xl-3 col-md-6">
                         <div class="card tarjeta-resumen">
                             <div class="card-body d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="titulo-tarjeta">Préstamos Activos</p>
-                                    <h3 class="valor-tarjeta">36</h3>
-                                    <p class="subtitulo-tarjeta text-warning">
-                                        <i class="bi bi-clock"></i> 5 por vencer
-                                    </p>
-                                </div>
-                                <div class="icono-resumen icono-naranja">
-                                    <i class="bi bi-journal-check"></i>
-                                </div>
+                                <div><p class="titulo-tarjeta">Préstamos Activos</p><h3 class="valor-tarjeta">{{ prestamos_activos }}</h3><p class="subtitulo-tarjeta text-warning"><i class="bi bi-clock"></i> {{ por_vencer }} por vencer</p></div>
+                                <div class="icono-resumen icono-naranja"><i class="bi bi-journal-check"></i></div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Estudiantes -->
                     <div class="col-xl-3 col-md-6">
                         <div class="card tarjeta-resumen">
                             <div class="card-body d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="titulo-tarjeta">Estudiantes</p>
-                                    <h3 class="valor-tarjeta">245</h3>
-                                    <p class="subtitulo-tarjeta text-info">
-                                        <i class="bi bi-person-plus"></i> 8 nuevos hoy
-                                    </p>
-                                </div>
-                                <div class="icono-resumen icono-cyan">
-                                    <i class="bi bi-people"></i>
-                                </div>
+                                <div><p class="titulo-tarjeta">Estudiantes</p><h3 class="valor-tarjeta">{{ total_estudiantes }}</h3><p class="subtitulo-tarjeta text-info"><i class="bi bi-journal-plus"></i> {{ reservas_hoy }} reservas hoy</p></div>
+                                <div class="icono-resumen icono-cyan"><i class="bi bi-people"></i></div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Disponibilidad -->
                     <div class="col-xl-3 col-md-6">
                         <div class="card tarjeta-resumen">
                             <div class="card-body d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="titulo-tarjeta">Disponibilidad</p>
-                                    <h3 class="valor-tarjeta">25%</h3>
-                                    <p class="subtitulo-tarjeta text-success">
-                                        <i class="bi bi-check-circle"></i> 12 equipos libres
-                                    </p>
-                                </div>
-                                <div class="icono-resumen icono-verde">
-                                    <i class="bi bi-check-circle"></i>
-                                </div>
+                                <div><p class="titulo-tarjeta">Disponibilidad</p><h3 class="valor-tarjeta">{{ porcentaje_disponible }}%</h3><p class="subtitulo-tarjeta text-success"><i class="bi bi-check-circle"></i> {{ disponibles }} equipos libres</p></div>
+                                <div class="icono-resumen icono-verde"><i class="bi bi-check-circle"></i></div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Tabla de últimos préstamos -->
                 <div class="tabla-prestamos">
-                    <div class="table-header">
-                        <h5><i class="bi bi-list-ul me-2"></i>Últimos Préstamos</h5>
-                    </div>
+                    <div class="table-header"><h5><i class="bi bi-list-ul me-2"></i>Últimos Préstamos</h5></div>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Estudiante</th>
-                                    <th>Chromebook</th>
-                                    <th>Préstamo</th>
-                                    <th>Devolución</th>
-                                    <th>Estado</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>ID</th><th>Estudiante</th><th>Chromebook</th><th>Préstamo</th><th>Devolución</th><th>Estado</th><th>Acciones</th></tr></thead>
                             <tbody>
-                                <tr>
-                                    <td><span class="badge bg-secondary">#001</span></td>
-                                    <td>{{ user.first_name }} {{ user.last_name }}</td>
-                                    <td><strong>CB-015</strong></td>
-                                    <td>12/05/2025 08:00</td>
-                                    <td>12/05/2025 18:00</td>
-                                    <td><span class="badge-estado badge-activo">Activo</span></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary btn-accion" title="Ver detalles">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge bg-secondary">#002</span></td>
-                                    <td>Lady Loaiza</td>
-                                    <td><strong>CB-022</strong></td>
-                                    <td>12/05/2025 09:30</td>
-                                    <td>12/05/2025 16:30</td>
-                                    <td><span class="badge-estado badge-proximo">Próximo</span></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary btn-accion" title="Ver detalles">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><span class="badge bg-secondary">#003</span></td>
-                                    <td>Carlos Pérez</td>
-                                    <td><strong>CB-008</strong></td>
-                                    <td>11/05/2025 10:00</td>
-                                    <td>11/05/2025 18:00</td>
-                                    <td><span class="badge-estado badge-vencido">Vencido</span></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-danger btn-accion" title="Urgente">
-                                            <i class="bi bi-exclamation-triangle"></i>
-                                        </button>
-                                    </td>
-                                </tr>
+                                {% if ultimos_prestamos %}
+                                    {% for prestamo in ultimos_prestamos %}
+                                    <tr>
+                                        <td><span class="badge bg-secondary">#{{ prestamo.id|stringformat:"03d" }}</span></td>
+                                        <td>{{ prestamo.estudiante.get_full_name|default:prestamo.estudiante.username }}</td>
+                                        <td><strong>{{ prestamo.chromebook.codigo }}</strong></td>
+                                        <td>{{ prestamo.fecha_prestamo|date:"d/m/Y H:i" }}</td>
+                                        <td>{% if prestamo.fecha_devuelto %}{{ prestamo.fecha_devuelto|date:"d/m/Y H:i" }}{% else %}{{ prestamo.fecha_devolucion|date:"d/m/Y H:i" }}{% endif %}</td>
+                                        <td>
+                                            {% if prestamo.estado == 'activo' %}<span class="badge-estado badge-activo">Activo</span>
+                                            {% elif prestamo.estado == 'devuelto' %}<span class="badge-estado badge-devuelto">Devuelto</span>
+                                            {% else %}<span class="badge-estado badge-vencido">Vencido</span>{% endif %}
+                                        </td>
+                                        <td>
+                                           <button class="btn btn-sm btn-outline-primary btn-accion me-1" title="Ver detalles" onclick="verDetallePrestamo('{{ prestamo.id }}')"><i class="bi bi-eye"></i></button>
+                                            {% if prestamo.estado == 'activo' %}
+                                            <button class="btn btn-sm btn-outline-warning btn-accion" title="Devolver" onclick="confirmarDevolucion('{{ prestamo.id }}', '{{ prestamo.chromebook.codigo }}')"><i class="bi bi-arrow-repeat"></i></button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-inbox display-6 d-block mb-2"></i>No hay préstamos registrados aún</td></tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -296,4 +184,230 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL: INGRESAR CÓDIGO DE RESERVACIÓN -->
+<div class="modal fade" id="modalCodigoReservacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-qr-code-scan me-2 text-primary"></i>Verificar Reservación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="pasoIngresarCodigo">
+                    <p class="text-muted small mb-3">Ingresa el código de 6 dígitos proporcionado al estudiante.</p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Código de Reservación</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
+                            <input type="text" class="form-control text-center fw-bold" id="codigoReservacion" placeholder="Ej: A1B2C3" maxlength="6" style="font-size: 1.5rem; letter-spacing: 6px; text-transform: uppercase;">
+                        </div>
+                        <small class="text-muted">El código incluye letras mayúsculas y números</small>
+                    </div>
+                    <button class="btn btn-primary w-100 py-2 fw-semibold" onclick="verificarCodigo()"><i class="bi bi-search me-2"></i>Verificar Código</button>
+                    <div id="mensajeError" class="alert alert-danger mt-3 d-none"></div>
+                </div>
+                <div id="pasoDetallesReservacion" style="display: none;">
+                    <div class="text-center mb-3"><span class="badge bg-success fs-6 px-3 py-2"><i class="bi bi-check-circle me-1"></i>Código Verificado</span></div>
+                    <div class="card bg-light border-0 mb-3">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-2"><i class="bi bi-person-circle me-2"></i>Datos del Estudiante</h6>
+                            <div class="row small">
+                                <div class="col-6"><strong>Nombre:</strong></div><div class="col-6" id="detalleNombre">-</div>
+                                <div class="col-6"><strong>Cédula:</strong></div><div class="col-6" id="detalleCedula">-</div>
+                                <div class="col-6"><strong>Carrera:</strong></div><div class="col-6" id="detalleCarrera">-</div>
+                                <div class="col-6"><strong>Semestre:</strong></div><div class="col-6" id="detalleSemestre">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card bg-light border-0 mb-3">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-2"><i class="bi bi-calendar-check me-2"></i>Detalles de la Reservación</h6>
+                            <div class="row small">
+                                <div class="col-6"><strong>Fecha de Uso:</strong></div><div class="col-6" id="detalleFecha">-</div>
+                                <div class="col-6"><strong>Horario:</strong></div><div class="col-6" id="detalleHorario">-</div>
+                                <div class="col-6"><strong>Duración:</strong></div><div class="col-6" id="detalleDuracion">-</div>
+                                <div class="col-6"><strong>Chromebook:</strong></div><div class="col-6" id="detalleChromebook">-</div>
+                                <div class="col-6"><strong>Estado:</strong></div><div class="col-6" id="detalleEstado">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary flex-grow-1" onclick="volverIngresarCodigo()"><i class="bi bi-arrow-left me-1"></i>Verificar otro código</button>
+                        <button class="btn btn-success flex-grow-1" onclick="abrirCamaraEvidencia()"><i class="bi bi-camera me-1"></i>Tomar Foto y Confirmar</button>
+                    </div>
+                    <input type="file" id="inputFotoEvidencia" accept="image/*" capture="environment" style="display: none;" onchange="subirEvidencia()">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: CONFIRMACIÓN DE PRÉSTAMO -->
+<div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-question-circle-fill text-warning mb-3" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold mb-2">¿Confirmar Préstamo?</h5>
+                <p class="text-muted small mb-3">Se entregará el equipo al estudiante.</p>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-success flex-grow-1" id="btnConfirmarAccion">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: MENSAJE -->
+<div class="modal fade" id="modalMensaje" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body text-center p-4">
+                <div class="mb-3" id="mensajeIcono"></div>
+                <h5 class="fw-bold mb-2" id="mensajeTitulo"></h5>
+                <p class="text-muted small mb-3" id="mensajeTexto"></p>
+                <button class="btn btn-primary px-4" data-bs-dismiss="modal" id="btnMensajeCerrar">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: CONFIRMAR DEVOLUCIÓN -->
+<div class="modal fade" id="modalDevolucion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-arrow-repeat text-warning mb-3" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold mb-2">¿Confirmar Devolución?</h5>
+                <p class="text-muted small mb-3" id="devolucionMensaje">El equipo será liberado y estará disponible nuevamente.</p>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-warning flex-grow-1" id="btnConfirmarDevolucion"><i class="bi bi-check-lg me-1"></i>Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: MENSAJE DEVOLUCIÓN -->
+<div class="modal fade" id="modalMensajeDevolucion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body text-center p-4">
+                <div class="mb-3" id="devolucionIcono"></div>
+                <h5 class="fw-bold mb-2" id="devolucionTitulo"></h5>
+                <p class="text-muted small mb-3" id="devolucionTexto"></p>
+                <button class="btn btn-primary px-4" data-bs-dismiss="modal" onclick="location.reload()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL: QR PARA EVIDENCIA -->
+<!-- MODAL: QR PARA EVIDENCIA -->
+<div class="modal fade" id="modalQREvidencia" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body text-center p-4">
+                <h5 class="fw-bold mb-2">📸 Evidencia Fotográfica</h5>
+                <p class="text-muted small mb-3">Escanea el QR con tu celular para tomar una foto del equipo</p>
+                <div id="qrContainer" style="background: #f8f9fa; padding: 1rem; border-radius: 12px; display: inline-block;">
+                    <img id="qrImagen" src="" alt="QR" style="width: 200px; height: 200px;">
+                </div>
+                <!-- Vista previa de la foto -->
+                <div id="vistaPreviaContainer" style="display: none; margin-top: 1rem;">
+                    <p class="small text-success fw-bold"><i class="bi bi-check-circle"></i> Foto recibida</p>
+                    <img id="vistaPreviaFoto" src="" alt="Evidencia" style="width: 100%; max-width: 250px; border-radius: 12px; border: 2px solid #34a853;">
+                </div>
+                <p class="small text-warning mt-2"><i class="bi bi-clock"></i> Válido por 2 minutos</p>
+                <p class="small mt-2" id="estadoEvidencia">Esperando foto...</p>
+                <button class="btn btn-success w-100 mt-2" onclick="cerrarModalQR()" id="btnConfirmarDespuesQR" disabled>
+                    <i class="bi bi-check-lg me-1"></i>Continuar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL: DETALLE DE PRÉSTAMO -->
+<!-- MODAL: DETALLE DE PRÉSTAMO -->
+<div class="modal fade" id="modalDetallePrestamo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow" style="border-radius: 20px; overflow: hidden;">
+            
+            <!-- Header con gradiente -->
+            <div class="detalle-modal-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="detalle-icono-header">
+                        <i class="bi bi-clipboard-check"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-white mb-0">Detalle del Préstamo</h5>
+                        <small class="text-white-50" id="detallePrestamoIdHeader">#---</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <div class="modal-body p-0">
+                
+                <!-- Tabla de información -->
+                <div class="detalle-tabla-container">
+                    <table class="detalle-tabla">
+                        <tbody>
+                            <tr>
+                                <td class="detalle-label"><i class="bi bi-person-badge"></i> Estudiante</td>
+                                <td class="detalle-valor" id="detallePrestamoEstudiante">-</td>
+                                <td class="detalle-label"><i class="bi bi-laptop"></i> Chromebook</td>
+                                <td class="detalle-valor" id="detallePrestamoChromebook">-</td>
+                            </tr>
+                            <tr>
+                                <td class="detalle-label"><i class="bi bi-calendar-check"></i> Fecha Préstamo</td>
+                                <td class="detalle-valor" id="detallePrestamoFecha">-</td>
+                                <td class="detalle-label"><i class="bi bi-calendar-x"></i> Devolución</td>
+                                <td class="detalle-valor" id="detallePrestamoDevolucion">-</td>
+                            </tr>
+                            <tr>
+                                <td class="detalle-label"><i class="bi bi-flag"></i> Estado</td>
+                                <td class="detalle-valor" id="detallePrestamoEstado" colspan="3">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Evidencia Fotográfica -->
+                <div class="detalle-evidencia">
+                    <div class="detalle-evidencia-header">
+                        <i class="bi bi-camera-fill"></i>
+                        <span>Evidencia Fotográfica</span>
+                    </div>
+                    <div class="detalle-evidencia-body">
+                        <img id="detalleFotoEvidencia" src="" alt="Evidencia" class="detalle-foto">
+                        <div id="detalleSinFoto" class="detalle-sin-foto">
+                            <i class="bi bi-image"></i>
+                            <p>No hay evidencia fotográfica disponible</p>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- Footer -->
+            <div class="detalle-modal-footer">
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/verificar_reservacion.js' %}"></script>
+<script src="{% static 'js/devolucion.js' %}"></script>
 {% endblock %}
