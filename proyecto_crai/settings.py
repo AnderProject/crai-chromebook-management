@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'apps.autenticacion.apps.AutenticacionConfig',
     'apps.prestamos.apps.PrestamosConfig',
     'apps.estudiantes.apps.EstudiantesConfig',  
+    
 ]
 
 MIDDLEWARE = [
@@ -54,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.prestamos.middleware.RegistrarSesionMiddleware',
 ]
 
 ROOT_URLCONF = 'proyecto_crai.urls'
@@ -69,6 +71,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.prestamos.context_processors.usuario_context', 
             ],
         },
     },

@@ -72,3 +72,450 @@ body {
 .enlace-ayuda:hover {
     color: var(--primario);
 }
+
+
+/* ==========================================
+   MODO OSCURO - GLOBAL
+   ========================================== */
+body.modo-oscuro {
+    background: #1a1a2e !important;
+    color: #e0e0e0 !important;
+}
+
+body.modo-oscuro .dashboard-container {
+    background: #1a1a2e !important;
+}
+
+body.modo-oscuro .navbar-dashboard {
+    background: linear-gradient(135deg, #0d0d20, #1a1a3e) !important;
+}
+
+body.modo-oscuro .sidebar-dashboard {
+    background: #252540 !important;
+    border-color: #333355 !important;
+}
+
+body.modo-oscuro .sidebar-dashboard .nav-link {
+    color: #ccc !important;
+}
+
+body.modo-oscuro .sidebar-dashboard .nav-link:hover {
+    background: #333355 !important;
+    color: #fff !important;
+}
+
+body.modo-oscuro .sidebar-dashboard .nav-link.active {
+    background: #333366 !important;
+    color: #fff !important;
+}
+
+body.modo-oscuro .main-content {
+    background: #1a1a2e !important;
+}
+
+body.modo-oscuro .card,
+body.modo-oscuro .ajuste-card,
+body.modo-oscuro .tarjeta-resumen,
+body.modo-oscuro .dashboard-stat-card,
+body.modo-oscuro .chromebook-stat-card,
+body.modo-oscuro .mantenimiento-stat-card,
+body.modo-oscuro .formulario-card,
+body.modo-oscuro .info-card,
+body.modo-oscuro .tabla-prestamos {
+    background: #252540 !important;
+    border-color: #333355 !important;
+    color: #e0e0e0 !important;
+}
+
+body.modo-oscuro .card small,
+body.modo-oscuro .text-muted {
+    color: #aaa !important;
+}
+
+body.modo-oscuro .tabla-prestamos .table-header {
+    background: #333355 !important;
+}
+
+body.modo-oscuro .table {
+    color: #e0e0e0 !important;
+}
+
+body.modo-oscuro .table tbody tr:hover {
+    background: #333355 !important;
+}
+
+body.modo-oscuro .modal-content {
+    background: #252540 !important;
+    color: #e0e0e0 !important;
+}
+
+body.modo-oscuro .detalle-tabla td {
+    border-color: #444 !important;
+}
+
+body.modo-oscuro .detalle-label {
+    background: #333355 !important;
+    color: #aabbff !important;
+}
+
+body.modo-oscuro .texto-oscuro,
+body.modo-oscuro h2,
+body.modo-oscuro h3,
+body.modo-oscuro h4,
+body.modo-oscuro h5,
+body.modo-oscuro h6 {
+    color: #e0e0e0 !important;
+}
+
+body.modo-oscuro .texto-gris {
+    color: #aaa !important;
+}
+
+body.modo-oscuro .detalle-evidencia-header {
+    background: #333355 !important;
+    color: #aabbff !important;
+}
+
+/* ==========================================
+   MODO OSCURO - TABLAS
+   ========================================== */
+body.modo-oscuro .table {
+    --bs-table-bg: #252540 !important;
+    --bs-table-color: #e0e0e0 !important;
+    --bs-table-hover-bg: #333355 !important;
+    --bs-table-hover-color: #fff !important;
+    --bs-table-striped-bg: #2a2a45 !important;
+    background-color: #252540 !important;
+    color: #e0e0e0 !important;
+}
+
+body.modo-oscuro .table th {
+    background-color: #333355 !important;
+    color: #aabbff !important;
+    border-color: #444 !important;
+}
+
+body.modo-oscuro .table td {
+    background-color: transparent !important;
+    border-color: #444 !important;
+}
+
+body.modo-oscuro .table tbody tr:hover {
+    background-color: #333355 !important;
+}
+
+body.modo-oscuro .table-header {
+    background-color: #333355 !important;
+}
+
+body.modo-oscuro .table-header h5 {
+    color: #e0e0e0 !important;
+}
+
+body.modo-oscuro .badge.bg-light {
+    background-color: #444 !important;
+    color: #ccc !important;
+}
+
+body.modo-oscuro .badge.bg-secondary {
+    background-color: #555 !important;
+}
+
+body.modo-oscuro .badge-estado.badge-activo {
+    background-color: #1a3d2a !important;
+    color: #4caf50 !important;
+}
+
+body.modo-oscuro .badge-estado.badge-devuelto {
+    background-color: #1a2a3d !important;
+    color: #64b5f6 !important;
+}
+
+body.modo-oscuro .badge-estado.badge-vencido {
+    background-color: #3d1a1a !important;
+    color: #ef5350 !important;
+}
+
+
+/* ==========================================
+   MODO OSCURO - TEXTOS Y NÚMEROS
+   ========================================== */
+body.modo-oscuro .valor-tarjeta,
+body.modo-oscuro .stat-numero-dash,
+body.modo-oscuro .stat-numero-mant,
+body.modo-oscuro .stat-numero-chromebook {
+    color: #ffffff !important;
+}
+
+body.modo-oscuro .titulo-tarjeta,
+body.modo-oscuro .stat-label-dash,
+body.modo-oscuro .stat-label-mant,
+body.modo-oscuro .stat-label-chromebook {
+    color: #aaaacc !important;
+}
+
+body.modo-oscuro .subtitulo-tarjeta,
+body.modo-oscuro .stat-sub-dash {
+    color: #aaa !important;
+}
+
+body.modo-oscuro .texto-primario {
+    color: #aabbff !important;
+}
+
+body.modo-oscuro .texto-oscuro {
+    color: #ffffff !important;
+}
+
+body.modo-oscuro .navbar-brand {
+    color: #ffffff !important;
+}
+
+body.modo-oscuro .btn-outline-secondary {
+    color: #ccc !important;
+    border-color: #555 !important;
+}
+
+body.modo-oscuro .btn-outline-secondary:hover {
+    background: #444 !important;
+    color: #fff !important;
+}
+
+body.modo-oscuro .input-group-text {
+    background: #333 !important;
+    color: #ccc !important;
+    border-color: #555 !important;
+}
+
+body.modo-oscuro .form-control {
+    background: #333 !important;
+    color: #fff !important;
+    border-color: #555 !important;
+}
+
+body.modo-oscuro .form-select {
+    background: #333 !important;
+    color: #fff !important;
+    border-color: #555 !important;
+}
+
+body.modo-oscuro .dropdown-menu {
+    background: #252540 !important;
+    border-color: #444 !important;
+}
+
+body.modo-oscuro .dropdown-item {
+    color: #ccc !important;
+}
+
+body.modo-oscuro .dropdown-item:hover {
+    background: #333355 !important;
+    color: #fff !important;
+}
+
+body.modo-oscuro .dropdown-header {
+    color: #aaa !important;
+}
+
+body.modo-oscuro .dropdown-divider {
+    border-color: #444 !important;
+}
+
+
+/* ==========================================
+   MODO OSCURO - REGISTRO RÁPIDO Y ESTUDIANTES
+   ========================================== */
+body.modo-oscuro .paso-card {
+    background: #252540 !important;
+    border-color: #333355 !important;
+}
+
+body.modo-oscuro .paso-header span {
+    color: #aaa !important;
+}
+
+body.modo-oscuro .input-elegante {
+    background: #333 !important;
+    color: #fff !important;
+    border-color: #555 !important;
+}
+
+body.modo-oscuro .input-elegante:focus {
+    background: #3a3a5a !important;
+}
+
+body.modo-oscuro .tiempo-chip {
+    background: #333 !important;
+    color: #ccc !important;
+    border-color: #555 !important;
+}
+
+body.modo-oscuro .tiempo-chip.activo {
+    background: #1a237e !important;
+    color: #fff !important;
+    border-color: #1a237e !important;
+}
+
+body.modo-oscuro .prestamo-item {
+    background: #252540 !important;
+    border-color: #333355 !important;
+}
+
+body.modo-oscuro .prestamo-item.activo {
+    border-left-color: #4caf50 !important;
+}
+
+body.modo-oscuro .prestamo-item.proximo {
+    border-left-color: #ff9800 !important;
+}
+
+body.modo-oscuro .prestamo-item.vencido {
+    border-left-color: #ef5350 !important;
+}
+
+body.modo-oscuro .stat-mini {
+    background: #333355 !important;
+}
+
+body.modo-oscuro .stat-mini-numero {
+    color: #aabbff !important;
+}
+
+body.modo-oscuro .estudiante-row {
+    background: #252540 !important;
+    border-color: #333355 !important;
+}
+
+body.modo-oscuro .estudiante-row:hover {
+    background: #333355 !important;
+}
+
+body.modo-oscuro .estudiante-info strong,
+body.modo-oscuro .estudiante-info .small {
+    color: #e0e0e0 !important;
+}
+
+body.modo-oscuro .estudiantes-stats .stat-card {
+    background: #252540 !important;
+    border-color: #333355 !important;
+}
+
+body.modo-oscuro .estudiantes-stats .stat-valor {
+    color: #fff !important;
+}
+
+body.modo-oscuro .estudiantes-stats .stat-label {
+    color: #aaa !important;
+}
+
+body.modo-oscuro .estudiantes-tabs .tab-btn {
+    color: #aaa !important;
+}
+
+body.modo-oscuro .estudiantes-tabs .tab-btn.active {
+    color: #aabbff !important;
+    border-bottom-color: #aabbff !important;
+}
+
+body.modo-oscuro .modal-lateral {
+    background: #252540 !important;
+}
+
+body.modo-oscuro .modal-lateral p,
+body.modo-oscuro .modal-lateral .small {
+    color: #ccc !important;
+}
+
+body.modo-oscuro .overlay {
+    background: rgba(0,0,0,0.7) !important;
+}
+
+body.modo-oscuro .registro-header small,
+body.modo-oscuro .estudiantes-header small {
+    color: #aaa !important;
+}
+
+body.modo-oscuro .btn-light {
+    background: #444 !important;
+    color: #ccc !important;
+    border-color: #555 !important;
+}
+
+body.modo-oscuro .btn-light:hover {
+    background: #555 !important;
+    color: #fff !important;
+}
+
+body.modo-oscuro .bg-light {
+    background-color: #333355 !important;
+}
+
+body.modo-oscuro .border-start {
+    border-color: #444 !important;
+}
+
+/* ==========================================
+   ANIMACIÓN DE ESTADO ACTIVO (PULSO)
+   ========================================== */
+.badge-estado.badge-activo {
+    animation: pulseActivo 2s infinite;
+    position: relative;
+}
+
+@keyframes pulseActivo {
+    0% {
+        box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(25, 135, 84, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(25, 135, 84, 0);
+    }
+}
+
+/* Efecto de brillo para "Devuelto" */
+.badge-estado.badge-devuelto {
+    animation: brilloDevuelto 3s ease-in-out infinite;
+}
+
+@keyframes brilloDevuelto {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(13, 110, 253, 0);
+    }
+}
+
+/* Efecto de alerta para "Vencido" */
+.badge-estado.badge-vencido {
+    animation: alertaVencido 1s ease-in-out infinite;
+}
+
+@keyframes alertaVencido {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.6);
+        background-color: #f8d7da;
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(220, 53, 69, 0);
+        background-color: #f5c6cb;
+    }
+}
+
+
+/* Brillo sutil en toda la fila cuando el préstamo está activo */
+.tabla-prestamos tbody tr:has(.badge-activo) {
+    border-left: 3px solid #28a745;
+    animation: filaActiva 3s ease-in-out infinite;
+}
+
+@keyframes filaActiva {
+    0%, 100% {
+        background: rgba(40, 167, 69, 0.02);
+    }
+    50% {
+        background: rgba(40, 167, 69, 0.06);
+    }
+}

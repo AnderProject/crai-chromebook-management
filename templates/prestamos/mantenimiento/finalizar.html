@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Finalizar Mantenimiento - CRAI UNEMI{% endblock %}
+
+{% block estilos_extra %}
+<link href="{% static 'css/base.css' %}" rel="stylesheet">
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+<link href="{% static 'css/mantenimiento.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block contenido %}
+<div class="dashboard-container">
+    
+    <nav class="navbar navbar-expand-lg navbar-dashboard sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-white" href="{% url 'prestamos:dashboard' %}">
+                <i class="bi bi-book me-2"></i>CRAI UNEMI
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown dropdown-perfil">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center pe-3" href="#" data-bs-toggle="dropdown" style="gap: 0.6rem;">
+                            <div class="avatar-dashboard">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                            <div class="d-none d-md-block text-start" style="line-height: 1.2;">
+                                <span style="font-weight: 600; font-size: 0.85rem; color: white;">{{ primer_nombre }} {{ primer_apellido }}</span>
+                                <br>
+                                <small style="font-size: 0.65rem; opacity: 0.7; color: white;">Administrador</small>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow">
+                            <div class="dropdown-header"><strong>{{ user.get_full_name }}</strong></div>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'autenticacion:cerrar_sesion' %}">
+                                <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3 col-lg-2 sidebar-dashboard collapse d-md-block">
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_mantenimientos' %}"><i class="bi bi-arrow-left me-2"></i>Volver</a></li>
+                </ul>
+                <h6 class="sidebar-heading">Navegación</h6>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:portal' %}"><i class="bi bi-house-door me-2"></i>Volver al Portal</a></li>
+                </ul>
+                <h6 class="sidebar-heading">Configuración</h6>
+                <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:ajustes' %}"><i class="bi bi-gear me-2"></i>Ajustes</a></li>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link text-danger" href="{% url 'autenticacion:cerrar_sesion' %}"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
+                </ul>
+            </div>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+                
+                <div class="mb-4">
+                    <a href="{% url 'prestamos:lista_mantenimientos' %}" class="btn btn-outline-secondary btn-sm mb-3">
+                        <i class="bi bi-arrow-left me-1"></i>Volver
+                    </a>
+                    <h2 class="fw-bold"><i class="bi bi-check-circle me-2 text-success"></i>Finalizar Mantenimiento</h2>
+                </div>
+                
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3"><strong>Chromebook:</strong> {{ mantenimiento.chromebook.codigo }}</div>
+                            <div class="col-md-3"><strong>Marca:</strong> {{ mantenimiento.chromebook.marca }} {{ mantenimiento.chromebook.modelo }}</div>
+                            <div class="col-md-3"><strong>Tipo:</strong> {{ mantenimiento.tipo|title }}</div>
+                            <div class="col-md-3"><strong>Fecha Inicio:</strong> {{ mantenimiento.fecha_inicio|date:"d/m/Y" }}</div>
+                        </div>
+                        <hr>
+                        <p><strong>Problema:</strong> {{ mantenimiento.descripcion_problema|default:'No especificado' }}</p>
+                    </div>
+                </div>
+                
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Solución Aplicada</label>
+                                <textarea name="descripcion_solucion" class="form-control" rows="3" placeholder="Describe la solución aplicada..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle me-1"></i>Finalizar Mantenimiento
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+            </main>
+        </div>
+    </div>
+</div>
+{% endblock %}

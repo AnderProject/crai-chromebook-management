@@ -1,58 +1,268 @@
 /* ==========================================
-   ANIMACIONES PARA INVENTARIO DE CHROMEBOOKS
+   CHROMEBOOKS - CRAI UNEMI
+   Cards premium + animaciones
    ========================================== */
 
-/* Cards de estadísticas */
-.card.bg-primary,
-.card.bg-success,
-.card.bg-warning,
-.card.bg-danger {
-    transition: all 0.3s ease;
+.main-content {
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================
+   CARDS PREMIUM
+   ========================================== */
+.chromebook-stat-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid #eef0f5;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
 }
 
-.card.bg-primary:hover,
-.card.bg-success:hover,
-.card.bg-warning:hover,
-.card.bg-danger:hover {
+.chromebook-stat-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
 }
 
-/* Números en cards */
-.card h3 {
-    transition: all 0.3s ease;
+.stat-card-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
 }
 
-.card:hover h3 {
-    transform: scale(1.15);
-    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+.chromebook-stat-card:hover .stat-card-glow {
+    opacity: 1;
 }
 
-/* Filas de la tabla */
-.table tbody tr {
-    transition: all 0.2s ease;
+.stat-card-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    position: relative;
+    z-index: 1;
 }
 
-.table tbody tr:hover {
-    background: #f0f4ff !important;
-    transform: scale(1.005);
+.stat-icono-chromebook {
+    width: 55px;
+    height: 55px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: transform 0.3s;
 }
 
-/* Badges */
-.badge {
-    transition: all 0.2s ease;
+.chromebook-stat-card:hover .stat-icono-chromebook {
+    transform: scale(1.1) rotate(5deg);
 }
 
-tr:hover .badge {
+.bg-azul { background: #e8f0fe; color: #1a73e8; }
+.bg-naranja { background: #fff3e0; color: #ff9800; }
+.bg-verde { background: #e6f4ea; color: #34a853; }
+.bg-rojo { background: #fdecea; color: #ea4335; }
+
+.stat-info-chromebook {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-numero-chromebook {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #212529;
+    line-height: 1.2;
+    transition: transform 0.3s;
+}
+
+.chromebook-stat-card:hover .stat-numero-chromebook {
     transform: scale(1.1);
 }
 
-/* Botones de acción */
-.btn-sm {
+.stat-label-chromebook {
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.stat-card-bar {
+    height: 4px;
+    width: 100%;
+}
+
+.stat-card-bar.bg-azul { background: linear-gradient(90deg, #1a73e8, #4a90ff); }
+.stat-card-bar.bg-naranja { background: linear-gradient(90deg, #ff9800, #ffb74d); }
+.stat-card-bar.bg-verde { background: linear-gradient(90deg, #34a853, #66bb6a); }
+.stat-card-bar.bg-rojo { background: linear-gradient(90deg, #ea4335, #ff6b6b); }
+
+/* Animación escalonada */
+.chromebook-stat-card:nth-child(1) { animation: fadeInCard 0.5s ease-out; }
+.chromebook-stat-card:nth-child(2) { animation: fadeInCard 0.5s ease-out 0.1s both; }
+.chromebook-stat-card:nth-child(3) { animation: fadeInCard 0.5s ease-out 0.2s both; }
+.chromebook-stat-card:nth-child(4) { animation: fadeInCard 0.5s ease-out 0.3s both; }
+
+@keyframes fadeInCard {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tabla */
+.tabla-prestamos tbody tr {
     transition: all 0.2s ease;
 }
 
-.btn-sm:hover {
+.tabla-prestamos tbody tr:hover {
+    background: #f8faff !important;
+    transform: scale(1.005);
+}
+
+
+/* ==========================================
+   ANIMACIONES DE ESTADO Y CONDICIÓN
+   ========================================== */
+
+/* ========== KEYFRAMES ========== */
+@keyframes reboteVerde {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.3); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+@keyframes reboteNaranja {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.3); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+@keyframes reboteRojo {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.3); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+@keyframes brilloVerde {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.4); }
+    50% { box-shadow: 0 0 8px 4px rgba(25, 135, 84, 0.2); }
+}
+
+@keyframes brilloNaranja {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
+    50% { box-shadow: 0 0 8px 4px rgba(255, 152, 0, 0.2); }
+}
+
+@keyframes brilloRojo {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+    50% { box-shadow: 0 0 8px 4px rgba(220, 53, 69, 0.2); }
+}
+
+/* ========== ESTADO ========== */
+/* Disponible */
+td .badge.bg-success {
+    animation: reboteVerde 0.6s ease, brilloVerde 2s ease-in-out 0.6s infinite;
+}
+
+/* Prestado */
+td .badge.bg-warning {
+    animation: reboteNaranja 0.6s ease, brilloNaranja 2s ease-in-out 0.6s infinite;
+}
+
+/* Mantenimiento */
+td .badge.bg-danger {
+    animation: reboteRojo 0.6s ease, brilloRojo 1.5s ease-in-out 0.6s infinite;
+}
+
+/* ========== CONDICIÓN ========== */
+/* Bueno */
+td .badge.bg-info {
+    background-color: #28a745 !important;
+    animation: reboteVerde 0.6s ease, brilloVerde 2s ease-in-out 0.6s infinite;
+}
+
+/* Regular */
+td .badge.bg-warning {
+    animation: reboteNaranja 0.6s ease, brilloNaranja 2s ease-in-out 0.6s infinite;
+}
+
+/* Malo */
+td .badge.bg-danger {
+    animation: reboteRojo 0.6s ease, brilloRojo 1.5s ease-in-out 0.6s infinite;
+}
+
+/* ========== HOVER EN FILAS ========== */
+.tabla-prestamos tbody tr {
+    transition: all 0.2s ease;
+}
+
+.tabla-prestamos tbody tr:hover {
+    background: #f8faff !important;
+    transform: scale(1.005);
+}
+
+.tabla-prestamos tbody tr:hover .badge {
     transform: scale(1.15);
 }
+
+
+
+/* ==========================================
+   TABLA CON SCROLL LIMITADO A 7 FILAS
+   ========================================== */
+.tabla-prestamos .table-responsive {
+    max-height: 420px; /* Aproximadamente 7 filas */
+    overflow-y: auto;
+    border-radius: 0 0 0.8rem 0.8rem;
+}
+
+/* Estilizar la barra de scroll */
+.tabla-prestamos .table-responsive::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tabla-prestamos .table-responsive::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 3px;
+}
+
+.tabla-prestamos .table-responsive::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border-radius: 3px;
+}
+
+.tabla-prestamos .table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* Mantener el encabezado fijo */
+.tabla-prestamos .table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f8f9fa;
+}
+
+/* ==========================================
+   BOTÓN NUEVO CHROMEBOOK
+   ========================================== */
+.btn-codigo-reservacion.text-decoration-none:hover {
+    color: white !important;
+}   

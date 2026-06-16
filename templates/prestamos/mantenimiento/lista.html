@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Mantenimiento - CRAI UNEMI{% endblock %}
+
+{% block estilos_extra %}
+<link href="{% static 'css/base.css' %}" rel="stylesheet">
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+<link href="{% static 'css/mantenimiento.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block contenido %}
+<div class="dashboard-container">
+    
+    <nav class="navbar navbar-expand-lg navbar-dashboard sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-white" href="{% url 'prestamos:dashboard' %}">
+                <i class="bi bi-book me-2"></i>CRAI UNEMI
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown dropdown-perfil">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center pe-3" href="#" data-bs-toggle="dropdown" style="gap: 0.6rem;">
+                            <div class="avatar-dashboard">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                            <div class="d-none d-md-block text-start" style="line-height: 1.2;">
+                                <span style="font-weight: 600; font-size: 0.85rem; color: white;">{{ primer_nombre }} {{ primer_apellido }}</span>
+                                <br>
+                                <small style="font-size: 0.65rem; opacity: 0.7; color: white;">Administrador</small>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow">
+                            <div class="dropdown-header"><strong>{{ user.get_full_name }}</strong></div>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'autenticacion:cerrar_sesion' %}">
+                                <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            
+            <div class="col-md-3 col-lg-2 sidebar-dashboard collapse d-md-block">
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Panel de Control</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_chromebooks' %}"><i class="bi bi-laptop me-2"></i>Chromebooks</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_prestamos' %}"><i class="bi bi-journal-check me-2"></i>Préstamos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_estudiantes' %}"><i class="bi bi-people me-2"></i>Estudiantes</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{% url 'prestamos:lista_mantenimientos' %}"><i class="bi bi-tools me-2"></i>Mantenimiento</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-bar-chart me-2"></i>Reportes</a></li>
+                </ul>
+                <h6 class="sidebar-heading">Navegación</h6>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:portal' %}"><i class="bi bi-house-door me-2"></i>Volver al Portal</a></li>
+                </ul>
+                <h6 class="sidebar-heading">Configuración</h6>
+                 <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:ajustes' %}"><i class="bi bi-gear me-2"></i>Ajustes</a></li>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link text-danger" href="{% url 'autenticacion:cerrar_sesion' %}"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
+                </ul>
+            </div>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="fw-bold mb-1"><i class="bi bi-tools me-2 text-primary"></i>Mantenimiento</h2>
+                        <p class="texto-gris mb-0">Gestión de equipos en reparación</p>
+                    </div>
+                    <a href="{% url 'prestamos:agregar_mantenimiento' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i>Nuevo Mantenimiento
+                    </a>
+                </div>
+                
+                <!-- Cards premium -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="mantenimiento-stat-card">
+                            <div class="stat-card-glow"></div>
+                            <div class="stat-card-content">
+                                <div class="stat-icono-mant bg-azul"><i class="bi bi-collection"></i></div>
+                                <div class="stat-info-mant">
+                                    <span class="stat-numero-mant">{{ total }}</span>
+                                    <span class="stat-label-mant">Total</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-bar bg-azul"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mantenimiento-stat-card">
+                            <div class="stat-card-glow"></div>
+                            <div class="stat-card-content">
+                                <div class="stat-icono-mant bg-naranja"><i class="bi bi-hourglass-split"></i></div>
+                                <div class="stat-info-mant">
+                                    <span class="stat-numero-mant">{{ en_proceso }}</span>
+                                    <span class="stat-label-mant">En Proceso</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-bar bg-naranja"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mantenimiento-stat-card">
+                            <div class="stat-card-glow"></div>
+                            <div class="stat-card-content">
+                                <div class="stat-icono-mant bg-verde"><i class="bi bi-check-circle"></i></div>
+                                <div class="stat-info-mant">
+                                    <span class="stat-numero-mant">{{ finalizados }}</span>
+                                    <span class="stat-label-mant">Finalizados</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-bar bg-verde"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tabla -->
+                <div class="tabla-prestamos">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr><th>#</th><th>Chromebook</th><th>Tipo</th><th>Problema</th><th>Técnico</th><th>Fecha Inicio</th><th>Estado</th><th>Acciones</th></tr>
+                            </thead>
+                            <tbody>
+                                {% if mantenimientos %}
+                                    {% for m in mantenimientos %}
+                                    <tr>
+                                        <td><strong>#{{ m.id }}</strong></td>
+                                        <td><strong>{{ m.chromebook.codigo }}</strong><br><small class="text-muted">{{ m.chromebook.marca }} {{ m.chromebook.modelo }}</small></td>
+                                        <td><span class="badge bg-info">{{ m.tipo|title }}</span></td>
+                                        <td><small>{{ m.descripcion_problema|truncatechars:50|default:'-' }}</small></td>
+                                        <td>{{ m.tecnico|default:'-' }}</td>
+                                        <td>{{ m.fecha_inicio|date:"d/m/Y" }}</td>
+                                        <td>{% if m.estado == 'en_proceso' %}<span class="badge bg-warning text-dark">En proceso</span>{% else %}<span class="badge bg-success">Finalizado</span>{% endif %}</td>
+                                        <td>{% if m.estado == 'en_proceso' %}<a href="{% url 'prestamos:finalizar_mantenimiento' m.id %}" class="btn btn-sm btn-outline-success"><i class="bi bi-check-circle"></i> Finalizar</a>{% endif %}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr><td colspan="8" class="text-center text-muted py-4"><i class="bi bi-inbox display-6 d-block mb-2"></i>No hay mantenimientos registrados</td></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+            </main>
+        </div>
+    </div>
+</div>
+{% endblock %}

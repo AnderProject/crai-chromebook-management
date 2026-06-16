@@ -28,6 +28,10 @@ def dashboard(request):
     """Vista principal del dashboard con datos reales"""
     from .models import Chromebook, Prestamo, Reserva, Notificacion
     
+    # Obtener solo primer nombre y primer apellido
+    primer_nombre = request.user.first_name.split()[0] if request.user.first_name else 'Admin'
+    primer_apellido = request.user.last_name.split()[0] if request.user.last_name else 'CRAI'
+    
     total_chromebooks = Chromebook.objects.count()
     disponibles = Chromebook.objects.filter(estado='disponible').count()
     prestados = Chromebook.objects.filter(estado='prestado').count()
@@ -62,6 +66,8 @@ def dashboard(request):
         'notificaciones': notificaciones,
         'total_notificaciones': Notificacion.objects.count(),
         'reservas_hoy': reservas_hoy,
+        'primer_nombre': primer_nombre,
+        'primer_apellido': primer_apellido,
     }
     return render(request, 'prestamos/dashboard.html', contexto)
 
@@ -261,7 +267,7 @@ def agregar_chromebook(request):
     from django.contrib import messages
     
     if request.method == 'POST':
-        form = ChromebookForm(request.POST)
+        form = ChromebookForm(request.POST, request.FILES)  # ← AGREGAR request.FILES
         if form.is_valid():
             form.save()
             messages.success(request, '✅ Chromebook registrado exitosamente.')
@@ -270,6 +276,121 @@ def agregar_chromebook(request):
         form = ChromebookForm()
     
     return render(request, 'prestamos/chromebooks/agregar.html', {'titulo_pagina': 'Agregar Chromebook - CRAI UNEMI', 'form': form})
+
+
+
+@login_required
+def lista_mantenimientos(request):
+    """Lista de equipos en mantenimiento"""
+    from .models import Mantenimiento
+    
+    mantenimientos = Mantenimiento.objects.select_related('chromebook', 'registrado_por').all().order_by('-fecha_inicio')
+    
+    en_proceso = mantenimientos.filter(estado='en_proceso').count()
+    finalizados = mantenimientos.filter(estado='finalizado').count()
+    
+    contexto = {
+        'titulo_pagina': 'Mantenimiento - CRAI UNEMI',
+        'mantenimientos': mantenimientos,
+        'en_proceso': en_proceso,
+        'finalizados': finalizados,
+        'total': mantenimientos.count(),
+    }
+    return render(request, 'prestamos/mantenimiento/lista.html', contexto)
+
+
+@login_required
+def agregar_mantenimiento(request):
+    """Formulario para registrar un nuevo mantenimiento"""
+    from .models import Chromebook
+    from django.contrib import messages
+    
+    if request.method == 'POST':
+        chromebook_id = request.POST.get('chromebook_id')
+        tipo = request.POST.get('tipo')
+        descripcion_problema = request.POST.get('descripcion_problema')
+        tecnico = request.POST.get('tecnico')
+        costo = request.POST.get('costo', 0)
+        fecha_inicio = request.POST.get('fecha_inicio')
+        
+        try:
+            chromebook = Chromebook.objects.get(id=chromebook_id)
+            
+            # Crear mantenimiento
+            from .models import Mantenimiento
+            Mantenimiento.objects.create(
+                chromebook=chromebook,
+                tipo=tipo,
+                descripcion_problema=descripcion_problema,
+                tecnico=tecnico,
+                costo=costo,
+                fecha_inicio=fecha_inicio,
+                estado='en_proceso',
+                registrado_por=request.user
+            )
+            
+            # Actualizar estado del Chromebook
+            chromebook.estado = 'mantenimiento'
+            chromebook.save()
+            
+            messages.success(request, f'✅ {chromebook.codigo} enviado a mantenimiento.')
+            return redirect('prestamos:lista_mantenimientos')
+            
+        except Chromebook.DoesNotExist:
+            messages.error(request, 'Chromebook no encontrado.')
+    
+    chromebooks = Chromebook.objects.filter(estado__in=['disponible', 'prestado'])
+    
+    contexto = {
+        'titulo_pagina': 'Agregar Mantenimiento - CRAI UNEMI',
+        'chromebooks': chromebooks,
+    }
+    return render(request, 'prestamos/mantenimiento/agregar.html', contexto)
+
+
+@login_required
+def finalizar_mantenimiento(request, id):
+    """Finalizar un mantenimiento"""
+    from .models import Mantenimiento
+    from django.contrib import messages
+    from django.utils import timezone
+    
+    try:
+        mantenimiento = Mantenimiento.objects.get(id=id)
+        
+        if request.method == 'POST':
+            mantenimiento.descripcion_solucion = request.POST.get('descripcion_solucion', '')
+            mantenimiento.fecha_fin = timezone.now().date()
+            mantenimiento.estado = 'finalizado'
+            mantenimiento.save()
+            
+            # Devolver Chromebook a disponible
+            chromebook = mantenimiento.chromebook
+            chromebook.estado = 'disponible'
+            chromebook.save()
+            
+            messages.success(request, f'✅ Mantenimiento finalizado. {chromebook.codigo} disponible.')
+            return redirect('prestamos:lista_mantenimientos')
+        
+        contexto = {
+            'titulo_pagina': 'Finalizar Mantenimiento - CRAI UNEMI',
+            'mantenimiento': mantenimiento,
+        }
+        return render(request, 'prestamos/mantenimiento/finalizar.html', contexto)
+        
+    except Mantenimiento.DoesNotExist:
+        messages.error(request, 'Mantenimiento no encontrado.')
+        return redirect('prestamos:lista_mantenimientos')
+
+
+
+
+
+
+
+
+
+
 
 
 @login_required
@@ -505,3 +626,185 @@ def api_registrar_prestamo(request):
             return JsonResponse({'success': False, 'message': 'Chromebook no encontrado.'})
         except User.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Usuario no encontrado.'})
+        
+
+
+
+
+@login_required
+def ficha_estudiantil(request):
+    """Buscador de fichas estudiantiles"""
+    estudiante_encontrado = None
+    error = None
+    
+    if request.method == 'POST':
+        busqueda = request.POST.get('busqueda', '').strip()
+        
+        if busqueda:
+            from .models import Estudiante, Usuario as PerfilUsuario
+            from django.db.models import Q
+            
+            # Buscar por cédula, nombre o username
+            estudiantes = Estudiante.objects.select_related(
+                'usuario__user', 'carrera', 'carrera__facultad'
+            ).filter(
+                Q(usuario__cedula__icontains=busqueda) |
+                Q(usuario__user__first_name__icontains=busqueda) |
+                Q(usuario__user__last_name__icontains=busqueda) |
+                Q(usuario__user__username__icontains=busqueda)
+            )
+            
+            if estudiantes.exists():
+                estudiante_encontrado = estudiantes.first()
+            else:
+                error = 'No se encontró ningún estudiante con esos datos.'
+    
+    contexto = {
+        'titulo_pagina': 'Ficha Estudiantil - CRAI UNEMI',
+        'estudiante': estudiante_encontrado,
+        'error': error,
+    }
+    return render(request, 'prestamos/ficha_estudiantil.html', contexto)
+
+
+
+
+@login_required
+def ajustes(request):
+    """Página de configuración del sistema"""
+    from .models import SesionUsuario
+    
+    sesiones = SesionUsuario.objects.filter(
+        usuario=request.user
+    ).order_by('-fecha_inicio')[:10]
+    
+    contexto = {
+        'titulo_pagina': 'Ajustes - CRAI UNEMI',
+        'sesiones': sesiones,
+    }
+    return render(request, 'prestamos/ajustes.html', contexto)
+
+
+
+@csrf_exempt
+def api_detalle_chromebook(request, id):
+    """API para obtener detalles de un Chromebook"""
+    import os
+    from django.conf import settings
+    
+    try:
+        cb = Chromebook.objects.get(id=id)
+        
+        # Buscar foto en la carpeta por código
+        foto_url = None
+        extensiones = ['.jpg', '.jpeg', '.png', '.webp']
+        for ext in extensiones:
+            ruta_foto = os.path.join(settings.MEDIA_ROOT, 'chromebooks', f'{cb.codigo}{ext}')
+            if os.path.exists(ruta_foto):
+                foto_url = f'{settings.MEDIA_URL}chromebooks/{cb.codigo}{ext}'
+                break
+        
+        # Si tiene foto en el modelo, usar esa
+        if cb.foto:
+            foto_url = cb.foto.url
+        
+        return JsonResponse({
+            'success': True,
+            'data': {
+                'codigo': cb.codigo,
+                'marca': cb.marca,
+                'modelo': cb.modelo,
+                'serie': cb.serie,
+                'estado': cb.estado,
+                'condicion': cb.condicion,
+                'notas': cb.notas,
+                'foto_url': foto_url,
+            }
+        })
+    except Chromebook.DoesNotExist:
+        return JsonResponse({'success': False})
+
+
+
+
+@csrf_exempt
+def api_editar_chromebook(request, id):
+    """API para editar un Chromebook"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        try:
+            cb = Chromebook.objects.get(id=id)
+            cb.marca = data.get('marca', cb.marca)
+            cb.modelo = data.get('modelo', cb.modelo)
+            cb.serie = data.get('serie', cb.serie)
+            cb.estado = data.get('estado', cb.estado)
+            cb.condicion = data.get('condicion', cb.condicion)
+            cb.notas = data.get('notas', cb.notas)
+            cb.save()
+            return JsonResponse({'success': True})
+        except Chromebook.DoesNotExist:
+            return JsonResponse({'success': False})
+        
+
+@csrf_exempt
+def api_generar_qr_foto_chromebook(request):
+    """Genera QR para subir foto de Chromebook desde celular"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        codigo = data.get('codigo', '')
+        
+        import uuid
+        token = str(uuid.uuid4())[:8]
+        
+        # Guardar token
+        qr_tokens[token] = {
+            'codigo': codigo,
+            'expiracion': timezone.now() + timedelta(minutes=2),
+            'recibida': False
+        }
+        
+        host = request.get_host()
+        url_foto = f'http://{host}/prestamos/subir-foto-chromebook/{token}/'
+        
+        return JsonResponse({'success': True, 'token': token, 'url': url_foto})
+    
+
+def subir_foto_chromebook(request, token):
+    """Página móvil para subir foto del Chromebook"""
+    if token not in qr_tokens:
+        return render(request, 'prestamos/evidencia_expirada.html')
+    
+    data = qr_tokens[token]
+    
+    if data['expiracion'] < timezone.now():
+        del qr_tokens[token]
+        return render(request, 'prestamos/evidencia_expirada.html')
+    
+    if request.method == 'POST' and request.FILES.get('foto'):
+        import os
+        foto = request.FILES['foto']
+        codigo = data['codigo']
+        
+        # Guardar en media/chromebooks/
+        temp_dir = os.path.join(settings.MEDIA_ROOT, 'chromebooks')
+        os.makedirs(temp_dir, exist_ok=True)
+        
+        # Obtener extensión
+        ext = os.path.splitext(foto.name)[1] or '.jpg'
+        nombre_archivo = f'{codigo}{ext}'
+        ruta_completa = os.path.join(temp_dir, nombre_archivo)
+        
+        with open(ruta_completa, 'wb') as f:
+            for chunk in foto.chunks():
+                f.write(chunk)
+        
+        qr_tokens[token]['recibida'] = True
+        print(f'✅ Foto guardada: {nombre_archivo}')
+        
+        response = render(request, 'prestamos/evidencia_exitosa.html')
+        response['ngrok-skip-browser-warning'] = 'true'
+        return response
+    
+    response = render(request, 'prestamos/evidencia_subir.html', {'token': token})
+    response['ngrok-skip-browser-warning'] = 'true'
+    return response

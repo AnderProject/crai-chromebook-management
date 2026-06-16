@@ -55,7 +55,7 @@
             <!-- Saludo -->
             <div class="saludo-container mb-4">
                 <h3 class="fw-bold texto-oscuro mb-1">
-                    ¡Hola {{ user.first_name }} {{ user.last_name }}, bienvenido al Sistema de Gestión Académica!
+                    ¡Hola {{ user.first_name }} {{ user.last_name }}
                 </h3>
                 <p class="texto-gris mb-0">Selecciona un módulo para continuar</p>
             </div>
@@ -67,6 +67,9 @@
             
             <div class="row g-3">
                 
+                <!-- Módulo: Mundo CRAI -->
+                <div class="row g-3">
+    
                 <!-- Módulo: Mundo CRAI -->
                 <div class="col-sm-6 col-lg-4 col-xl-3">
                     <a href="{% url 'prestamos:dashboard' %}" class="text-decoration-none">
@@ -87,37 +90,26 @@
                     </a>
                 </div>
 
-                <!-- Módulo inactivo -->
+                <!-- Módulo: Fichas Estudiantiles -->
                 <div class="col-sm-6 col-lg-4 col-xl-3">
-                    <div class="modulo-card modulo-inactivo opacity-50">
-                        <div class="modulo-icono">
-                            <i class="bi bi-file-earmark-text"></i>
+                    <a href="{% url 'prestamos:ficha_estudiantil' %}" class="text-decoration-none">
+                        <div class="modulo-card modulo-crai">
+                            <div class="modulo-icono">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                            <div class="modulo-info">
+                                <h6 class="modulo-titulo">Fichas Estudiantiles</h6>
+                                <p class="modulo-descripcion">
+                                    Consulta datos de estudiantes del SGA
+                                </p>
+                            </div>
+                            <div class="modulo-flecha">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
                         </div>
-                        <div class="modulo-info">
-                            <h6 class="modulo-titulo">Fichas Estudiantiles</h6>
-                            <p class="modulo-descripcion">Próximamente</p>
-                        </div>
-                        <div class="modulo-badge">
-                            <span class="badge bg-secondary">Pronto</span>
-                        </div>
-                    </div>
+                    </a>
                 </div>
-
-                <!-- Módulo inactivo -->
-                <div class="col-sm-6 col-lg-4 col-xl-3">
-                    <div class="modulo-card modulo-inactivo opacity-50">
-                        <div class="modulo-icono">
-                            <i class="bi bi-file-earmark-text"></i>
-                        </div>
-                        <div class="modulo-info">
-                            <h6 class="modulo-titulo">Mantenimiento</h6>
-                            <p class="modulo-descripcion">Próximamente</p>
-                        </div>
-                        <div class="modulo-badge">
-                            <span class="badge bg-secondary">Pronto</span>
-                        </div>
-                    </div>
-                </div>
+            </div>
                 
             </div><!-- Cierre de row -->
             

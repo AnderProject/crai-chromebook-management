@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Ficha Estudiantil - CRAI UNEMI{% endblock %}
+
+{% block estilos_extra %}
+<link href="{% static 'css/base.css' %}" rel="stylesheet">
+<link href="{% static 'css/ficha_estudiantil.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block contenido %}
+<div class="ficha-container">
+    
+    <nav class="ficha-navbar">
+        <a href="{% url 'prestamos:portal' %}" class="ficha-volver">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <span class="ficha-titulo">Ficha Estudiantil</span>
+        <div class="ficha-avatar-vacio"></div>
+    </nav>
+    
+    <div class="ficha-content">
+        
+        <!-- Buscador -->
+        <div class="buscador-card">
+            <h5 class="fw-bold mb-3"><i class="bi bi-search me-2 text-primary"></i>Consultar Estudiante</h5>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="buscador-input">
+                    <input type="text" name="busqueda" class="buscador-campo" placeholder="Ingresa cédula, nombre o apellido..." value="{{ busqueda|default:'' }}" required>
+                    <button type="submit" class="btn-buscar">
+                        <i class="bi bi-search me-1"></i>Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Error -->
+        {% if error %}
+        <div class="alert alert-warning">{{ error }}</div>
+        {% endif %}
+        
+        <!-- Resultado -->
+        {% if estudiante %}
+        <div class="resultado-card">
+            <div class="resultado-header">
+                <div class="resultado-avatar">
+                    {{ estudiante.usuario.user.first_name|first|upper }}{{ estudiante.usuario.user.last_name|first|upper }}
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0 text-white">{{ estudiante.usuario.user.get_full_name }}</h5>
+                    <small class="resultado-carrera">{{ estudiante.carrera.nombre }}</small>
+                </div>
+            </div>
+            <div class="resultado-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <small><i class="bi bi-person-badge me-1"></i>Cédula</small>
+                        <strong>{{ estudiante.usuario.cedula }}</strong>
+                    </div>
+                    <div class="info-item">
+                        <small><i class="bi bi-envelope me-1"></i>Email</small>
+                        <strong>{{ estudiante.usuario.user.email }}</strong>
+                    </div>
+                    <div class="info-item">
+                        <small><i class="bi bi-telephone me-1"></i>Teléfono</small>
+                        <strong>{{ estudiante.usuario.telefono|default:'No registrado' }}</strong>
+                    </div>
+                    <div class="info-item">
+                        <small><i class="bi bi-building me-1"></i>Facultad</small>
+                        <strong>{{ estudiante.carrera.facultad.nombre }}</strong>
+                    </div>
+                    <div class="info-item">
+                        <small><i class="bi bi-book me-1"></i>Carrera</small>
+                        <strong>{{ estudiante.carrera.nombre }}</strong>
+                    </div>
+                    <div class="info-item">
+                        <small><i class="bi bi-mortarboard me-1"></i>Semestre</small>
+                        <strong>{{ estudiante.semestre }}to</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% elif not error and not estudiante %}
+        <div class="sin-resultados">
+            <i class="bi bi-people"></i>
+            <p>Ingresa un dato para buscar un estudiante</p>
+        </div>
+        {% endif %}
+        
+    </div>
+    
+</div>
+{% endblock %}

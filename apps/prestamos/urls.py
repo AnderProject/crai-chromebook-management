@@ -37,5 +37,14 @@ urlpatterns = [
     path('api/verificar-evidencia/', views.api_verificar_evidencia, name='api_verificar_evidencia'),
     path('evidencia-foto/<str:nombre_archivo>/', views.servir_evidencia, name='servir_evidencia'),
     path('api/detalle-prestamo/<int:id>/', views.api_detalle_prestamo, name='api_detalle_prestamo'),
+    path('ficha-estudiantil/', views.ficha_estudiantil, name='ficha_estudiantil'),
+    path('mantenimiento/', views.lista_mantenimientos, name='lista_mantenimientos'),
+    path('mantenimiento/agregar/', views.agregar_mantenimiento, name='agregar_mantenimiento'),
+    path('mantenimiento/finalizar/<int:id>/', views.finalizar_mantenimiento, name='finalizar_mantenimiento'),
+    path('ajustes/', views.ajustes, name='ajustes'),
+    path('api/detalle-chromebook/<int:id>/', views.api_detalle_chromebook, name='api_detalle_chromebook'),
+    path('api/editar-chromebook/<int:id>/', views.api_editar_chromebook, name='api_editar_chromebook'),
+    path('api/generar-qr-foto-chromebook/', views.api_generar_qr_foto_chromebook, name='api_generar_qr_foto'),
+    path('subir-foto-chromebook/<str:token>/', views.subir_foto_chromebook, name='subir_foto_chromebook'),
 
 ]

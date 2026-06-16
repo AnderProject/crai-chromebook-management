@@ -97,7 +97,6 @@ class Chromebook(models.Model):
     ]
     
     CONDICIONES = [
-        ('excelente', 'Excelente'),
         ('bueno', 'Bueno'),
         ('regular', 'Regular'),
         ('malo', 'Malo'),
@@ -113,6 +112,7 @@ class Chromebook(models.Model):
     notas = models.TextField(blank=True, null=True)
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
+    foto = models.ImageField(upload_to='chromebooks/', blank=True, null=True, verbose_name='Foto del equipo')
 
     class Meta:
         verbose_name = 'Chromebook'
@@ -233,7 +233,6 @@ class Evidencia(models.Model):
 
 
 class Mantenimiento(models.Model):
-    """Registro de mantenimientos"""
     TIPOS = [
         ('preventivo', 'Preventivo'),
         ('correctivo', 'Correctivo'),
@@ -245,13 +244,16 @@ class Mantenimiento(models.Model):
     ]
     
     chromebook = models.ForeignKey(Chromebook, on_delete=models.CASCADE, related_name='mantenimientos')
-    tipo = models.CharField(max_length=20, choices=TIPOS, verbose_name='Tipo')
+    tipo = models.CharField(max_length=20, choices=TIPOS)
     descripcion_problema = models.TextField(blank=True, null=True)
     descripcion_solucion = models.TextField(blank=True, null=True)
     tecnico = models.CharField(max_length=150, blank=True, null=True)
+    costo = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField(null=True, blank=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='en_proceso')
+    registrado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    creado = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         db_table = 'tb_mantenimiento'
@@ -313,3 +315,19 @@ class ChatbotConversacion(models.Model):
         return f'Chat #{self.id} - {self.canal}'
     
 
+class SesionUsuario(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    ip = models.GenericIPAddressField()
+    navegador = models.CharField(max_length=255)
+    sistema = models.CharField(max_length=100)
+    fecha_inicio = models.DateTimeField(auto_now_add=True)
+    ultima_actividad = models.DateTimeField(auto_now=True)
+    activa = models.BooleanField(default=True)
+    
+    class Meta:
+        db_table = 'tb_sesion_usuario'
+        verbose_name = 'Sesión de Usuario'
+        verbose_name_plural = 'Sesiones de Usuario'
+    
+    def __str__(self):
+        return f'{self.usuario.username} - {self.ip}'

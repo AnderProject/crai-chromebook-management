@@ -1,0 +1,197 @@
+/* ==========================================
+   FICHA ESTUDIANTIL - CRAI UNEMI
+   ========================================== */
+
+.ficha-container {
+    min-height: 100vh;
+    background: #f5f6fa;
+}
+
+.ficha-navbar {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.ficha-volver {
+    color: white;
+    font-size: 1.3rem;
+    text-decoration: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.15);
+    transition: 0.2s;
+}
+
+.ficha-volver:hover {
+    background: rgba(255,255,255,0.25);
+    color: white;
+}
+
+.ficha-titulo {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.ficha-avatar-vacio {
+    width: 38px;
+}
+
+.ficha-content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+/* Buscador */
+.buscador-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid #eef0f5;
+    margin-bottom: 1.5rem;
+}
+
+.buscador-input {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.buscador-campo {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: 0.2s;
+}
+
+.buscador-campo:focus {
+    outline: none;
+    border-color: #1a237e;
+    box-shadow: 0 0 0 3px rgba(26,35,126,0.1);
+}
+
+.btn-buscar {
+    padding: 0.8rem 1.5rem;
+    background: #1a237e;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-buscar:hover {
+    background: #283593;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26,35,126,0.3);
+}
+
+/* Resultado */
+.resultado-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid #eef0f5;
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.resultado-header {
+    background: linear-gradient(135deg, #1a237e, #283593);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: white;
+}
+
+.resultado-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.resultado-carrera {
+    opacity: 0.75;
+}
+
+.resultado-body {
+    padding: 1.5rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.info-item {
+    background: #f8f9fb;
+    padding: 1rem;
+    border-radius: 10px;
+    transition: 0.2s;
+}
+
+.info-item:hover {
+    background: #f0f2f5;
+}
+
+.info-item small {
+    color: #888;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.info-item strong {
+    color: #333;
+    font-size: 0.9rem;
+}
+
+/* Sin resultados */
+.sin-resultados {
+    text-align: center;
+    padding: 3rem;
+    background: #fff;
+    border-radius: 16px;
+    color: #999;
+}
+
+.sin-resultados i {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}

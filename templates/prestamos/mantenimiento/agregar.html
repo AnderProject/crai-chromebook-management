@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Nuevo Mantenimiento - CRAI UNEMI{% endblock %}
+
+{% block estilos_extra %}
+<link href="{% static 'css/base.css' %}" rel="stylesheet">
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+<link href="{% static 'css/mantenimiento.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block contenido %}
+<div class="dashboard-container">
+    
+    <nav class="navbar navbar-expand-lg navbar-dashboard sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-white" href="{% url 'prestamos:dashboard' %}">
+                <i class="bi bi-book me-2"></i>CRAI UNEMI
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown dropdown-perfil">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center pe-3" href="#" data-bs-toggle="dropdown" style="gap: 0.6rem;">
+                            <div class="avatar-dashboard">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                            <div class="d-none d-md-block text-start" style="line-height: 1.2;">
+                                <span style="font-weight: 600; font-size: 0.85rem; color: white;">{{ primer_nombre }} {{ primer_apellido }}</span>
+                                <br>
+                                <small style="font-size: 0.65rem; opacity: 0.7; color: white;">Administrador</small>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow">
+                            <div class="dropdown-header"><strong>{{ user.get_full_name }}</strong></div>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'autenticacion:cerrar_sesion' %}">
+                                <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3 col-lg-2 sidebar-dashboard collapse d-md-block">
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_mantenimientos' %}"><i class="bi bi-arrow-left me-2"></i>Volver</a></li>
+                </ul>
+                <h6 class="sidebar-heading">Navegación</h6>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:portal' %}"><i class="bi bi-house-door me-2"></i>Volver al Portal</a></li>
+                </ul>
+                <h6 class="sidebar-heading">Configuración</h6>
+                <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:ajustes' %}"><i class="bi bi-gear me-2"></i>Ajustes</a></li>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link text-danger" href="{% url 'autenticacion:cerrar_sesion' %}"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
+                </ul>
+            </div>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+                
+                <div class="mb-4">
+                    <a href="{% url 'prestamos:lista_mantenimientos' %}" class="btn btn-outline-secondary btn-sm mb-3">
+                        <i class="bi bi-arrow-left me-1"></i>Volver a Mantenimiento
+                    </a>
+                    <h2 class="fw-bold"><i class="bi bi-tools me-2 text-primary"></i>Registrar Mantenimiento</h2>
+                </div>
+                
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{% if '✅' in message.message %}success{% else %}danger{% endif %} alert-dismissible fade show">
+                                    {{ message }}
+                                    <button class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Chromebook</label>
+                                    <select name="chromebook_id" class="form-select" required>
+                                        <option value="">Selecciona un equipo...</option>
+                                        {% for cb in chromebooks %}
+                                        <option value="{{ cb.id }}">{{ cb.codigo }} - {{ cb.marca }} {{ cb.modelo }} ({{ cb.estado|title }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Tipo de Mantenimiento</label>
+                                    <select name="tipo" class="form-select" required>
+                                        <option value="preventivo">Preventivo</option>
+                                        <option value="correctivo">Correctivo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Técnico</label>
+                                    <input type="text" name="tecnico" class="form-control" placeholder="Nombre del técnico">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">Costo ($)</label>
+                                    <input type="number" name="costo" class="form-control" placeholder="0.00" step="0.01" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">Fecha de Inicio</label>
+                                    <input type="date" name="fecha_inicio" class="form-control" required value="{% now 'Y-m-d' %}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold">Descripción del Problema</label>
+                                    <textarea name="descripcion_problema" class="form-control" rows="3" placeholder="Describe el problema del equipo..."></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="bi bi-send me-1"></i>Enviar a Mantenimiento
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+            </main>
+        </div>
+    </div>
+</div>
+{% endblock %}

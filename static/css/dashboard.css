@@ -632,3 +632,256 @@ tr:hover .badge-estado {
     justify-content: flex-end;
     border-radius: 0 0 20px 20px;
 }
+
+
+/* ==========================================
+   CARDS PREMIUM - PANEL DE CONTROL
+   ========================================== */
+.dashboard-stat-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid #eef0f5;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.dashboard-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+}
+
+.dashboard-stat-card .stat-card-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+.dashboard-stat-card:hover .stat-card-glow {
+    opacity: 1;
+}
+
+.dashboard-stat-card .stat-card-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-icono-dash {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    transition: transform 0.3s;
+}
+
+.dashboard-stat-card:hover .stat-icono-dash {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.bg-azul { background: #e8f0fe; color: #1a73e8; }
+.bg-naranja { background: #fff3e0; color: #ff9800; }
+.bg-cyan { background: #e0f7fa; color: #00bcd4; }
+.bg-verde { background: #e6f4ea; color: #34a853; }
+
+.stat-info-dash {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-numero-dash {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #212529;
+    line-height: 1.2;
+    transition: transform 0.3s;
+}
+
+.dashboard-stat-card:hover .stat-numero-dash {
+    transform: scale(1.1);
+}
+
+.stat-label-dash {
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.stat-sub-dash {
+    font-size: 0.7rem;
+    margin-top: 0.2rem;
+}
+
+.dashboard-stat-card .stat-card-bar {
+    height: 4px;
+    width: 100%;
+}
+
+.dashboard-stat-card .stat-card-bar.bg-azul { background: linear-gradient(90deg, #1a73e8, #4a90ff); }
+.dashboard-stat-card .stat-card-bar.bg-naranja { background: linear-gradient(90deg, #ff9800, #ffb74d); }
+.dashboard-stat-card .stat-card-bar.bg-cyan { background: linear-gradient(90deg, #00bcd4, #4dd0e1); }
+.dashboard-stat-card .stat-card-bar.bg-verde { background: linear-gradient(90deg, #34a853, #66bb6a); }
+
+.dashboard-stat-card:nth-child(1) { animation: fadeInCard 0.5s ease-out; }
+.dashboard-stat-card:nth-child(2) { animation: fadeInCard 0.5s ease-out 0.1s both; }
+.dashboard-stat-card:nth-child(3) { animation: fadeInCard 0.5s ease-out 0.2s both; }
+.dashboard-stat-card:nth-child(4) { animation: fadeInCard 0.5s ease-out 0.3s both; }
+
+/* ==========================================
+   BOTÓN PREMIUM - CÓDIGO DE RESERVACIÓN
+   ========================================== */
+.btn-codigo-reservacion {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 3px 12px rgba(26, 35, 126, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-codigo-reservacion::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 0.5s;
+}
+
+.btn-codigo-reservacion:hover::before {
+    left: 100%;
+}
+
+.btn-codigo-reservacion:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(26, 35, 126, 0.4);
+}
+
+.btn-codigo-reservacion:active {
+    transform: translateY(0);
+}
+
+.btn-codigo-icono {
+    width: 32px;
+    height: 32px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.btn-codigo-texto {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    text-align: left;
+}
+
+.btn-codigo-texto strong {
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.btn-codigo-texto small {
+    font-size: 0.65rem;
+    opacity: 0.8;
+}
+
+
+/* ==========================================
+   FICHA ESTUDIANTIL - PANEL DE CONTROL
+   ========================================== */    
+
+
+
+.table-responsive {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #d0d0d0;
+    border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
+
+
+
+
+
+/* ==========================================
+   TIEMPO RESTANTE
+   ========================================== */
+.tiempo-restante {
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.tiempo-restante span {
+    animation: none;
+}
+
+@keyframes alertaVencido {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+
+
+/* ==========================================
+   BOTÓN VOLVER INVENTARIO
+   ========================================== */
+.btn-volver-inventario {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 1rem;
+    background: #e9ecef;
+    color: #495057;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-volver-inventario:hover {
+    background: #dee2e6;
+    color: #212529;
+}
