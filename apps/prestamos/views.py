@@ -571,24 +571,39 @@ def api_buscar_chromebook(request):
 @csrf_exempt
 def api_buscar_estudiante(request):
     if request.method == 'POST':
+        from .services.api_estudiantes import obtener_estudiante, ApiEstudiantesError
+        from .services.sincronizacion import sincronizar_estudiante
+
         data = json.loads(request.body)
         cedula = data.get('cedula', '').strip()
-        
-        try:
-            perfil = PerfilUsuario.objects.get(cedula=cedula)
-            estudiante = Estudiante.objects.get(usuario=perfil)
-            
-            return JsonResponse({'success': True, 'data': {
-                'id': estudiante.id, 'user_id': perfil.user.id,
-                'nombre': perfil.user.get_full_name() or perfil.user.username,
-                'cedula': perfil.cedula,
-                'carrera': estudiante.carrera.nombre if estudiante.carrera else 'No registrada',
-                'semestre': estudiante.semestre,
-            }})
-        except PerfilUsuario.DoesNotExist:
+
+        estudiante = (
+            Estudiante.objects
+            .select_related('usuario__user', 'carrera')
+            .filter(usuario__cedula=cedula)
+            .first()
+        )
+
+        # Sync on-demand: si no está en el espejo local, traerlo de matrículas.
+        if estudiante is None:
+            try:
+                data_api = obtener_estudiante(cedula)
+            except ApiEstudiantesError:
+                return JsonResponse({'success': False, 'message': 'Servicio de matrículas no disponible. Intenta más tarde.'})
+            if data_api:
+                estudiante, _ = sincronizar_estudiante(data_api)
+
+        if estudiante is None:
             return JsonResponse({'success': False, 'message': 'Estudiante no encontrado.'})
-        except Estudiante.DoesNotExist:
-            return JsonResponse({'success': False, 'message': 'El usuario no tiene perfil de estudiante.'})
+
+        perfil = estudiante.usuario
+        return JsonResponse({'success': True, 'data': {
+            'id': estudiante.id, 'user_id': perfil.user.id,
+            'nombre': perfil.user.get_full_name() or perfil.user.username,
+            'cedula': perfil.cedula,
+            'carrera': estudiante.carrera.nombre if estudiante.carrera else 'No registrada',
+            'semestre': estudiante.semestre,
+        }})
 
 
 @csrf_exempt
@@ -656,6 +671,22 @@ def ficha_estudiantil(request):
             
             if estudiantes.exists():
                 estudiante_encontrado = estudiantes.first()
+            elif busqueda.isdigit() and len(busqueda) == 10:
+                # Sync on-demand por cédula desde matrículas y re-búsqueda.
+                from .services.api_estudiantes import obtener_estudiante, ApiEstudiantesError
+                from .services.sincronizacion import sincronizar_estudiante
+                try:
+                    data_api = obtener_estudiante(busqueda)
+                except ApiEstudiantesError:
+                    data_api = None
+                    error = 'Servicio de matrículas no disponible. Intenta más tarde.'
+                if data_api:
+                    nuevo, _ = sincronizar_estudiante(data_api)
+                    estudiante_encontrado = Estudiante.objects.select_related(
+                        'usuario__user', 'carrera', 'carrera__facultad'
+                    ).get(pk=nuevo.pk)
+                elif not error:
+                    error = 'No se encontró ningún estudiante con esos datos.'
             else:
                 error = 'No se encontró ningún estudiante con esos datos.'
     

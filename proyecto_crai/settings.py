@@ -162,3 +162,11 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'merchanbalcazaranderson@gmail.com'  # ← Tu correo de Gmail
 EMAIL_HOST_PASSWORD = 'rcklqxbjqxeckrrs'  # ← La contraseña de aplicación
 DEFAULT_FROM_EMAIL = 'CRAI UNEMI <crai.unemi.test@gmail.com>'
+
+
+# ==================== API EXTERNA DE MATRÍCULAS ====================
+# Servicio que simula el sistema de matrículas de la UNEMI y es la fuente de
+# verdad de los estudiantes. El sistema de reservas mantiene un espejo local.
+API_MATRICULAS_BASE_URL = os.environ.get('API_MATRICULAS_BASE_URL', 'http://127.0.0.1:8001/api')
+API_MATRICULAS_KEY = os.environ.get('API_MATRICULAS_KEY', 'clave-dev-compartida')  # debe coincidir con API_KEY_MATRICULAS de la API
+API_MATRICULAS_TIMEOUT = float(os.environ.get('API_MATRICULAS_TIMEOUT', '5'))

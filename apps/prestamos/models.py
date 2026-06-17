@@ -54,11 +54,22 @@ class TipoUsuario(models.Model):
 
 class Usuario(models.Model):
     """Usuarios del sistema (extiende User de Django)"""
+
+    ORIGEN_CHOICES = [
+        ('local', 'Local'),
+        ('api', 'API Matrículas'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
     tipo_usuario = models.ForeignKey(TipoUsuario, on_delete=models.PROTECT, verbose_name='Tipo de Usuario')
     cedula = models.CharField(max_length=10, unique=True, verbose_name='Cédula')
     telefono = models.CharField(max_length=10, blank=True, null=True, verbose_name='Teléfono')
-    
+
+    # Trazabilidad del espejo con la API de matrículas
+    origen = models.CharField(max_length=10, choices=ORIGEN_CHOICES, default='local', verbose_name='Origen')
+    matricula_id = models.IntegerField(null=True, blank=True, db_index=True, verbose_name='ID en Matrículas')
+    sincronizado = models.DateTimeField(null=True, blank=True, verbose_name='Última sincronización')
+
     class Meta:
         db_table = 'tb_usuario'
         verbose_name = 'Usuario'

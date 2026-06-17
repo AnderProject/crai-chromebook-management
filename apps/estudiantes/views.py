@@ -106,6 +106,8 @@ def reservar_chromebook(request):
     from apps.prestamos.models import Reserva, Estudiante, Carrera, Chromebook
     from apps.prestamos.models import Usuario as PerfilUsuario, TipoUsuario
     from apps.prestamos.models import Notificacion
+    from apps.prestamos.services.api_estudiantes import obtener_estudiante, ApiEstudiantesError
+    from apps.prestamos.services.sincronizacion import sincronizar_estudiante
     from django.http import JsonResponse
     from datetime import datetime, timedelta
     import random
@@ -135,23 +137,30 @@ def reservar_chromebook(request):
             hora_inicio = request.POST.get('hora_inicio', '08:00')
             
             usuario = request.user
-            
-            tipo_estudiante, _ = TipoUsuario.objects.get_or_create(nombre='Estudiante')
-            perfil, _ = PerfilUsuario.objects.get_or_create(
-                user=usuario,
-                defaults={
-                    'tipo_usuario': tipo_estudiante,
-                    'cedula': 'Sin registrar',
-                    'telefono': 'Sin registrar'
-                }
-            )
-            
-            carrera = Carrera.objects.first()
-            estudiante, _ = Estudiante.objects.get_or_create(
-                usuario=perfil,
-                defaults={'carrera': carrera, 'semestre': 1}
-            )
-            
+
+            # El estudiante ya debe existir como espejo local (entró por login sincronizado).
+            # Sin placeholders: usamos sus datos reales provenientes de matrículas.
+            try:
+                perfil = PerfilUsuario.objects.get(user=usuario)
+                estudiante = Estudiante.objects.get(usuario=perfil)
+            except (PerfilUsuario.DoesNotExist, Estudiante.DoesNotExist):
+                estudiante = None
+                # Recuperación: re-sincronizar desde matrículas usando el username (cédula).
+                if usuario.username.isdigit() and len(usuario.username) == 10:
+                    try:
+                        data = obtener_estudiante(usuario.username)
+                    except ApiEstudiantesError:
+                        data = None
+                    if data:
+                        estudiante, _ = sincronizar_estudiante(data)
+                if estudiante is None:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Tu perfil de estudiante no está disponible. Cierra sesión e ingresa con tu cédula.'
+                    })
+
+            carrera = estudiante.carrera
+
             caracteres = string.ascii_uppercase + string.digits
             while True:
                 codigo = ''.join(random.choices(caracteres, k=6))

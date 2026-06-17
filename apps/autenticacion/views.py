@@ -58,8 +58,35 @@ def autenticar_usuario(usuario_ingresado, contraseña):
             user = authenticate(username=usuario_por_email.username, password=contraseña)
         except User.DoesNotExist:
             user = None
-    
+
     return user
+
+
+def sincronizar_y_autenticar(cedula, contraseña):
+    """Sync on-demand para estudiantes que solo existen en la API de matrículas.
+
+    Devuelve (user, mensaje_error). Si la API trae al estudiante, lo crea/actualiza
+    localmente y reintenta autenticar. mensaje_error explica el fallo cuando user es None.
+    """
+    from apps.prestamos.services.api_estudiantes import obtener_estudiante, ApiEstudiantesError
+    from apps.prestamos.services.sincronizacion import sincronizar_estudiante
+
+    try:
+        data = obtener_estudiante(cedula)
+    except ApiEstudiantesError:
+        return None, 'El servicio de matrículas no está disponible en este momento. Intenta más tarde.'
+
+    if data is None:
+        return None, None  # no es estudiante; deja el mensaje genérico al llamador
+
+    sincronizar_estudiante(data, password_inicial=cedula)
+    user = authenticate(username=cedula, password=contraseña)
+
+    if user is None:
+        # El estudiante existe pero la contraseña no coincide con la inicial.
+        return None, 'Tu usuario y tu contraseña inicial son tu número de cédula.'
+
+    return user, None
 
 
 # ==========================================
@@ -96,12 +123,17 @@ def login_estudiante(request):
         if formulario.is_valid():
             usuario_ingresado = formulario.cleaned_data['usuario']
             contraseña = formulario.cleaned_data['contraseña']
-            
+
             user = autenticar_usuario(usuario_ingresado, contraseña)
-            
+
+            # Sync on-demand: estudiante que aún no existe localmente pero sí en matrículas.
+            mensaje_sync = None
+            if user is None and usuario_ingresado.isdigit() and len(usuario_ingresado) == 10:
+                user, mensaje_sync = sincronizar_y_autenticar(usuario_ingresado, contraseña)
+
             if user is not None and user.is_active:
                 grupos = [g.name for g in user.groups.all()]
-                
+
                 if 'Estudiante' in grupos or (not user.is_staff and not user.is_superuser):
                     login(request, user)
                     limpiar_mensajes(request)
@@ -110,7 +142,7 @@ def login_estudiante(request):
                 else:
                     messages.error(request, 'Credenciales Incorrectas.')
             else:
-                messages.error(request, 'Usuario o contraseña incorrectos.')
+                messages.error(request, mensaje_sync or 'Usuario o contraseña incorrectos.')
     
     contexto = {
         'formulario': formulario,
