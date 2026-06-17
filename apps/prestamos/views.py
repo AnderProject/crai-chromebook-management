@@ -182,6 +182,311 @@ def pagina_evidencia(request, token):
     return response
 
 
+@login_required
+def reportes(request):
+    """Panel de reportes (Fase 1).
+
+    Organiza los datos en 5 categorías que la plantilla muestra en pestañas:
+      - KPIs principales (6 indicadores)
+      - Temporal: préstamos por mes/semana, horas pico y día de la semana
+      - Distribución: por carrera, semestre, facultad, marca, condición e inventario
+      - Estudiantes: rankings (top, con vencidos, cumplidos, nuevos)
+      - Mantenimiento: por mes, tipo, costo, tiempo de reparación y técnicos
+      - Operativo: tablas de préstamos activos, vencidos, por vencer y devueltos hoy
+    """
+    from .models import Chromebook, Prestamo, Mantenimiento, Notificacion
+    from django.db.models import Count, Sum, Avg, Q, F, ExpressionWrapper, DurationField
+    from django.db.models.functions import TruncMonth, TruncWeek, ExtractHour, ExtractWeekDay
+
+    MESES_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+                'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    tz = timezone.get_current_timezone()
+    ahora = timezone.now()
+    hoy = timezone.localdate()
+
+    # Encabezado (mismo patrón que el dashboard)
+    primer_nombre = request.user.first_name.split()[0] if request.user.first_name else 'Admin'
+    primer_apellido = request.user.last_name.split()[0] if request.user.last_name else 'CRAI'
+
+    # Ruta de relación Prestamo -> Estudiante (User -> perfil -> estudiante)
+    EST = 'estudiante__perfil__estudiante'
+
+    # =====================================================================
+    # KPIs PRINCIPALES (6)
+    # =====================================================================
+    total_prestamos = Prestamo.objects.count()
+    prestamos_hoy = Prestamo.objects.filter(fecha_prestamo__date=hoy).count()
+
+    vencidos = Prestamo.objects.filter(estado='vencido').count()
+    tasa_vencimiento = round(vencidos / total_prestamos * 100) if total_prestamos else 0
+
+    # % de devoluciones a tiempo (reemplaza una "calificación": usa dato real)
+    devueltos = Prestamo.objects.filter(fecha_devuelto__isnull=False)
+    total_devueltos = devueltos.count()
+    a_tiempo = devueltos.filter(fecha_devuelto__lte=F('fecha_devolucion')).count()
+    pct_a_tiempo = round(a_tiempo / total_devueltos * 100) if total_devueltos else 0
+
+    # Tasa de reincidencia: estudiantes que pidieron 2+ veces / estudiantes que pidieron
+    con_prestamo = User.objects.annotate(n=Count('prestamo')).filter(n__gt=0)
+    total_con_prestamo = con_prestamo.count()
+    repiten = con_prestamo.filter(n__gte=2).count()
+    tasa_reincidencia = round(repiten / total_con_prestamo * 100) if total_con_prestamo else 0
+
+    # Tiempo promedio real por préstamo (horas), sobre los devueltos
+    prom = (
+        devueltos
+        .annotate(dur=ExpressionWrapper(F('fecha_devuelto') - F('fecha_prestamo'),
+                                        output_field=DurationField()))
+        .aggregate(p=Avg('dur'))['p']
+    )
+    tiempo_promedio = round(prom.total_seconds() / 3600, 1) if prom else 0
+
+    # =====================================================================
+    # TEMPORAL
+    # =====================================================================
+    # Por mes (últimos 6 meses)
+    hace_6_meses = ahora - timedelta(days=180)
+    por_mes = (
+        Prestamo.objects.filter(fecha_prestamo__gte=hace_6_meses)
+        .annotate(mes=TruncMonth('fecha_prestamo')).values('mes')
+        .annotate(total=Count('id')).order_by('mes')
+    )
+    mes_labels = [f'{MESES_ES[p["mes"].month - 1]} {p["mes"].year}' for p in por_mes]
+    mes_data = [p['total'] for p in por_mes]
+
+    # Por semana (últimas 8 semanas)
+    hace_8_semanas = ahora - timedelta(weeks=8)
+    por_semana = (
+        Prestamo.objects.filter(fecha_prestamo__gte=hace_8_semanas)
+        .annotate(sem=TruncWeek('fecha_prestamo')).values('sem')
+        .annotate(total=Count('id')).order_by('sem')
+    )
+    semana_labels = [p['sem'].strftime('%d/%m') for p in por_semana]
+    semana_data = [p['total'] for p in por_semana]
+
+    # Horas pico (jornada 7:00 a 21:00)
+    horas_qs = (
+        Prestamo.objects
+        .annotate(h=ExtractHour('fecha_prestamo', tzinfo=tz))
+        .values('h').annotate(total=Count('id'))
+    )
+    horas_map = {h['h']: h['total'] for h in horas_qs}
+    horas_rango = list(range(7, 22))
+    hora_labels = [f'{h:02d}:00' for h in horas_rango]
+    hora_data = [horas_map.get(h, 0) for h in horas_rango]
+
+    # Día de la semana (ExtractWeekDay: 1=domingo ... 7=sábado)
+    dia_qs = (
+        Prestamo.objects
+        .annotate(d=ExtractWeekDay('fecha_prestamo', tzinfo=tz))
+        .values('d').annotate(total=Count('id'))
+    )
+    dia_map = {d['d']: d['total'] for d in dia_qs}
+    dia_orden = [2, 3, 4, 5, 6, 7, 1]  # Lun..Dom
+    dia_labels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+    dia_data = [dia_map.get(d, 0) for d in dia_orden]
+
+    # =====================================================================
+    # DISTRIBUCIÓN
+    # =====================================================================
+    total_chromebooks = Chromebook.objects.count()
+    inventario = {'disponible': 0, 'prestado': 0, 'mantenimiento': 0}
+    for fila in Chromebook.objects.values('estado').annotate(total=Count('id')):
+        inventario[fila['estado']] = fila['total']
+
+    condicion = {'bueno': 0, 'regular': 0, 'malo': 0}
+    for fila in Chromebook.objects.values('condicion').annotate(total=Count('id')):
+        condicion[fila['condicion']] = fila['total']
+
+    def _distribucion(campo, limite=None, ordenar_por_total=True):
+        qs = (
+            Prestamo.objects.filter(**{f'{campo}__isnull': False})
+            .values(campo).annotate(total=Count('id'))
+        )
+        qs = qs.order_by('-total') if ordenar_por_total else qs.order_by(campo)
+        if limite:
+            qs = qs[:limite]
+        return qs
+
+    carrera_qs = _distribucion(f'{EST}__carrera__nombre', limite=8)
+    carrera_labels = [c[f'{EST}__carrera__nombre'] for c in carrera_qs]
+    carrera_data = [c['total'] for c in carrera_qs]
+
+    semestre_qs = _distribucion(f'{EST}__semestre', ordenar_por_total=False)
+    semestre_labels = [f'Sem {c[f"{EST}__semestre"]}' for c in semestre_qs]
+    semestre_data = [c['total'] for c in semestre_qs]
+
+    facultad_qs = _distribucion(f'{EST}__carrera__facultad__nombre', limite=8)
+    facultad_labels = [c[f'{EST}__carrera__facultad__nombre'] for c in facultad_qs]
+    facultad_data = [c['total'] for c in facultad_qs]
+
+    marca_qs = _distribucion('chromebook__marca')
+    marca_labels = [c['chromebook__marca'] for c in marca_qs]
+    marca_data = [c['total'] for c in marca_qs]
+
+    # =====================================================================
+    # ESTUDIANTES (rankings)
+    # =====================================================================
+    def _nombre(u):
+        return u.get_full_name() or u.username
+
+    def _cedula(u):
+        perfil = getattr(u, 'perfil', None)
+        return perfil.cedula if perfil else '—'
+
+    top_estudiantes = (
+        User.objects.filter(groups__name='Estudiante')
+        .annotate(n=Count('prestamo')).filter(n__gt=0)
+        .select_related('perfil').order_by('-n')[:10]
+    )
+    tabla_top = [{'nombre': _nombre(u), 'cedula': _cedula(u), 'total': u.n}
+                 for u in top_estudiantes]
+
+    con_vencidos = (
+        User.objects
+        .annotate(nv=Count('prestamo', filter=Q(prestamo__estado='vencido')))
+        .filter(nv__gt=0).select_related('perfil').order_by('-nv')[:10]
+    )
+    tabla_vencidos_est = [{'nombre': _nombre(u), 'cedula': _cedula(u), 'total': u.nv}
+                          for u in con_vencidos]
+
+    cumplidos = (
+        User.objects
+        .annotate(
+            dev=Count('prestamo', filter=Q(prestamo__fecha_devuelto__isnull=False)),
+            at=Count('prestamo', filter=Q(prestamo__fecha_devuelto__isnull=False,
+                                          prestamo__fecha_devuelto__lte=F('prestamo__fecha_devolucion'))),
+            venc=Count('prestamo', filter=Q(prestamo__estado='vencido')),
+        )
+        .filter(dev__gt=0, venc=0).select_related('perfil').order_by('-at')[:10]
+    )
+    tabla_cumplidos = [
+        {'nombre': _nombre(u), 'cedula': _cedula(u), 'total': u.dev,
+         'pct': round(u.at / u.dev * 100) if u.dev else 0}
+        for u in cumplidos
+    ]
+
+    hace_30 = ahora - timedelta(days=30)
+    nuevos = (
+        User.objects.filter(groups__name='Estudiante', date_joined__gte=hace_30)
+        .select_related('perfil').order_by('-date_joined')[:10]
+    )
+    tabla_nuevos = [{'nombre': _nombre(u), 'cedula': _cedula(u), 'fecha': u.date_joined}
+                    for u in nuevos]
+
+    # =====================================================================
+    # MANTENIMIENTO
+    # =====================================================================
+    total_mantenimientos = Mantenimiento.objects.count()
+    costo_total = Mantenimiento.objects.aggregate(t=Sum('costo'))['t'] or 0
+
+    mant_mes_qs = (
+        Mantenimiento.objects.filter(fecha_inicio__gte=hace_6_meses.date())
+        .annotate(mes=TruncMonth('fecha_inicio')).values('mes')
+        .annotate(total=Count('id')).order_by('mes')
+    )
+    mant_mes_labels = [f'{MESES_ES[m["mes"].month - 1]} {m["mes"].year}' for m in mant_mes_qs]
+    mant_mes_data = [m['total'] for m in mant_mes_qs]
+
+    mant_por_tipo = {'preventivo': 0, 'correctivo': 0}
+    for fila in Mantenimiento.objects.values('tipo').annotate(total=Count('id')):
+        mant_por_tipo[fila['tipo']] = fila['total']
+
+    # Tiempo promedio de reparación (días) sobre mantenimientos finalizados
+    prom_rep = (
+        Mantenimiento.objects.filter(fecha_fin__isnull=False)
+        .annotate(dur=ExpressionWrapper(F('fecha_fin') - F('fecha_inicio'),
+                                        output_field=DurationField()))
+        .aggregate(p=Avg('dur'))['p']
+    )
+    tiempo_reparacion = round(prom_rep.total_seconds() / 86400, 1) if prom_rep else 0
+
+    tecnicos_qs = (
+        Mantenimiento.objects.exclude(tecnico__isnull=True).exclude(tecnico='')
+        .values('tecnico').annotate(n=Count('id'), costo=Sum('costo')).order_by('-n')[:10]
+    )
+    tabla_tecnicos = [{'tecnico': t['tecnico'], 'total': t['n'], 'costo': t['costo'] or 0}
+                      for t in tecnicos_qs]
+
+    # =====================================================================
+    # OPERATIVO (tablas en tiempo real)
+    # =====================================================================
+    activos = (
+        Prestamo.objects.filter(estado='activo')
+        .select_related('estudiante', 'chromebook').order_by('fecha_devolucion')[:50]
+    )
+
+    vencidos_qs = (
+        Prestamo.objects.filter(estado='vencido')
+        .select_related('estudiante', 'chromebook').order_by('fecha_devolucion')[:50]
+    )
+    tabla_operativo_vencidos = []
+    for p in vencidos_qs:
+        atraso = ahora - p.fecha_devolucion
+        tabla_operativo_vencidos.append({'p': p, 'horas': int(atraso.total_seconds() // 3600)})
+
+    por_vencer = (
+        Prestamo.objects.filter(estado='activo',
+                                fecha_devolucion__gte=ahora,
+                                fecha_devolucion__lte=ahora + timedelta(hours=24))
+        .select_related('estudiante', 'chromebook').order_by('fecha_devolucion')[:50]
+    )
+
+    devueltos_hoy = (
+        Prestamo.objects.filter(estado='devuelto', fecha_devuelto__date=hoy)
+        .select_related('estudiante', 'chromebook').order_by('-fecha_devuelto')[:50]
+    )
+
+    # Notificaciones para el navbar (igual que el dashboard)
+    notificaciones = Notificacion.objects.all().order_by('-fecha_envio')[:5]
+
+    contexto = {
+        'primer_nombre': primer_nombre,
+        'primer_apellido': primer_apellido,
+        'notificaciones': notificaciones,
+        'total_notificaciones': Notificacion.objects.count(),
+
+        # ---- KPIs ----
+        'total_prestamos': total_prestamos,
+        'prestamos_hoy': prestamos_hoy,
+        'tasa_vencimiento': tasa_vencimiento,
+        'pct_a_tiempo': pct_a_tiempo,
+        'tasa_reincidencia': tasa_reincidencia,
+        'tiempo_promedio': tiempo_promedio,
+
+        # ---- Mantenimiento (stats) ----
+        'total_mantenimientos': total_mantenimientos,
+        'costo_total': costo_total,
+        'tiempo_reparacion': tiempo_reparacion,
+
+        # ---- Tablas (render en servidor) ----
+        'tabla_top': tabla_top,
+        'tabla_vencidos_est': tabla_vencidos_est,
+        'tabla_cumplidos': tabla_cumplidos,
+        'tabla_nuevos': tabla_nuevos,
+        'tabla_tecnicos': tabla_tecnicos,
+        'op_activos': activos,
+        'op_vencidos': tabla_operativo_vencidos,
+        'op_por_vencer': por_vencer,
+        'op_devueltos_hoy': devueltos_hoy,
+
+        # ---- Datos para gráficos (json_script) ----
+        'mes_labels': mes_labels, 'mes_data': mes_data,
+        'semana_labels': semana_labels, 'semana_data': semana_data,
+        'hora_labels': hora_labels, 'hora_data': hora_data,
+        'dia_labels': dia_labels, 'dia_data': dia_data,
+        'inventario_data': [inventario['disponible'], inventario['prestado'], inventario['mantenimiento']],
+        'condicion_data': [condicion['bueno'], condicion['regular'], condicion['malo']],
+        'carrera_labels': carrera_labels, 'carrera_data': carrera_data,
+        'semestre_labels': semestre_labels, 'semestre_data': semestre_data,
+        'facultad_labels': facultad_labels, 'facultad_data': facultad_data,
+        'marca_labels': marca_labels, 'marca_data': marca_data,
+        'mant_mes_labels': mant_mes_labels, 'mant_mes_data': mant_mes_data,
+        'mant_tipo_data': [mant_por_tipo['preventivo'], mant_por_tipo['correctivo']],
+    }
+    return render(request, 'prestamos/reportes/reportes.html', contexto)
+
+
 def servir_evidencia(request, nombre_archivo):
     """Sirve la imagen de evidencia"""
     ruta = os.path.join(settings.MEDIA_ROOT, 'evidencias', nombre_archivo)

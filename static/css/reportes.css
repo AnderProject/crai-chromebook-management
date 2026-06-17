@@ -1,0 +1,285 @@
+/* ============================================================
+   REPORTES - CRAI UNEMI
+   Estilos propios del apartado de reportes (gráficos y tarjetas).
+   La estructura general (navbar, sidebar, main-content) se reutiliza
+   desde dashboard.css. Aquí solo va lo específico de esta pantalla.
+   ============================================================ */
+
+:root {
+    --rep-primario: #1a237e;
+    --rep-secundario: #ff6f00;
+    --rep-azul: #4285f4;
+    --rep-verde: #34a853;
+    --rep-cyan: #00acc1;
+    --rep-rojo: #ea4335;
+    --rep-borde: #e0e0e0;
+    --rep-texto-claro: #6c757d;
+}
+
+/* ---------- Tarjetas resumen (mini-KPI) ---------- */
+.reporte-resumen {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.reporte-kpi {
+    background: #ffffff;
+    border: 1px solid var(--rep-borde);
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.reporte-kpi:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(26, 35, 126, 0.12);
+}
+
+.reporte-kpi-icono {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.reporte-kpi-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.reporte-kpi-numero {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--rep-primario);
+}
+
+.reporte-kpi-label {
+    font-size: 0.78rem;
+    color: var(--rep-texto-claro);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+/* Colores de los íconos KPI (reusa la paleta del dashboard) */
+.kpi-azul    { background: linear-gradient(135deg, #4285f4, #1a73e8); }
+.kpi-naranja { background: linear-gradient(135deg, #ff6f00, #f57c00); }
+.kpi-cyan    { background: linear-gradient(135deg, #00acc1, #00838f); }
+.kpi-verde   { background: linear-gradient(135deg, #34a853, #1e8e3e); }
+.kpi-rojo    { background: linear-gradient(135deg, #ea4335, #c5221f); }
+.kpi-morado  { background: linear-gradient(135deg, #7e57c2, #5e35b1); }
+
+/* ---------- Tarjetas de gráficos ---------- */
+.reporte-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.25rem;
+}
+
+.reporte-card {
+    background: #ffffff;
+    border: 1px solid var(--rep-borde);
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+/* Anchos por columnas (escritorio) */
+.reporte-col-12 { grid-column: span 12; }
+.reporte-col-8  { grid-column: span 8; }
+.reporte-col-6  { grid-column: span 6; }
+.reporte-col-5  { grid-column: span 5; }
+.reporte-col-4  { grid-column: span 4; }
+.reporte-col-3  { grid-column: span 3; }
+
+.reporte-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--rep-borde);
+}
+
+.reporte-card-header i {
+    color: var(--rep-primario);
+    font-size: 1.15rem;
+}
+
+.reporte-card-header h5 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--rep-primario);
+}
+
+/* Contenedor del canvas: altura controlada para que el gráfico no crezca infinito */
+.reporte-canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 300px;
+}
+
+.reporte-canvas-wrap.alto-bajo {
+    height: 240px;
+}
+
+/* Estado vacío cuando no hay datos para un gráfico */
+.reporte-vacio {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--rep-texto-claro);
+    text-align: center;
+}
+
+.reporte-vacio i {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+
+/* ---------- Tablas de rankings / operativo ---------- */
+.reporte-tabla-wrap {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.reporte-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+}
+
+.reporte-tabla thead th {
+    position: sticky;
+    top: 0;
+    background: #f4f6f9;
+    color: var(--rep-primario);
+    font-weight: 600;
+    text-align: left;
+    padding: 0.55rem 0.6rem;
+    border-bottom: 2px solid var(--rep-borde);
+    white-space: nowrap;
+}
+
+.reporte-tabla tbody td {
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid #f0f0f0;
+    color: var(--rep-texto);
+}
+
+.reporte-tabla tbody tr:hover {
+    background: #f8f9ff;
+}
+
+.reporte-tabla-vacio {
+    text-align: center;
+    color: var(--rep-texto-claro);
+    padding: 1.5rem !important;
+    font-style: italic;
+}
+
+.badge-num {
+    display: inline-block;
+    min-width: 30px;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: var(--rep-primario);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-align: center;
+}
+
+.badge-num.badge-rojo  { background: var(--rep-rojo); }
+.badge-num.badge-verde { background: var(--rep-verde); }
+
+/* ---------- Mini-stats (pestaña de mantenimiento) ---------- */
+.reporte-mini-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.reporte-mini-stat:last-child {
+    border-bottom: none;
+}
+
+.reporte-mini-stat .reporte-kpi-numero {
+    display: block;
+    font-size: 1.35rem;
+}
+
+.reporte-mini-stat .reporte-kpi-label {
+    display: block;
+}
+
+/* ---------- Pestañas por categoría ---------- */
+.reporte-tabs {
+    border-bottom: 2px solid var(--rep-borde);
+    margin-bottom: 1.25rem;
+    gap: 0.25rem;
+}
+
+.reporte-tabs .nav-link {
+    border: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    color: var(--rep-texto-claro);
+    font-weight: 600;
+    padding: 0.7rem 1.1rem;
+    background: transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.reporte-tabs .nav-link:hover {
+    color: var(--rep-primario);
+    border-bottom-color: var(--rep-primario-claro, #c5cae9);
+}
+
+.reporte-tabs .nav-link.active {
+    color: var(--rep-primario);
+    background: transparent;
+    border-bottom-color: var(--rep-primario);
+}
+
+.reporte-tab-content {
+    margin-bottom: 0.5rem;
+}
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 991.98px) {
+    .reporte-col-12,
+    .reporte-col-8,
+    .reporte-col-6,
+    .reporte-col-5,
+    .reporte-col-4,
+    .reporte-col-3 {
+        grid-column: span 12;
+    }
+
+    .reporte-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+
+    .reporte-tabs .nav-link {
+        white-space: nowrap;
+        padding: 0.6rem 0.8rem;
+    }
+}

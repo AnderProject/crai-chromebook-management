@@ -1,0 +1,455 @@
+<!-- templates/prestamos/reportes/reportes.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block estilos_extra %}
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+<link href="{% static 'css/reportes.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block titulo %}Reportes - CRAI UNEMI{% endblock %}
+
+{% block contenido %}
+<div class="dashboard-container">
+
+    <nav class="navbar navbar-expand-lg navbar-dashboard sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-white" href="#">
+                <i class="bi bi-book me-2"></i>CRAI UNEMI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarDashboard">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarDashboard">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item dropdown me-3">
+                        <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-bell fs-5"></i>
+                            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill notificacion-badge">
+                                {{ total_notificaciones }}
+                            </span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end p-2 shadow" style="width: 300px;">
+                            <h6 class="dropdown-header fw-semibold">📬 Notificaciones</h6>
+                            {% if notificaciones %}
+                                {% for notif in notificaciones %}
+                                <div class="dropdown-item small rounded">
+                                    {% if notif.tipo == 'prestamo' %}
+                                        <i class="bi bi-laptop text-primary me-2"></i>
+                                    {% elif notif.tipo == 'vencimiento' %}
+                                        <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                                    {% else %}
+                                        <i class="bi bi-bell text-info me-2"></i>
+                                    {% endif %}
+                                    <strong>{{ notif.titulo }}</strong>
+                                    <br><small class="text-muted">{{ notif.fecha_envio|date:"d/m/Y H:i" }}</small>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="dropdown-item small text-muted text-center">No hay notificaciones</div>
+                            {% endif %}
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item small text-center text-primary" href="#">Ver todas las notificaciones</a>
+                        </div>
+                    </li>
+
+                    <li class="nav-item dropdown dropdown-perfil">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center pe-3" href="#" data-bs-toggle="dropdown" style="gap: 0.6rem;">
+                            <div class="avatar-dashboard">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                            <div class="d-none d-md-block text-start" style="line-height: 1.2;">
+                                <span style="font-weight: 600; font-size: 0.85rem; color: white;">{{ primer_nombre }} {{ primer_apellido }}</span>
+                                <br>
+                                <small style="font-size: 0.65rem; opacity: 0.7; color: white;">Administrador</small>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow">
+                            <div class="dropdown-header">
+                                <strong>{{ user.get_full_name }}</strong><br>
+                                <small class="text-muted">{{ user.email }}</small>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Mi Perfil</a>
+                            <a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Configuración</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-danger" href="{% url 'autenticacion:cerrar_sesion' %}">
+                                <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+
+            <div class="col-md-3 col-lg-2 sidebar-dashboard collapse d-md-block" id="sidebarMenu">
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Panel de Control</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_chromebooks' %}"><i class="bi bi-laptop me-2"></i>Chromebooks</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_prestamos' %}"><i class="bi bi-journal-check me-2"></i>Préstamos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_estudiantes' %}"><i class="bi bi-people me-2"></i>Estudiantes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_mantenimientos' %}"><i class="bi bi-tools me-2"></i>Mantenimiento</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{% url 'prestamos:reportes' %}"><i class="bi bi-bar-chart me-2"></i>Reportes</a></li>
+                    </ul>
+                    <h6 class="sidebar-heading">Navegación</h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:portal' %}"><i class="bi bi-house-door me-2"></i>Volver al Portal</a></li>
+                    </ul>
+                    <h6 class="sidebar-heading">Configuración</h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:ajustes' %}"><i class="bi bi-gear me-2"></i>Ajustes</a></li>
+                    <ul class="nav flex-column">
+                        <li class="nav-item"><a class="nav-link text-danger" href="{% url 'autenticacion:cerrar_sesion' %}"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
+                    </ul>
+            </div>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+
+                <div class="d-flex justify-content-between flex-wrap align-items-center mb-4">
+                    <h2 class="fw-bold texto-oscuro mb-0">
+                        <i class="bi bi-bar-chart me-2 text-primary"></i>Reportes y Estadísticas
+                    </h2>
+                </div>
+
+                <!-- ====== KPIs PRINCIPALES (6) ====== -->
+                <div class="reporte-resumen">
+                    <div class="reporte-kpi">
+                        <div class="reporte-kpi-icono kpi-naranja"><i class="bi bi-journal-check"></i></div>
+                        <div class="reporte-kpi-info">
+                            <span class="reporte-kpi-numero">{{ total_prestamos }}</span>
+                            <span class="reporte-kpi-label">Préstamos totales</span>
+                        </div>
+                    </div>
+                    <div class="reporte-kpi">
+                        <div class="reporte-kpi-icono kpi-azul"><i class="bi bi-calendar-day"></i></div>
+                        <div class="reporte-kpi-info">
+                            <span class="reporte-kpi-numero">{{ prestamos_hoy }}</span>
+                            <span class="reporte-kpi-label">Préstamos hoy</span>
+                        </div>
+                    </div>
+                    <div class="reporte-kpi">
+                        <div class="reporte-kpi-icono kpi-rojo"><i class="bi bi-exclamation-triangle"></i></div>
+                        <div class="reporte-kpi-info">
+                            <span class="reporte-kpi-numero">{{ tasa_vencimiento }}%</span>
+                            <span class="reporte-kpi-label">Tasa de vencimiento</span>
+                        </div>
+                    </div>
+                    <div class="reporte-kpi">
+                        <div class="reporte-kpi-icono kpi-verde"><i class="bi bi-check2-circle"></i></div>
+                        <div class="reporte-kpi-info">
+                            <span class="reporte-kpi-numero">{{ pct_a_tiempo }}%</span>
+                            <span class="reporte-kpi-label">Devoluciones a tiempo</span>
+                        </div>
+                    </div>
+                    <div class="reporte-kpi">
+                        <div class="reporte-kpi-icono kpi-cyan"><i class="bi bi-arrow-repeat"></i></div>
+                        <div class="reporte-kpi-info">
+                            <span class="reporte-kpi-numero">{{ tasa_reincidencia }}%</span>
+                            <span class="reporte-kpi-label">Reincidencia</span>
+                        </div>
+                    </div>
+                    <div class="reporte-kpi">
+                        <div class="reporte-kpi-icono kpi-morado"><i class="bi bi-clock-history"></i></div>
+                        <div class="reporte-kpi-info">
+                            <span class="reporte-kpi-numero">{{ tiempo_promedio }}h</span>
+                            <span class="reporte-kpi-label">Tiempo promedio</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ====== PESTAÑAS POR CATEGORÍA ====== -->
+                <ul class="nav nav-tabs reporte-tabs" id="reporteTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="btn-tab-temporal" data-bs-toggle="tab" data-bs-target="#tab-temporal" type="button" role="tab">
+                            <i class="bi bi-graph-up me-2"></i>Temporal
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="btn-tab-distribucion" data-bs-toggle="tab" data-bs-target="#tab-distribucion" type="button" role="tab">
+                            <i class="bi bi-pie-chart me-2"></i>Distribución
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="btn-tab-estudiantes" data-bs-toggle="tab" data-bs-target="#tab-estudiantes" type="button" role="tab">
+                            <i class="bi bi-people me-2"></i>Estudiantes
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="btn-tab-mantenimiento" data-bs-toggle="tab" data-bs-target="#tab-mantenimiento" type="button" role="tab">
+                            <i class="bi bi-tools me-2"></i>Mantenimiento
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="btn-tab-operativo" data-bs-toggle="tab" data-bs-target="#tab-operativo" type="button" role="tab">
+                            <i class="bi bi-clipboard-data me-2"></i>Operativo
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content reporte-tab-content">
+
+                    <!-- ===== PESTAÑA: TEMPORAL ===== -->
+                    <div class="tab-pane fade show active" id="tab-temporal" role="tabpanel" aria-labelledby="btn-tab-temporal">
+                        <div class="reporte-grid">
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-bar-chart"></i><h5>Préstamos por mes</h5></div>
+                                <div class="reporte-canvas-wrap"><canvas id="chartPorMes"></canvas></div>
+                            </div>
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-graph-up"></i><h5>Tendencia semanal</h5></div>
+                                <div class="reporte-canvas-wrap"><canvas id="chartPorSemana"></canvas></div>
+                            </div>
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-clock"></i><h5>Horas pico del día</h5></div>
+                                <div class="reporte-canvas-wrap"><canvas id="chartHorasPico"></canvas></div>
+                            </div>
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-calendar-week"></i><h5>Préstamos por día de la semana</h5></div>
+                                <div class="reporte-canvas-wrap"><canvas id="chartPorDia"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== PESTAÑA: DISTRIBUCIÓN ===== -->
+                    <div class="tab-pane fade" id="tab-distribucion" role="tabpanel" aria-labelledby="btn-tab-distribucion">
+                        <div class="reporte-grid">
+                            <div class="reporte-card reporte-col-8">
+                                <div class="reporte-card-header"><i class="bi bi-mortarboard"></i><h5>Préstamos por carrera</h5></div>
+                                <div class="reporte-canvas-wrap"><canvas id="chartCarrera"></canvas></div>
+                            </div>
+                            <div class="reporte-card reporte-col-4">
+                                <div class="reporte-card-header"><i class="bi bi-pc-display"></i><h5>Estado del inventario</h5></div>
+                                <div class="reporte-canvas-wrap"><canvas id="chartInventario"></canvas></div>
+                            </div>
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-123"></i><h5>Préstamos por semestre</h5></div>
+                                <div class="reporte-canvas-wrap"><canvas id="chartSemestre"></canvas></div>
+                            </div>
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-building"></i><h5>Préstamos por facultad</h5></div>
+                                <div class="reporte-canvas-wrap"><canvas id="chartFacultad"></canvas></div>
+                            </div>
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-heart-pulse"></i><h5>Condición de equipos</h5></div>
+                                <div class="reporte-canvas-wrap"><canvas id="chartCondicion"></canvas></div>
+                            </div>
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-laptop"></i><h5>Préstamos por marca</h5></div>
+                                <div class="reporte-canvas-wrap"><canvas id="chartMarca"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== PESTAÑA: ESTUDIANTES ===== -->
+                    <div class="tab-pane fade" id="tab-estudiantes" role="tabpanel" aria-labelledby="btn-tab-estudiantes">
+                        <div class="reporte-grid">
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-trophy"></i><h5>Top 10 estudiantes</h5></div>
+                                <div class="reporte-tabla-wrap">
+                                    <table class="reporte-tabla">
+                                        <thead><tr><th>#</th><th>Estudiante</th><th>Cédula</th><th class="text-end">Préstamos</th></tr></thead>
+                                        <tbody>
+                                            {% for e in tabla_top %}
+                                            <tr><td>{{ forloop.counter }}</td><td>{{ e.nombre }}</td><td>{{ e.cedula }}</td><td class="text-end"><span class="badge-num">{{ e.total }}</span></td></tr>
+                                            {% empty %}
+                                            <tr><td colspan="4" class="reporte-tabla-vacio">Sin datos</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-exclamation-octagon"></i><h5>Estudiantes con vencidos</h5></div>
+                                <div class="reporte-tabla-wrap">
+                                    <table class="reporte-tabla">
+                                        <thead><tr><th>#</th><th>Estudiante</th><th>Cédula</th><th class="text-end">Vencidos</th></tr></thead>
+                                        <tbody>
+                                            {% for e in tabla_vencidos_est %}
+                                            <tr><td>{{ forloop.counter }}</td><td>{{ e.nombre }}</td><td>{{ e.cedula }}</td><td class="text-end"><span class="badge-num badge-rojo">{{ e.total }}</span></td></tr>
+                                            {% empty %}
+                                            <tr><td colspan="4" class="reporte-tabla-vacio">Sin préstamos vencidos 🎉</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-star"></i><h5>Estudiantes cumplidos</h5></div>
+                                <div class="reporte-tabla-wrap">
+                                    <table class="reporte-tabla">
+                                        <thead><tr><th>#</th><th>Estudiante</th><th class="text-end">Devueltos</th><th class="text-end">A tiempo</th></tr></thead>
+                                        <tbody>
+                                            {% for e in tabla_cumplidos %}
+                                            <tr><td>{{ forloop.counter }}</td><td>{{ e.nombre }}</td><td class="text-end">{{ e.total }}</td><td class="text-end"><span class="badge-num badge-verde">{{ e.pct }}%</span></td></tr>
+                                            {% empty %}
+                                            <tr><td colspan="4" class="reporte-tabla-vacio">Sin datos</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-person-plus"></i><h5>Nuevos estudiantes (30 días)</h5></div>
+                                <div class="reporte-tabla-wrap">
+                                    <table class="reporte-tabla">
+                                        <thead><tr><th>#</th><th>Estudiante</th><th>Cédula</th><th class="text-end">Registro</th></tr></thead>
+                                        <tbody>
+                                            {% for e in tabla_nuevos %}
+                                            <tr><td>{{ forloop.counter }}</td><td>{{ e.nombre }}</td><td>{{ e.cedula }}</td><td class="text-end">{{ e.fecha|date:"d/m/Y" }}</td></tr>
+                                            {% empty %}
+                                            <tr><td colspan="4" class="reporte-tabla-vacio">Sin estudiantes nuevos</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== PESTAÑA: MANTENIMIENTO ===== -->
+                    <div class="tab-pane fade" id="tab-mantenimiento" role="tabpanel" aria-labelledby="btn-tab-mantenimiento">
+                        <div class="reporte-grid">
+                            <div class="reporte-card reporte-col-4">
+                                <div class="reporte-mini-stat">
+                                    <div class="reporte-kpi-icono kpi-verde"><i class="bi bi-cash-coin"></i></div>
+                                    <div><span class="reporte-kpi-numero">${{ costo_total }}</span><span class="reporte-kpi-label">Costo total</span></div>
+                                </div>
+                                <div class="reporte-mini-stat">
+                                    <div class="reporte-kpi-icono kpi-azul"><i class="bi bi-hourglass-split"></i></div>
+                                    <div><span class="reporte-kpi-numero">{{ tiempo_reparacion }} d</span><span class="reporte-kpi-label">Prom. reparación</span></div>
+                                </div>
+                                <div class="reporte-mini-stat">
+                                    <div class="reporte-kpi-icono kpi-naranja"><i class="bi bi-tools"></i></div>
+                                    <div><span class="reporte-kpi-numero">{{ total_mantenimientos }}</span><span class="reporte-kpi-label">Total mantenimientos</span></div>
+                                </div>
+                            </div>
+                            <div class="reporte-card reporte-col-5">
+                                <div class="reporte-card-header"><i class="bi bi-bar-chart"></i><h5>Mantenimientos por mes</h5></div>
+                                <div class="reporte-canvas-wrap"><canvas id="chartMantMes"></canvas></div>
+                            </div>
+                            <div class="reporte-card reporte-col-3">
+                                <div class="reporte-card-header"><i class="bi bi-pie-chart"></i><h5>Por tipo</h5></div>
+                                <div class="reporte-canvas-wrap"><canvas id="chartMantTipo"></canvas></div>
+                            </div>
+                            <div class="reporte-card reporte-col-12">
+                                <div class="reporte-card-header"><i class="bi bi-person-gear"></i><h5>Técnicos con más trabajos</h5></div>
+                                <div class="reporte-tabla-wrap">
+                                    <table class="reporte-tabla">
+                                        <thead><tr><th>#</th><th>Técnico</th><th class="text-end">Trabajos</th><th class="text-end">Costo acumulado</th></tr></thead>
+                                        <tbody>
+                                            {% for t in tabla_tecnicos %}
+                                            <tr><td>{{ forloop.counter }}</td><td>{{ t.tecnico }}</td><td class="text-end">{{ t.total }}</td><td class="text-end">${{ t.costo }}</td></tr>
+                                            {% empty %}
+                                            <tr><td colspan="4" class="reporte-tabla-vacio">Sin técnicos registrados</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== PESTAÑA: OPERATIVO ===== -->
+                    <div class="tab-pane fade" id="tab-operativo" role="tabpanel" aria-labelledby="btn-tab-operativo">
+                        <div class="reporte-grid">
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-circle-fill text-success"></i><h5>Préstamos activos ahora</h5></div>
+                                <div class="reporte-tabla-wrap">
+                                    <table class="reporte-tabla">
+                                        <thead><tr><th>Estudiante</th><th>Equipo</th><th class="text-end">Vence</th></tr></thead>
+                                        <tbody>
+                                            {% for p in op_activos %}
+                                            <tr><td>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</td><td><strong>{{ p.chromebook.codigo }}</strong></td><td class="text-end">{{ p.fecha_devolucion|date:"d/m H:i" }}</td></tr>
+                                            {% empty %}
+                                            <tr><td colspan="3" class="reporte-tabla-vacio">No hay préstamos activos</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-circle-fill text-danger"></i><h5>Préstamos vencidos</h5></div>
+                                <div class="reporte-tabla-wrap">
+                                    <table class="reporte-tabla">
+                                        <thead><tr><th>Estudiante</th><th>Equipo</th><th class="text-end">Atraso</th></tr></thead>
+                                        <tbody>
+                                            {% for item in op_vencidos %}
+                                            <tr><td>{{ item.p.estudiante.get_full_name|default:item.p.estudiante.username }}</td><td><strong>{{ item.p.chromebook.codigo }}</strong></td><td class="text-end"><span class="badge-num badge-rojo">{{ item.horas }}h</span></td></tr>
+                                            {% empty %}
+                                            <tr><td colspan="3" class="reporte-tabla-vacio">Sin vencidos 🎉</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-circle-fill text-warning"></i><h5>Próximos a vencer (24h)</h5></div>
+                                <div class="reporte-tabla-wrap">
+                                    <table class="reporte-tabla">
+                                        <thead><tr><th>Estudiante</th><th>Equipo</th><th class="text-end">Vence</th></tr></thead>
+                                        <tbody>
+                                            {% for p in op_por_vencer %}
+                                            <tr><td>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</td><td><strong>{{ p.chromebook.codigo }}</strong></td><td class="text-end">{{ p.fecha_devolucion|date:"d/m H:i" }}</td></tr>
+                                            {% empty %}
+                                            <tr><td colspan="3" class="reporte-tabla-vacio">Nada por vencer pronto</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="reporte-card reporte-col-6">
+                                <div class="reporte-card-header"><i class="bi bi-check-circle text-success"></i><h5>Devueltos hoy</h5></div>
+                                <div class="reporte-tabla-wrap">
+                                    <table class="reporte-tabla">
+                                        <thead><tr><th>Estudiante</th><th>Equipo</th><th class="text-end">Devuelto</th></tr></thead>
+                                        <tbody>
+                                            {% for p in op_devueltos_hoy %}
+                                            <tr><td>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</td><td><strong>{{ p.chromebook.codigo }}</strong></td><td class="text-end">{{ p.fecha_devuelto|date:"H:i" }}</td></tr>
+                                            {% empty %}
+                                            <tr><td colspan="3" class="reporte-tabla-vacio">Nada devuelto hoy aún</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </main>
+        </div>
+    </div>
+</div>
+
+<!-- ====== DATOS PARA LOS GRÁFICOS (json_script: nada de JS embebido) ====== -->
+{{ mes_labels|json_script:"data-mes-labels" }}
+{{ mes_data|json_script:"data-mes-data" }}
+{{ semana_labels|json_script:"data-semana-labels" }}
+{{ semana_data|json_script:"data-semana-data" }}
+{{ hora_labels|json_script:"data-hora-labels" }}
+{{ hora_data|json_script:"data-hora-data" }}
+{{ dia_labels|json_script:"data-dia-labels" }}
+{{ dia_data|json_script:"data-dia-data" }}
+{{ inventario_data|json_script:"data-inventario-data" }}
+{{ condicion_data|json_script:"data-condicion-data" }}
+{{ carrera_labels|json_script:"data-carrera-labels" }}
+{{ carrera_data|json_script:"data-carrera-data" }}
+{{ semestre_labels|json_script:"data-semestre-labels" }}
+{{ semestre_data|json_script:"data-semestre-data" }}
+{{ facultad_labels|json_script:"data-facultad-labels" }}
+{{ facultad_data|json_script:"data-facultad-data" }}
+{{ marca_labels|json_script:"data-marca-labels" }}
+{{ marca_data|json_script:"data-marca-data" }}
+{{ mant_mes_labels|json_script:"data-mant-mes-labels" }}
+{{ mant_mes_data|json_script:"data-mant-mes-data" }}
+{{ mant_tipo_data|json_script:"data-mant-tipo-data" }}
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<script src="{% static 'js/reportes.js' %}"></script>
+{% endblock %}

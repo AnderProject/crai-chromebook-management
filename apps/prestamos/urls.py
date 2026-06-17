@@ -42,6 +42,7 @@ urlpatterns = [
     path('mantenimiento/agregar/', views.agregar_mantenimiento, name='agregar_mantenimiento'),
     path('mantenimiento/finalizar/<int:id>/', views.finalizar_mantenimiento, name='finalizar_mantenimiento'),
     path('ajustes/', views.ajustes, name='ajustes'),
+    path('reportes/', views.reportes, name='reportes'),
     path('api/detalle-chromebook/<int:id>/', views.api_detalle_chromebook, name='api_detalle_chromebook'),
     path('api/editar-chromebook/<int:id>/', views.api_editar_chromebook, name='api_editar_chromebook'),
     path('api/generar-qr-foto-chromebook/', views.api_generar_qr_foto_chromebook, name='api_generar_qr_foto'),
