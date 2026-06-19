@@ -44,25 +44,7 @@
     <div class="container-fluid">
         <div class="row">
             
-            <div class="col-md-3 col-lg-2 sidebar-dashboard collapse d-md-block">
-                <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Panel de Control</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_chromebooks' %}"><i class="bi bi-laptop me-2"></i>Chromebooks</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_prestamos' %}"><i class="bi bi-journal-check me-2"></i>Préstamos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_estudiantes' %}"><i class="bi bi-people me-2"></i>Estudiantes</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="{% url 'prestamos:lista_mantenimientos' %}"><i class="bi bi-tools me-2"></i>Mantenimiento</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:reportes' %}"><i class="bi bi-bar-chart me-2"></i>Reportes</a></li>
-                </ul>
-                <h6 class="sidebar-heading">Navegación</h6>
-                <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:portal' %}"><i class="bi bi-house-door me-2"></i>Volver al Portal</a></li>
-                </ul>
-                <h6 class="sidebar-heading">Configuración</h6>
-                 <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:ajustes' %}"><i class="bi bi-gear me-2"></i>Ajustes</a></li>
-                <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link text-danger" href="{% url 'autenticacion:cerrar_sesion' %}"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
-                </ul>
-            </div>
+            {% include "prestamos/_sidebar.html" with activo="mantenimiento" %}
 
             <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
                 
@@ -132,12 +114,15 @@
                                     <tr>
                                         <td><strong>#{{ m.id }}</strong></td>
                                         <td><strong>{{ m.chromebook.codigo }}</strong><br><small class="text-muted">{{ m.chromebook.marca }} {{ m.chromebook.modelo }}</small></td>
-                                        <td><span class="badge bg-info">{{ m.tipo|title }}</span></td>
+                                        <td><span class="badge bg-info">{{ m.tipo|title }}</span>{% if m.en_garantia %} <span class="badge bg-success">Garantía</span>{% endif %}</td>
                                         <td><small>{{ m.descripcion_problema|truncatechars:50|default:'-' }}</small></td>
                                         <td>{{ m.tecnico|default:'-' }}</td>
                                         <td>{{ m.fecha_inicio|date:"d/m/Y" }}</td>
                                         <td>{% if m.estado == 'en_proceso' %}<span class="badge bg-warning text-dark">En proceso</span>{% else %}<span class="badge bg-success">Finalizado</span>{% endif %}</td>
-                                        <td>{% if m.estado == 'en_proceso' %}<a href="{% url 'prestamos:finalizar_mantenimiento' m.id %}" class="btn btn-sm btn-outline-success"><i class="bi bi-check-circle"></i> Finalizar</a>{% endif %}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-warning me-1" title="Editar" onclick="editarMantenimiento('{{ m.id }}')"><i class="bi bi-pencil"></i></button>
+                                            {% if m.estado == 'en_proceso' %}<a href="{% url 'prestamos:finalizar_mantenimiento' m.id %}" class="btn btn-sm btn-outline-success"><i class="bi bi-check-circle"></i> Finalizar</a>{% endif %}
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                 {% else %}
@@ -152,4 +137,65 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL: EDITAR MANTENIMIENTO -->
+<div class="modal fade" id="modalEditarMantenimiento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-0" style="background: linear-gradient(135deg, #ff9800, #f57c00); color: white; border-radius: 16px 16px 0 0;">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil me-2"></i>Editar Mantenimiento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarMantenimiento">
+                    <input type="hidden" id="editMantId">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Chromebook</label>
+                            <input type="text" id="editMantChromebook" class="form-control" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Tipo de Mantenimiento</label>
+                            <select id="editMantTipo" class="form-select">
+                                <option value="preventivo">Preventivo</option>
+                                <option value="correctivo">Correctivo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Técnico</label>
+                            <input type="text" id="editMantTecnico" class="form-control" placeholder="Nombre del técnico">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Costo ($)</label>
+                            <input type="number" id="editMantCosto" class="form-control" step="0.01">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">¿En garantía?</label>
+                            <select id="editMantGarantia" class="form-select">
+                                <option value="0">No</option>
+                                <option value="1">Sí</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Fecha de Inicio</label>
+                            <input type="date" id="editMantFechaInicio" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Descripción del Problema</label>
+                            <textarea id="editMantProblema" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" onclick="guardarEdicionMantenimiento()"><i class="bi bi-save me-1"></i>Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/mantenimiento.js' %}"></script>
 {% endblock %}

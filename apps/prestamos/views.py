@@ -616,11 +616,12 @@ def agregar_mantenimiento(request):
         descripcion_problema = request.POST.get('descripcion_problema')
         tecnico = request.POST.get('tecnico')
         costo = request.POST.get('costo', 0)
+        en_garantia = request.POST.get('en_garantia') == '1'
         fecha_inicio = request.POST.get('fecha_inicio')
-        
+
         try:
             chromebook = Chromebook.objects.get(id=chromebook_id)
-            
+
             # Crear mantenimiento
             from .models import Mantenimiento
             Mantenimiento.objects.create(
@@ -629,6 +630,7 @@ def agregar_mantenimiento(request):
                 descripcion_problema=descripcion_problema,
                 tecnico=tecnico,
                 costo=costo,
+                en_garantia=en_garantia,
                 fecha_inicio=fecha_inicio,
                 estado='en_proceso',
                 registrado_por=request.user
@@ -651,6 +653,55 @@ def agregar_mantenimiento(request):
         'chromebooks': chromebooks,
     }
     return render(request, 'prestamos/mantenimiento/agregar.html', contexto)
+
+
+@csrf_exempt
+def api_detalle_mantenimiento(request, id):
+    """Devuelve los datos editables de un mantenimiento (para el modal de edición)."""
+    from .models import Mantenimiento
+
+    try:
+        m = Mantenimiento.objects.select_related('chromebook').get(id=id)
+    except Mantenimiento.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Mantenimiento no encontrado.'})
+
+    return JsonResponse({'success': True, 'data': {
+        'id': m.id,
+        'chromebook': f'{m.chromebook.codigo} - {m.chromebook.marca} {m.chromebook.modelo}',
+        'tipo': m.tipo,
+        'descripcion_problema': m.descripcion_problema or '',
+        'tecnico': m.tecnico or '',
+        'costo': str(m.costo),
+        'en_garantia': m.en_garantia,
+        'fecha_inicio': m.fecha_inicio.strftime('%Y-%m-%d') if m.fecha_inicio else '',
+    }})
+
+
+@csrf_exempt
+def api_editar_mantenimiento(request, id):
+    """Edita los datos de un mantenimiento. No toca el estado (eso lo hace 'Finalizar')."""
+    from .models import Mantenimiento
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+    try:
+        m = Mantenimiento.objects.get(id=id)
+    except Mantenimiento.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Mantenimiento no encontrado.'})
+
+    data = json.loads(request.body)
+    m.tipo = data.get('tipo', m.tipo)
+    m.descripcion_problema = data.get('descripcion_problema', m.descripcion_problema)
+    m.tecnico = data.get('tecnico', m.tecnico)
+    m.costo = data.get('costo', m.costo) or 0
+    m.en_garantia = bool(data.get('en_garantia', m.en_garantia))
+    fecha_inicio = data.get('fecha_inicio')
+    if fecha_inicio:
+        m.fecha_inicio = fecha_inicio
+    m.save()
+
+    return JsonResponse({'success': True, 'message': 'Mantenimiento actualizado.'})
 
 
 @login_required
@@ -700,14 +751,19 @@ def finalizar_mantenimiento(request, id):
 
 @login_required
 def registro_rapido(request):
+    _activar_reservas_pendientes()
+    ahora = timezone.localtime()
+    hoy = ahora.date()
     disponibles = Chromebook.objects.filter(estado='disponible').count()
-    hoy = timezone.now().date()
     prestamos_hoy = Prestamo.objects.filter(fecha_prestamo__date=hoy).select_related('estudiante', 'chromebook').order_by('-fecha_prestamo')
     total_hoy = prestamos_hoy.count()
-    
+
     return render(request, 'prestamos/prestamos/registro_rapido.html', {
         'titulo_pagina': 'Registro Rápido - CRAI UNEMI',
         'disponibles': disponibles, 'prestamos_hoy': prestamos_hoy, 'total_hoy': total_hoy,
+        'fecha_hoy': hoy.strftime('%Y-%m-%d'),
+        'hora_actual': ahora.strftime('%H:%M'),
+        'hora_mas_dos': (ahora + timedelta(hours=2)).strftime('%H:%M'),
     })
 
 
@@ -822,6 +878,7 @@ def confirmar_prestamo(request):
                 estudiante=reserva.estudiante.usuario.user,
                 chromebook=chromebook,
                 reserva=reserva,
+                fecha_prestamo=timezone.now(),
                 fecha_devolucion=timezone.now() + timedelta(hours=reserva.calcular_duracion()),
                 duracion_horas=reserva.calcular_duracion(),
                 codigo_verificacion=reserva.codigo_verificacion,
@@ -911,41 +968,93 @@ def api_buscar_estudiante(request):
         }})
 
 
+def _activar_reservas_pendientes():
+    """Convierte en 'activo' las reservas cuya hora de inicio ya llegó."""
+    ahora = timezone.now()
+    pendientes = Prestamo.objects.filter(
+        estado='reservado', fecha_prestamo__lte=ahora, fecha_devolucion__gt=ahora
+    ).select_related('chromebook')
+    for p in pendientes:
+        p.estado = 'activo'
+        p.save(update_fields=['estado'])
+        if p.chromebook.estado in ('disponible', 'reservado'):
+            p.chromebook.estado = 'prestado'
+            p.chromebook.save(update_fields=['estado'])
+
+
 @csrf_exempt
 def api_registrar_prestamo(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        chromebook_id = data.get('chromebook_id')
-        user_id = data.get('user_id')
-        duracion = int(data.get('duracion', 4))
-        
-        try:
-            chromebook = Chromebook.objects.get(id=chromebook_id)
-            estudiante_user = User.objects.get(id=user_id)
-            
-            if chromebook.estado != 'disponible':
-                return JsonResponse({'success': False, 'message': 'Este Chromebook no está disponible.'})
-            
-            import random, string
-            caracteres = string.ascii_uppercase + string.digits
-            codigo = ''.join(random.choices(caracteres, k=6))
-            
-            ahora = timezone.now()
-            prestamo = Prestamo.objects.create(
-                estudiante=estudiante_user, chromebook=chromebook,
-                fecha_prestamo=ahora, fecha_devolucion=ahora + timedelta(hours=duracion),
-                estado='activo', duracion_horas=duracion, codigo_verificacion=codigo,
-            )
-            
-            chromebook.estado = 'prestado'
-            chromebook.save()
-            
-            return JsonResponse({'success': True, 'message': f'Préstamo registrado. {chromebook.codigo} asignado.'})
-            
-        except Chromebook.DoesNotExist:
-            return JsonResponse({'success': False, 'message': 'Chromebook no encontrado.'})
-        except User.DoesNotExist:
-            return JsonResponse({'success': False, 'message': 'Usuario no encontrado.'})
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido.'})
+
+    from datetime import datetime
+    data = json.loads(request.body)
+    chromebook_id = data.get('chromebook_id')
+    user_id = data.get('user_id')
+    fecha = data.get('fecha')               # 'YYYY-MM-DD'
+    hora_inicio = data.get('hora_inicio')   # 'HH:MM'
+    hora_fin = data.get('hora_fin')         # 'HH:MM'
+
+    if not (fecha and hora_inicio and hora_fin):
+        return JsonResponse({'success': False, 'message': 'Indica fecha, hora de inicio y hora de fin.'})
+
+    try:
+        inicio = timezone.make_aware(datetime.strptime(f'{fecha} {hora_inicio}', '%Y-%m-%d %H:%M'))
+        fin = timezone.make_aware(datetime.strptime(f'{fecha} {hora_fin}', '%Y-%m-%d %H:%M'))
+    except ValueError:
+        return JsonResponse({'success': False, 'message': 'Fecha u hora con formato inválido.'})
+
+    if fin <= inicio:
+        return JsonResponse({'success': False, 'message': 'La hora de fin debe ser posterior a la de inicio.'})
+
+    ahora = timezone.now()
+    if fin <= ahora:
+        return JsonResponse({'success': False, 'message': 'El horario indicado ya pasó.'})
+
+    try:
+        chromebook = Chromebook.objects.get(id=chromebook_id)
+        estudiante_user = User.objects.get(id=user_id)
+    except Chromebook.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Chromebook no encontrado.'})
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Usuario no encontrado.'})
+
+    if chromebook.estado == 'mantenimiento':
+        return JsonResponse({'success': False, 'message': 'Este Chromebook está en mantenimiento.'})
+
+    # Validar solape con otros préstamos/reservas del mismo equipo.
+    solapado = Prestamo.objects.filter(
+        chromebook=chromebook,
+        estado__in=['reservado', 'activo', 'vencido'],
+        fecha_prestamo__lt=fin,
+        fecha_devolucion__gt=inicio,
+    ).exists()
+    if solapado:
+        return JsonResponse({'success': False, 'message': 'El Chromebook ya tiene un préstamo o reserva en ese horario.'})
+
+    import random, string
+    codigo = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    duracion = max(1, round((fin - inicio).total_seconds() / 3600))
+    es_reserva = inicio > ahora
+
+    Prestamo.objects.create(
+        estudiante=estudiante_user, chromebook=chromebook,
+        fecha_prestamo=inicio, fecha_devolucion=fin,
+        estado='reservado' if es_reserva else 'activo',
+        duracion_horas=duracion, codigo_verificacion=codigo,
+    )
+
+    if es_reserva:
+        if chromebook.estado == 'disponible':
+            chromebook.estado = 'reservado'
+            chromebook.save(update_fields=['estado'])
+        msg = f'Reserva registrada. {chromebook.codigo} apartado para el {fecha} de {hora_inicio} a {hora_fin}.'
+    else:
+        chromebook.estado = 'prestado'
+        chromebook.save(update_fields=['estado'])
+        msg = f'Préstamo registrado. {chromebook.codigo} asignado.'
+
+    return JsonResponse({'success': True, 'message': msg})
         
 
 

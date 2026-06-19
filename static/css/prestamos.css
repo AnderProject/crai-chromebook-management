@@ -94,32 +94,36 @@
     box-shadow: 0 4px 12px rgba(26,115,232,0.3);
 }
 
-/* Chips de tiempo */
-.selector-tiempo {
+/* Fecha y horario */
+.horario-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 0.6rem;
+}
+
+.horario-campo {
     display: flex;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
-.tiempo-chip {
-    border: 1.5px solid var(--borde);
-    border-radius: 20px;
-    padding: 0.4rem 1rem;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: var(--blanco);
-}
-
-.tiempo-chip:hover {
-    border-color: var(--info);
-    background: #f8faff;
-}
-
-.tiempo-chip.activo {
-    border-color: var(--info);
-    background: #e8f0fe;
-    color: var(--info);
+.horario-label {
+    font-size: 0.72rem;
     font-weight: 600;
+    color: var(--texto-suave, #6c757d);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.horario-grid .input-elegante {
+    width: 100%;
+    flex-grow: 0;
+}
+
+@media (max-width: 575px) {
+    .horario-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Resumen */

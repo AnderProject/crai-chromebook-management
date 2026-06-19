@@ -43,20 +43,7 @@
 
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-3 col-lg-2 sidebar-dashboard collapse d-md-block">
-                <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_mantenimientos' %}"><i class="bi bi-arrow-left me-2"></i>Volver</a></li>
-                </ul>
-                <h6 class="sidebar-heading">Navegación</h6>
-                <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:portal' %}"><i class="bi bi-house-door me-2"></i>Volver al Portal</a></li>
-                </ul>
-                <h6 class="sidebar-heading">Configuración</h6>
-                <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:ajustes' %}"><i class="bi bi-gear me-2"></i>Ajustes</a></li>
-                <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link text-danger" href="{% url 'autenticacion:cerrar_sesion' %}"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
-                </ul>
-            </div>
+            {% include "prestamos/_sidebar.html" with activo="mantenimiento" %}
 
             <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
                 
@@ -69,16 +56,7 @@
                 
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
-                        
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="alert alert-{% if '✅' in message.message %}success{% else %}danger{% endif %} alert-dismissible fade show">
-                                    {{ message }}
-                                    <button class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                        
+
                         <form method="POST">
                             {% csrf_token %}
                             <div class="row g-3">
@@ -105,6 +83,13 @@
                                 <div class="col-md-3">
                                     <label class="form-label small fw-semibold">Costo ($)</label>
                                     <input type="number" name="costo" class="form-control" placeholder="0.00" step="0.01" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">¿En garantía?</label>
+                                    <select name="en_garantia" class="form-select">
+                                        <option value="0" selected>No</option>
+                                        <option value="1">Sí</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label small fw-semibold">Fecha de Inicio</label>

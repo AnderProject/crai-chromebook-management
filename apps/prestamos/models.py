@@ -104,9 +104,10 @@ class Chromebook(models.Model):
     ESTADOS = [
         ('disponible', 'Disponible'),
         ('prestado', 'Prestado'),
+        ('reservado', 'Reservado'),
         ('mantenimiento', 'Mantenimiento'),
     ]
-    
+
     CONDICIONES = [
         ('bueno', 'Bueno'),
         ('regular', 'Regular'),
@@ -185,15 +186,16 @@ class Prestamo(models.Model):
     """Registro de préstamos"""
     
     ESTADOS = [
+        ('reservado', 'Reservado'),
         ('activo', 'Activo'),
         ('devuelto', 'Devuelto'),
         ('vencido', 'Vencido'),
     ]
-    
+
     estudiante = models.ForeignKey(User, on_delete=models.CASCADE)
     chromebook = models.ForeignKey(Chromebook, on_delete=models.CASCADE)
     reserva = models.ForeignKey(Reserva, on_delete=models.SET_NULL, null=True, blank=True, related_name='prestamos')
-    fecha_prestamo = models.DateTimeField(auto_now_add=True)
+    fecha_prestamo = models.DateTimeField()
     fecha_devolucion = models.DateTimeField()
     fecha_devuelto = models.DateTimeField(null=True, blank=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='activo')
@@ -260,6 +262,7 @@ class Mantenimiento(models.Model):
     descripcion_solucion = models.TextField(blank=True, null=True)
     tecnico = models.CharField(max_length=150, blank=True, null=True)
     costo = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    en_garantia = models.BooleanField(default=False, verbose_name='¿En garantía?')
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField(null=True, blank=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='en_proceso')

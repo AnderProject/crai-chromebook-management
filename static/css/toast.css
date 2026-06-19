@@ -1,0 +1,102 @@
+/* =============================================
+   TOAST FLOTANTE - CRAI UNEMI
+   Confirmaciones de acciones (agregar/editar/finalizar)
+   ============================================= */
+
+.toast-container-crai {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 1100; /* por encima de modales de Bootstrap (1055) */
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: min(360px, calc(100vw - 2rem));
+    pointer-events: none;
+}
+
+.toast-crai {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #1f2937;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    border-left: 5px solid #6c757d;
+    opacity: 0;
+    transform: translateX(120%);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast-crai.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-crai-icono {
+    font-size: 1.25rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.toast-crai-texto {
+    flex: 1;
+    font-size: 0.92rem;
+    font-weight: 500;
+}
+
+.toast-crai-cerrar {
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    color: #9ca3af;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+
+.toast-crai-cerrar:hover {
+    color: #4b5563;
+}
+
+/* Variantes */
+.toast-crai.toast-success {
+    border-left-color: #16a34a;
+}
+.toast-crai.toast-success .toast-crai-icono {
+    color: #16a34a;
+}
+
+.toast-crai.toast-error {
+    border-left-color: #dc2626;
+}
+.toast-crai.toast-error .toast-crai-icono {
+    color: #dc2626;
+}
+
+.toast-crai.toast-warning {
+    border-left-color: #f59e0b;
+}
+.toast-crai.toast-warning .toast-crai-icono {
+    color: #f59e0b;
+}
+
+.toast-crai.toast-info {
+    border-left-color: #2563eb;
+}
+.toast-crai.toast-info .toast-crai-icono {
+    color: #2563eb;
+}
+
+@media (max-width: 576px) {
+    .toast-container-crai {
+        top: 0.75rem;
+        right: 0.75rem;
+        left: 0.75rem;
+        max-width: none;
+    }
+}

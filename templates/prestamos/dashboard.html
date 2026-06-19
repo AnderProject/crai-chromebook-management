@@ -84,26 +84,7 @@
     <div class="container-fluid">
         <div class="row">
             
-            <div class="col-md-3 col-lg-2 sidebar-dashboard collapse d-md-block" id="sidebarMenu">
-                <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link active" href="#"><i class="bi bi-speedometer2 me-2"></i>Panel de Control</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_chromebooks' %}"><i class="bi bi-laptop me-2"></i>Chromebooks</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_prestamos' %}"><i class="bi bi-journal-check me-2"></i>Préstamos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_estudiantes' %}"><i class="bi bi-people me-2"></i>Estudiantes</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:lista_mantenimientos' %}"><i class="bi bi-tools me-2"></i>Mantenimiento</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:reportes' %}"><i class="bi bi-bar-chart me-2"></i>Reportes</a></li>
-                    </ul>
-                    <h6 class="sidebar-heading">Navegación</h6>
-                    <ul class="nav flex-column">
-                        <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:portal' %}"><i class="bi bi-house-door me-2"></i>Volver al Portal</a></li>
-                    </ul>
-                    <h6 class="sidebar-heading">Configuración</h6>
-                    <ul class="nav flex-column">
-                        <li class="nav-item"><a class="nav-link" href="{% url 'prestamos:ajustes' %}"><i class="bi bi-gear me-2"></i>Ajustes</a></li>
-                    <ul class="nav flex-column">
-                        <li class="nav-item"><a class="nav-link text-danger" href="{% url 'autenticacion:cerrar_sesion' %}"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
-                    </ul>
-            </div>
+            {% include "prestamos/_sidebar.html" with activo="dashboard" %}
 
             <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
                 

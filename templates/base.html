@@ -18,7 +18,10 @@
     
     <!-- Estilos del loader -->
     <link href="{% static 'css/loader.css' %}" rel="stylesheet">
-    
+
+    <!-- Estilos del toast (confirmaciones) -->
+    <link href="{% static 'css/toast.css' %}" rel="stylesheet">
+
     {% block estilos_extra %}{% endblock %}
 </head>
 <body>
@@ -56,15 +59,34 @@
         </div>
     </div>
     
+    <!-- Contenedor de toasts (confirmaciones) -->
+    <div class="toast-container-crai" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Mensajes del framework de Django (los renderiza toast.js).
+         Una página que pinte sus mensajes inline puede desactivar el toast
+         sobreescribiendo el bloque "toast_messages" con uno vacío. -->
+    {% block toast_messages %}
+    {% if messages %}
+    <div id="djangoMessages" hidden>
+        {% for message in messages %}
+        <span class="dj-msg" data-tipo="{% if '✅' in message.message %}success{% elif '❌' in message.message %}error{% elif '⚠️' in message.message %}warning{% else %}info{% endif %}">{{ message }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endblock %}
+
     {% block contenido %}{% endblock %}
-    
+
     <!-- Bootstrap 5 JS Bundle (LOCAL) -->
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     
     <!-- Script del loader -->
     <script src="{% static 'js/loader.js' %}"></script>
     <script src="{% static 'js/base.js' %}"></script>
-    
+
+    <!-- Toast (confirmaciones) -->
+    <script src="{% static 'js/toast.js' %}"></script>
+
     {% block scripts_extra %}{% endblock %}
 </body>
 </html>

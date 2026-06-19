@@ -100,10 +100,10 @@ function guardarEdicion() {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.success) {
-            alert('✅ Chromebook actualizado');
+            mostrarToastTrasReload('Chromebook actualizado', 'success');
             location.reload();
         } else {
-            alert('❌ Error al actualizar');
+            mostrarToast(data.message || 'Error al actualizar', 'error');
         }
     });
 }
