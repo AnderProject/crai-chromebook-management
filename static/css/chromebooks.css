@@ -228,7 +228,7 @@ td .badge.bg-danger {
    TABLA CON SCROLL LIMITADO A 7 FILAS
    ========================================== */
 .tabla-prestamos .table-responsive {
-    max-height: 420px; /* Aproximadamente 7 filas */
+    max-height: 325px; /* Aproximadamente 5 filas */
     overflow-y: auto;
     border-radius: 0 0 0.8rem 0.8rem;
 }

@@ -106,9 +106,9 @@
                             <div class="stat-card-content">
                                 <div class="stat-icono-dash bg-azul"><i class="bi bi-laptop"></i></div>
                                 <div class="stat-info-dash">
-                                    <span class="stat-numero-dash">{{ total_chromebooks }}</span>
+                                    <span class="stat-numero-dash" data-stat="total_chromebooks">{{ total_chromebooks }}</span>
                                     <span class="stat-label-dash">Chromebooks</span>
-                                    <span class="stat-sub-dash text-success">{{ disponibles }} disponibles</span>
+                                    <span class="stat-sub-dash text-success"><span data-stat="disponibles">{{ disponibles }}</span> disponibles</span>
                                 </div>
                             </div>
                             <div class="stat-card-bar bg-azul"></div>
@@ -120,9 +120,9 @@
                             <div class="stat-card-content">
                                 <div class="stat-icono-dash bg-naranja"><i class="bi bi-journal-check"></i></div>
                                 <div class="stat-info-dash">
-                                    <span class="stat-numero-dash">{{ prestamos_activos }}</span>
+                                    <span class="stat-numero-dash" data-stat="prestamos_activos">{{ prestamos_activos }}</span>
                                     <span class="stat-label-dash">Préstamos Activos</span>
-                                    <span class="stat-sub-dash text-warning">{{ por_vencer }} por vencer</span>
+                                    <span class="stat-sub-dash text-warning"><span data-stat="por_vencer">{{ por_vencer }}</span> por vencer</span>
                                 </div>
                             </div>
                             <div class="stat-card-bar bg-naranja"></div>
@@ -134,9 +134,9 @@
                             <div class="stat-card-content">
                                 <div class="stat-icono-dash bg-cyan"><i class="bi bi-people"></i></div>
                                 <div class="stat-info-dash">
-                                    <span class="stat-numero-dash">{{ total_estudiantes }}</span>
+                                    <span class="stat-numero-dash" data-stat="total_estudiantes">{{ total_estudiantes }}</span>
                                     <span class="stat-label-dash">Estudiantes</span>
-                                    <span class="stat-sub-dash text-info">{{ reservas_hoy }} reservas hoy</span>
+                                    <span class="stat-sub-dash text-info"><span data-stat="reservas_hoy">{{ reservas_hoy }}</span> reservas hoy</span>
                                 </div>
                             </div>
                             <div class="stat-card-bar bg-cyan"></div>
@@ -148,9 +148,9 @@
                             <div class="stat-card-content">
                                 <div class="stat-icono-dash bg-verde"><i class="bi bi-check-circle"></i></div>
                                 <div class="stat-info-dash">
-                                    <span class="stat-numero-dash">{{ porcentaje_disponible }}%</span>
+                                    <span class="stat-numero-dash"><span data-stat="porcentaje_disponible">{{ porcentaje_disponible }}</span>%</span>
                                     <span class="stat-label-dash">Disponibilidad</span>
-                                    <span class="stat-sub-dash text-success">{{ disponibles }} equipos libres</span>
+                                    <span class="stat-sub-dash text-success"><span data-stat="disponibles">{{ disponibles }}</span> equipos libres</span>
                                 </div>
                             </div>
                             <div class="stat-card-bar bg-verde"></div>
@@ -163,39 +163,8 @@
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead><tr><th>ID</th><th>Estudiante</th><th>Chromebook</th><th>Préstamo</th><th>Devolución</th><th>Estado</th><th>Acciones</th></tr></thead>
-                            <tbody>
-                                {% if ultimos_prestamos %}
-                                    {% for prestamo in ultimos_prestamos %}
-                                    <tr>
-                                        <td><span class="badge bg-secondary">#{{ prestamo.id|stringformat:"03d" }}</span></td>
-                                        <td>{{ prestamo.estudiante.get_full_name|default:prestamo.estudiante.username }}</td>
-                                        <td><strong>{{ prestamo.chromebook.codigo }}</strong></td>
-                                        <td>{{ prestamo.fecha_prestamo|date:"d/m/Y H:i" }}</td>
-                                        <td>
-                                            {% if prestamo.fecha_devuelto %}
-                                                {{ prestamo.fecha_devuelto|date:"d/m/Y H:i" }}
-                                            {% else %}
-                                                {{ prestamo.fecha_devolucion|date:"d/m/Y H:i" }}
-                                                <br>
-                                                <small class="tiempo-restante" data-devolucion="{{ prestamo.fecha_devolucion|date:'c' }}"></small>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if prestamo.estado == 'activo' %}<span class="badge-estado badge-activo">Activo</span>
-                                            {% elif prestamo.estado == 'devuelto' %}<span class="badge-estado badge-devuelto">Devuelto</span>
-                                            {% else %}<span class="badge-estado badge-vencido">Vencido</span>{% endif %}
-                                        </td>
-                                        <td>
-                                           <button class="btn btn-sm btn-outline-primary btn-accion me-1" title="Ver detalles" onclick="verDetallePrestamo('{{ prestamo.id }}')"><i class="bi bi-eye"></i></button>
-                                            {% if prestamo.estado == 'activo' %}
-                                            <button class="btn btn-sm btn-outline-warning btn-accion" title="Devolver" onclick="confirmarDevolucion('{{ prestamo.id }}', '{{ prestamo.chromebook.codigo }}')"><i class="bi bi-arrow-repeat"></i></button>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-inbox display-6 d-block mb-2"></i>No hay préstamos registrados aún</td></tr>
-                                {% endif %}
+                            <tbody id="tbodyUltimosPrestamos">
+                                {% include 'prestamos/_ultimos_prestamos_rows.html' %}
                             </tbody>
                         </table>
                     </div>
@@ -431,4 +400,5 @@
 {% block scripts_extra %}
 <script src="{% static 'js/verificar_reservacion.js' %}"></script>
 <script src="{% static 'js/devolucion.js' %}"></script>
+<script src="{% static 'js/realtime.js' %}"></script>
 {% endblock %}

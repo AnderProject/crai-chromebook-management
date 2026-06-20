@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página no encontrada - CRAI UNEMI</title>
+    <link href="{% static 'css/bootstrap-icons.css' %}" rel="stylesheet">
+    <link href="{% static 'css/error.css' %}" rel="stylesheet">
+</head>
+<body>
+    <div class="error-page">
+        <div class="error-box">
+            <div class="error-icono"><i class="bi bi-compass"></i></div>
+            <div class="error-codigo">404</div>
+            <h1 class="error-titulo">Página no encontrada</h1>
+            <p class="error-texto">La dirección que buscas no existe o fue movida. Verifica el enlace o vuelve al inicio.</p>
+            <a href="/" class="error-btn"><i class="bi bi-house-door"></i>Volver al inicio</a>
+        </div>
+    </div>
+</body>
+</html>

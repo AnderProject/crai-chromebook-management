@@ -1,0 +1,32 @@
+{% if ultimos_prestamos %}
+    {% for prestamo in ultimos_prestamos %}
+    <tr>
+        <td><span class="badge bg-secondary">#{{ prestamo.id|stringformat:"03d" }}</span></td>
+        <td>{{ prestamo.estudiante.get_full_name|default:prestamo.estudiante.username }}</td>
+        <td><strong>{{ prestamo.chromebook.codigo }}</strong></td>
+        <td>{{ prestamo.fecha_prestamo|date:"d/m/Y H:i" }}</td>
+        <td>
+            {% if prestamo.fecha_devuelto %}
+                {{ prestamo.fecha_devuelto|date:"d/m/Y H:i" }}
+            {% else %}
+                {{ prestamo.fecha_devolucion|date:"d/m/Y H:i" }}
+                <br>
+                <small class="tiempo-restante" data-devolucion="{{ prestamo.fecha_devolucion|date:'c' }}"></small>
+            {% endif %}
+        </td>
+        <td>
+            {% if prestamo.estado == 'activo' %}<span class="badge-estado badge-activo">Activo</span>
+            {% elif prestamo.estado == 'devuelto' %}<span class="badge-estado badge-devuelto">Devuelto</span>
+            {% else %}<span class="badge-estado badge-vencido">Vencido</span>{% endif %}
+        </td>
+        <td>
+           <button class="btn btn-sm btn-outline-primary btn-accion me-1" title="Ver detalles" onclick="verDetallePrestamo('{{ prestamo.id }}')"><i class="bi bi-eye"></i></button>
+            {% if prestamo.estado == 'activo' %}
+            <button class="btn btn-sm btn-outline-warning btn-accion" title="Devolver" onclick="confirmarDevolucion('{{ prestamo.id }}', '{{ prestamo.chromebook.codigo }}')"><i class="bi bi-arrow-repeat"></i></button>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+{% else %}
+    <tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-inbox display-6 d-block mb-2"></i>No hay préstamos registrados aún</td></tr>
+{% endif %}

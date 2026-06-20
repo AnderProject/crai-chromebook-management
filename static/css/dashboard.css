@@ -19,13 +19,22 @@
    CONTENEDOR PRINCIPAL
    ========================================== */
 .dashboard-container {
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
     background-color: var(--gris-fondo);
 }
 
+.dashboard-container > .container-fluid {
+    height: calc(100vh - 56px);
+}
+
+.dashboard-container > .container-fluid > .row {
+    height: 100%;
+}
+
 /* ==========================================
-   NAVBAR SUPERIOR
-   ========================================== */
+    NAVBAR SUPERIOR
+    ========================================== */
 .navbar-dashboard {
     background: linear-gradient(135deg, var(--primario) 0%, #283593 100%);
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -88,8 +97,11 @@
 .sidebar-dashboard {
     background-color: var(--blanco);
     border-right: 1px solid var(--borde);
-    min-height: calc(100vh - 56px);
+    height: calc(100vh - 56px);
     padding-top: 1rem;
+    position: sticky;
+    top: 56px;
+    overflow-y: auto;
 }
 
 .sidebar-dashboard .nav-link {
@@ -135,6 +147,11 @@
    ========================================== */
 .main-content {
     padding: 1.5rem 2rem;
+    overflow-y: auto;
+    /* min-height:0 permite que el contenido scrollee DENTRO del cuadrante (flex item)
+       en vez de desbordar el contenedor de 100vh. El sidebar queda fijo. */
+    min-height: 0;
+    height: calc(100vh - 56px);
 }
 
 /* Encabezado de página */
@@ -761,6 +778,7 @@ tr:hover .badge-estado {
     box-shadow: 0 3px 12px rgba(26, 35, 126, 0.25);
     position: relative;
     overflow: hidden;
+    text-decoration: none;
 }
 
 .btn-codigo-reservacion::before {
@@ -846,8 +864,40 @@ tr:hover .badge-estado {
 
 
 /* ==========================================
-   TIEMPO RESTANTE
+   TABLA CON SCROLL (Dashboard)
    ========================================== */
+.tabla-prestamos .table-responsive {
+    max-height: 380px; /* Muestra los 5 últimos préstamos sin scroll */
+    overflow-y: auto;
+}
+
+.tabla-prestamos .table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.tabla-prestamos .table-responsive::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tabla-prestamos .table-responsive::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 3px;
+}
+
+.tabla-prestamos .table-responsive::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border-radius: 3px;
+}
+
+.tabla-prestamos .table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* ==========================================
+    TIEMPO RESTANTE
+    ========================================== */
 .tiempo-restante {
     font-size: 0.7rem;
     font-weight: 700;

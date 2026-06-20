@@ -163,6 +163,62 @@
         });
     }
 
+    // ---- Gráfico temporal interactivo (Día / Semana / Mes / Año) ----
+    let chartTemporal = null;
+
+    function pintarTemporal(rango) {
+        fetch('/prestamos/api/reportes-temporal/?rango=' + rango, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                const canvas = document.getElementById('chartTemporal');
+                if (!canvas) return;
+                if (chartTemporal) {
+                    chartTemporal.data.labels = d.labels;
+                    chartTemporal.data.datasets[0].data = d.data;
+                    chartTemporal.update();
+                } else {
+                    chartTemporal = new Chart(canvas.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: d.labels,
+                            datasets: [{
+                                label: d.etiqueta || 'Préstamos',
+                                data: d.data,
+                                borderColor: COLOR.primario,
+                                backgroundColor: 'rgba(26, 35, 126, 0.12)',
+                                fill: true,
+                                tension: 0.35,
+                                pointRadius: 3,
+                                pointBackgroundColor: COLOR.primario,
+                            }],
+                        },
+                        options: opcionesBase({
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                        }),
+                    });
+                }
+            })
+            .catch(function () { /* silencioso */ });
+    }
+
+    function inicializarTemporal() {
+        const cont = document.getElementById('reporteRango');
+        if (!cont) return;
+        cont.querySelectorAll('.reporte-rango-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                cont.querySelectorAll('.reporte-rango-btn').forEach(function (b) {
+                    b.classList.remove('active');
+                });
+                btn.classList.add('active');
+                pintarTemporal(btn.getAttribute('data-rango'));
+            });
+        });
+        pintarTemporal('semana'); // rango por defecto (coincide con el botón activo)
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         if (typeof Chart === 'undefined') {
             console.error('Chart.js no se cargó.');
@@ -192,6 +248,9 @@
             ['Bueno', 'Regular', 'Malo'],
             [COLOR.verde, COLOR.naranja, COLOR.rojo], 'pie');
         circularDinamico('chartMarca', 'data-marca-data', 'data-marca-labels', 'pie');
+
+        // ---- TEMPORAL INTERACTIVO ----
+        inicializarTemporal();
 
         // ---- MANTENIMIENTO ----
         barras('chartMantMes', 'data-mant-mes-data', 'data-mant-mes-labels', 'Mantenimientos', { color: COLOR.naranja });

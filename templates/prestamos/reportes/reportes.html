@@ -87,7 +87,7 @@
 
             {% include "prestamos/_sidebar.html" with activo="reportes" %}
 
-            <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+            <main class="col-md-9 ms-sm-auto col-lg-10 main-content reportes-main">
 
                 <div class="d-flex justify-content-between flex-wrap align-items-center mb-4">
                     <h2 class="fw-bold texto-oscuro mb-0">
@@ -132,13 +132,6 @@
                             <span class="reporte-kpi-label">Reincidencia</span>
                         </div>
                     </div>
-                    <div class="reporte-kpi">
-                        <div class="reporte-kpi-icono kpi-morado"><i class="bi bi-clock-history"></i></div>
-                        <div class="reporte-kpi-info">
-                            <span class="reporte-kpi-numero">{{ tiempo_promedio }}h</span>
-                            <span class="reporte-kpi-label">Tiempo promedio</span>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- ====== PESTAÑAS POR CATEGORÍA ====== -->
@@ -175,6 +168,18 @@
                     <!-- ===== PESTAÑA: TEMPORAL ===== -->
                     <div class="tab-pane fade show active" id="tab-temporal" role="tabpanel" aria-labelledby="btn-tab-temporal">
                         <div class="reporte-grid">
+                            <div class="reporte-card reporte-col-12">
+                                <div class="reporte-card-header con-acciones">
+                                    <span class="reporte-card-titulo"><i class="bi bi-activity"></i><h5>Préstamos en el tiempo</h5></span>
+                                    <div class="reporte-rango" id="reporteRango">
+                                        <button class="reporte-rango-btn" data-rango="dia" type="button">Día</button>
+                                        <button class="reporte-rango-btn active" data-rango="semana" type="button">Semana</button>
+                                        <button class="reporte-rango-btn" data-rango="mes" type="button">Mes</button>
+                                        <button class="reporte-rango-btn" data-rango="anio" type="button">Año</button>
+                                    </div>
+                                </div>
+                                <div class="reporte-canvas-wrap reporte-canvas-mini"><canvas id="chartTemporal"></canvas></div>
+                            </div>
                             <div class="reporte-card reporte-col-6">
                                 <div class="reporte-card-header"><i class="bi bi-bar-chart"></i><h5>Préstamos por mes</h5></div>
                                 <div class="reporte-canvas-wrap"><canvas id="chartPorMes"></canvas></div>

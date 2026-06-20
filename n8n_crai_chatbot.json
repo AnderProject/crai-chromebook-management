@@ -1,0 +1,142 @@
+{
+  "name": "CRAI Chatbot",
+  "nodes": [
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "crai-chat",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "crai-chatbot",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "99d242f1-09ca-49b9-a0ed-47eebf75f1e0"
+    },
+    {
+      "name": "Preparar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        450,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nreturn [{ chatInput: data.body.chatInput }];"
+      },
+      "id": "cb05113d-fa31-4b58-8ad0-5522c5fd5930"
+    },
+    {
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        650,
+        300
+      ],
+      "parameters": {
+        "agent": "toolsAgent",
+        "promptType": "auto",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "Eres un asistente exclusivo del Sistema de Reservas del CRAI UNEMI.\n\nSOLO puedes ayudar con:\n- Reservar espacios del CRAI (salas de estudio, cubículos, laboratorios)\n- Consultar disponibilidad de espacios\n- Verificar reservas existentes\n- Cancelar o modificar reservas\n\nSi el estudiante pregunta algo que NO esté relacionado con reservas del CRAI, responde amablemente: \"Lo siento, solo puedo ayudarte con reservas de espacios del CRAI UNEMI. Por favor, pregúntame sobre disponibilidad, reservar un espacio, o consultar tus reservas.\"\n\nNO respondas preguntas que no estén relacionadas con el sistema de reservas del CRAI. Mantén las respuestas breves y en español."
+        }
+      },
+      "id": "d3f55a4f-22fb-42f7-b92f-8e87ff7c1f68"
+    },
+    {
+      "name": "Groq Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        650,
+        550
+      ],
+      "credentials": {
+        "groqApi": {
+          "id": "n2cyWK3lgLUc71Of",
+          "name": "Groq"
+        }
+      },
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "id": "b69bfd82-5601-4c77-835d-b20f164edbd7"
+    },
+    {
+      "name": "Responder a Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "f46a9dce-e3a2-440f-a27d-ee9023f498e6"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Preparar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Datos": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Responder a Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "tags": [],
+  "pinData": {},
+  "versionId": "390827a0-b5a6-4ef1-a049-48898b43ffcd",
+  "staticData": null
+}

@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error del servidor - CRAI UNEMI</title>
+    <link href="{% static 'css/bootstrap-icons.css' %}" rel="stylesheet">
+    <link href="{% static 'css/error.css' %}" rel="stylesheet">
+</head>
+<body>
+    <div class="error-page error-500">
+        <div class="error-box">
+            <div class="error-icono"><i class="bi bi-cone-striped"></i></div>
+            <div class="error-codigo">500</div>
+            <h1 class="error-titulo">Algo salió mal</h1>
+            <p class="error-texto">Ocurrió un error interno en el servidor. Ya estamos al tanto; intenta de nuevo en unos minutos.</p>
+            <a href="/" class="error-btn"><i class="bi bi-house-door"></i>Volver al inicio</a>
+        </div>
+    </div>
+</body>
+</html>

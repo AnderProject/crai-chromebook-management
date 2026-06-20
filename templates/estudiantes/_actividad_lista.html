@@ -1,0 +1,21 @@
+{% if actividad %}
+    {% for item in actividad %}
+    <div class="actividad-item">
+        <div class="actividad-dot {{ item.dot }}"></div>
+        <div>
+            <strong>{{ item.codigo }}</strong> - {{ item.equipo }}
+            <br><small class="text-muted">{{ item.estado }} • {{ item.fecha|date:"d/m/Y H:i" }}</small>
+        </div>
+        <span class="actividad-badge {{ item.badge }}">{{ item.estado }}</span>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="actividad-item">
+        <div class="actividad-dot"></div>
+        <div>
+            <strong>Sin actividad</strong>
+            <br><small class="text-muted">Aún no tienes préstamos ni reservas</small>
+        </div>
+        <span class="actividad-badge bg-light text-muted">Nuevo</span>
+    </div>
+{% endif %}

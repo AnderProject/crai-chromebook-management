@@ -71,7 +71,7 @@
                             <div class="stat-card-content">
                                 <div class="stat-icono-chromebook bg-azul"><i class="bi bi-laptop"></i></div>
                                 <div class="stat-info-chromebook">
-                                    <span class="stat-numero-chromebook">{{ total }}</span>
+                                    <span class="stat-numero-chromebook" data-stat="total">{{ total }}</span>
                                     <span class="stat-label-chromebook">Total</span>
                                 </div>
                             </div>
@@ -84,7 +84,7 @@
                             <div class="stat-card-content">
                                 <div class="stat-icono-chromebook bg-verde"><i class="bi bi-check-circle"></i></div>
                                 <div class="stat-info-chromebook">
-                                    <span class="stat-numero-chromebook">{{ disponibles }}</span>
+                                    <span class="stat-numero-chromebook" data-stat="disponibles">{{ disponibles }}</span>
                                     <span class="stat-label-chromebook">Disponibles</span>
                                 </div>
                             </div>
@@ -97,7 +97,7 @@
                             <div class="stat-card-content">
                                 <div class="stat-icono-chromebook bg-naranja"><i class="bi bi-journal-check"></i></div>
                                 <div class="stat-info-chromebook">
-                                    <span class="stat-numero-chromebook">{{ prestados }}</span>
+                                    <span class="stat-numero-chromebook" data-stat="prestados">{{ prestados }}</span>
                                     <span class="stat-label-chromebook">Prestados</span>
                                 </div>
                             </div>
@@ -110,7 +110,7 @@
                             <div class="stat-card-content">
                                 <div class="stat-icono-chromebook bg-rojo"><i class="bi bi-tools"></i></div>
                                 <div class="stat-info-chromebook">
-                                    <span class="stat-numero-chromebook">{{ en_mantenimiento }}</span>
+                                    <span class="stat-numero-chromebook" data-stat="en_mantenimiento">{{ en_mantenimiento }}</span>
                                     <span class="stat-label-chromebook">Mantenimiento</span>
                                 </div>
                             </div>
@@ -173,7 +173,7 @@
                                         <td>{{ cb.marca }}</td>
                                         <td>{{ cb.modelo }}</td>
                                         <td><small class="text-muted">{{ cb.serie }}</small></td>
-                                        <td>
+                                        <td data-estado-cell>
                                             {% if cb.estado == 'disponible' %}<span class="badge bg-success">Disponible</span>
                                             {% elif cb.estado == 'prestado' %}<span class="badge bg-warning">Prestado</span>
                                             {% else %}<span class="badge bg-danger">Mantenimiento</span>{% endif %}
@@ -298,5 +298,6 @@
 
 {% block scripts_extra %}
 <script src="{% static 'js/chromebooks.js' %}"></script>
+<script src="{% static 'js/realtime.js' %}"></script>
 {% endblock %}
 {% endblock %}

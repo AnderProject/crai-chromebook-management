@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, FileResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.template.loader import render_to_string
 from django.contrib.auth.models import User
 from .models import Chromebook, Prestamo, Estudiante, Usuario as PerfilUsuario
 from django.utils import timezone
@@ -70,6 +71,133 @@ def dashboard(request):
         'primer_apellido': primer_apellido,
     }
     return render(request, 'prestamos/dashboard.html', contexto)
+
+
+# ==========================================
+# APIs DE ACTUALIZACIÓN EN VIVO (ADMIN, polling)
+# ==========================================
+
+@login_required
+def api_dashboard_stats(request):
+    """Contadores del dashboard + tabla de últimos préstamos (para refresco en vivo)."""
+    from .models import Chromebook, Prestamo, Reserva
+
+    total_chromebooks = Chromebook.objects.count()
+    disponibles = Chromebook.objects.filter(estado='disponible').count()
+    prestados = Chromebook.objects.filter(estado='prestado').count()
+    en_mantenimiento = Chromebook.objects.filter(estado='mantenimiento').count()
+    porcentaje_disponible = round((disponibles / total_chromebooks) * 100) if total_chromebooks > 0 else 0
+
+    prestamos_activos = Prestamo.objects.filter(estado='activo').count()
+    manana = timezone.now() + timedelta(hours=24)
+    por_vencer = Prestamo.objects.filter(estado='activo', fecha_devolucion__lte=manana).count()
+    total_estudiantes = User.objects.filter(groups__name='Estudiante').count()
+    reservas_hoy = Reserva.objects.filter(fecha_uso=timezone.now().date(), estado='pendiente').count()
+
+    ultimos_prestamos = Prestamo.objects.select_related('estudiante', 'chromebook').all().order_by('-fecha_prestamo')[:5]
+    filas_html = render_to_string('prestamos/_ultimos_prestamos_rows.html', {'ultimos_prestamos': ultimos_prestamos})
+
+    return JsonResponse({
+        'contadores': {
+            'total_chromebooks': total_chromebooks,
+            'disponibles': disponibles,
+            'prestamos_activos': prestamos_activos,
+            'por_vencer': por_vencer,
+            'total_estudiantes': total_estudiantes,
+            'reservas_hoy': reservas_hoy,
+            'porcentaje_disponible': porcentaje_disponible,
+        },
+        'filas_html': filas_html,
+    })
+
+
+@login_required
+def api_prestamos_hoy(request):
+    """Lista de préstamos de hoy + total (para refresco en vivo del registro rápido)."""
+    _activar_reservas_pendientes()
+    hoy = timezone.localtime().date()
+    prestamos_hoy = Prestamo.objects.filter(
+        fecha_prestamo__date=hoy
+    ).select_related('estudiante', 'chromebook').order_by('-fecha_prestamo')
+    total_hoy = prestamos_hoy.count()
+    html = render_to_string('prestamos/_prestamos_hoy.html', {'prestamos_hoy': prestamos_hoy})
+    return JsonResponse({'html': html, 'total_hoy': total_hoy})
+
+
+@login_required
+def api_chromebooks_estado(request):
+    """Contadores e inventario {codigo: estado} (para refresco en vivo de chromebooks)."""
+    from .models import Chromebook
+
+    chromebooks = Chromebook.objects.all()
+    total = chromebooks.count()
+    disponibles = chromebooks.filter(estado='disponible').count()
+    prestados = chromebooks.filter(estado='prestado').count()
+    en_mantenimiento = chromebooks.filter(estado='mantenimiento').count()
+    estados = {cb.codigo: cb.estado for cb in chromebooks}
+
+    return JsonResponse({
+        'contadores': {
+            'total': total,
+            'disponibles': disponibles,
+            'prestados': prestados,
+            'en_mantenimiento': en_mantenimiento,
+        },
+        'estados': estados,
+    })
+
+
+@login_required
+def api_reportes_temporal(request):
+    """Serie temporal de préstamos según el rango (dia|semana|mes|anio). Para gráfico interactivo."""
+    import calendar
+
+    rango = request.GET.get('rango', 'semana')
+    hoy = timezone.localdate()
+    labels, data, etiqueta = [], [], 'Préstamos'
+
+    if rango == 'dia':
+        # Hoy, por hora (00:00 - 23:00)
+        buckets = [0] * 24
+        qs = Prestamo.objects.filter(fecha_prestamo__date=hoy)
+        for p in qs:
+            buckets[timezone.localtime(p.fecha_prestamo).hour] += 1
+        labels = [f'{h:02d}:00' for h in range(24)]
+        data = buckets
+
+    elif rango == 'mes':
+        # Días del mes actual
+        ndias = calendar.monthrange(hoy.year, hoy.month)[1]
+        buckets = {d: 0 for d in range(1, ndias + 1)}
+        qs = Prestamo.objects.filter(fecha_prestamo__year=hoy.year, fecha_prestamo__month=hoy.month)
+        for p in qs:
+            buckets[timezone.localtime(p.fecha_prestamo).day] += 1
+        labels = [str(d) for d in range(1, ndias + 1)]
+        data = [buckets[d] for d in range(1, ndias + 1)]
+
+    elif rango == 'anio':
+        # 12 meses del año actual
+        meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+        buckets = [0] * 12
+        qs = Prestamo.objects.filter(fecha_prestamo__year=hoy.year)
+        for p in qs:
+            buckets[timezone.localtime(p.fecha_prestamo).month - 1] += 1
+        labels = meses
+        data = buckets
+
+    else:  # semana: últimos 7 días
+        rango = 'semana'
+        dias = [hoy - timedelta(days=i) for i in range(6, -1, -1)]
+        conteo = {d: 0 for d in dias}
+        qs = Prestamo.objects.filter(fecha_prestamo__date__gte=dias[0], fecha_prestamo__date__lte=hoy)
+        for p in qs:
+            d = timezone.localtime(p.fecha_prestamo).date()
+            if d in conteo:
+                conteo[d] += 1
+        labels = [d.strftime('%d/%m') for d in dias]
+        data = [conteo[d] for d in dias]
+
+    return JsonResponse({'rango': rango, 'labels': labels, 'data': data, 'etiqueta': etiqueta})
 
 
 @csrf_exempt
@@ -180,6 +308,66 @@ def pagina_evidencia(request, token):
     response = render(request, 'prestamos/evidencia_subir.html', {'token': token})
     response['ngrok-skip-browser-warning'] = 'true'
     return response
+
+
+@login_required
+def api_test_conexion(request):
+    """Prueba la conexión con la API de matrículas"""
+    import requests
+    try:
+        url = f'{settings.API_MATRICULAS_BASE_URL.rstrip("/")}/'
+        resp = requests.get(
+            url,
+            headers={'X-API-KEY': settings.API_MATRICULAS_KEY},
+            timeout=settings.API_MATRICULAS_TIMEOUT,
+        )
+        return JsonResponse({
+            'success': True,
+            'message': 'Conexión exitosa con la API de matrículas',
+            'status_code': resp.status_code,
+            'base_url': settings.API_MATRICULAS_BASE_URL,
+        })
+    except requests.RequestException as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'No se pudo conectar: {str(e)}',
+            'base_url': settings.API_MATRICULAS_BASE_URL,
+        })
+
+
+@login_required
+def api_sincronizar_estudiantes(request):
+    """Sincroniza todos los estudiantes desde la API de matrículas"""
+    from .services.api_estudiantes import listar_estudiantes, ApiEstudiantesError
+    from .services.sincronizacion import sincronizar_estudiante
+
+    try:
+        estudiantes = listar_estudiantes()
+    except ApiEstudiantesError as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al conectar con API de matrículas: {str(e)}',
+        })
+
+    creados = actualizados = errores = 0
+    for data in estudiantes:
+        try:
+            _, creado = sincronizar_estudiante(data)
+            if creado:
+                creados += 1
+            else:
+                actualizados += 1
+        except Exception:
+            errores += 1
+
+    return JsonResponse({
+        'success': True,
+        'message': f'Sincronización completada. Creados: {creados}, Actualizados: {actualizados}, Errores: {errores}.',
+        'creados': creados,
+        'actualizados': actualizados,
+        'errores': errores,
+        'total': len(estudiantes),
+    })
 
 
 @login_required

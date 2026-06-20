@@ -170,3 +170,8 @@ DEFAULT_FROM_EMAIL = 'CRAI UNEMI <crai.unemi.test@gmail.com>'
 API_MATRICULAS_BASE_URL = os.environ.get('API_MATRICULAS_BASE_URL', 'http://127.0.0.1:8001/api')
 API_MATRICULAS_KEY = os.environ.get('API_MATRICULAS_KEY', 'clave-dev-compartida')  # debe coincidir con API_KEY_MATRICULAS de la API
 API_MATRICULAS_TIMEOUT = float(os.environ.get('API_MATRICULAS_TIMEOUT', '5'))
+
+# ==================== N8N CHATBOT ====================
+# Webhook de n8n para procesar mensajes del chatbot
+N8N_CHATBOT_WEBHOOK_URL = os.environ.get('N8N_CHATBOT_WEBHOOK_URL', 'http://localhost:5678/webhook/crai-chatbot')
+N8N_API_KEY = os.environ.get('N8N_API_KEY', 'clave-n8n-dev')

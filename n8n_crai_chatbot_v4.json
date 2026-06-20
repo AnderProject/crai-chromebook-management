@@ -1,0 +1,163 @@
+{
+  "name": "CRAI Chatbot V4",
+  "nodes": [
+    {
+      "id": "w1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "crai-v4",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "crai-chatbot",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "c1",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        450,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nreturn [{ chatInput: data.body.chatInput, sessionId: String(data.body.sessionId || 'anon') }];"
+      }
+    },
+    {
+      "id": "a1",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        700,
+        300
+      ],
+      "parameters": {
+        "agent": "conversationAgent",
+        "promptType": "auto",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "Eres el asistente de reservas de Chromebooks del CRAI UNEMI.\n\nEl estudiante YA fue identificado por el sistema. Su nombre y cedula vienen al inicio del mensaje entre corchetes: [Usuario: Nombre (Cedula: XXXXXXXXXX)]. USA esa cedula; NUNCA se la pidas ni la inventes.\n\nTu funcion es ayudar a RESERVAR un Chromebook. Recoge estos datos conversando, UNO POR UNO, y RECUERDA lo que el estudiante ya respondio en mensajes anteriores:\n1) fecha_uso en formato YYYY-MM-DD\n2) hora_inicio en formato HH:MM\n3) hora_fin en formato HH:MM\n4) motivo (opcional)\n\nCuando ya tengas fecha, hora_inicio y hora_fin, RESUME los datos y pide confirmacion (por ejemplo: 'Confirmas la reserva para el 2026-06-20 de 08:00 a 10:00?').\n\nCuando el estudiante CONFIRME (si, confirmo, dale, ok, correcto), responde EXCLUSIVAMENTE con este JSON en una sola linea, SIN texto antes ni despues:\n{\"action\":\"reservar\",\"fecha_uso\":\"YYYY-MM-DD\",\"hora_inicio\":\"HH:MM\",\"hora_fin\":\"HH:MM\",\"motivo\":\"...\"}\n\nEjemplo de turno de confirmacion:\nEstudiante: si, confirmo\nTu: {\"action\":\"reservar\",\"fecha_uso\":\"2026-06-20\",\"hora_inicio\":\"08:00\",\"hora_fin\":\"10:00\",\"motivo\":\"Clase de programacion\"}\n\nReglas:\n- Saluda al estudiante por su nombre la primera vez.\n- Habla en espanol, breve y cordial.\n- Solo hablas de reservas de Chromebooks; si preguntan otra cosa, redirige amablemente.\n- Si falta la fecha o las horas, preguntalas; nunca las inventes."
+        }
+      }
+    },
+    {
+      "id": "g1",
+      "name": "Groq Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        650,
+        520
+      ],
+      "credentials": {
+        "groqApi": {
+          "id": "n2cyWK3lgLUc71Of",
+          "name": "Groq"
+        }
+      },
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      }
+    },
+    {
+      "id": "m1",
+      "name": "Memoria",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        850,
+        520
+      ],
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Code').item.json.sessionId }}",
+        "contextWindowLength": 10
+      }
+    },
+    {
+      "id": "r1",
+      "name": "Responder a Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        950,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Responder a Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memoria": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

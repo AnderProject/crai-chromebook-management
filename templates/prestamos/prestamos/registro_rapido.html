@@ -119,8 +119,9 @@
                                 <div id="infoHorario" class="mt-2 small text-muted"></div>
                             </div>
 
-                            <button class="btn-prestamo w-100 mt-2" id="btnPrestarAhora" type="button">
-                                <i class="bi bi-laptop me-2"></i>Registrar Préstamo
+                            <button class="btn-codigo-reservacion w-100 justify-content-center mt-2" id="btnPrestarAhora" type="button">
+                                <span class="btn-codigo-icono"><i class="bi bi-laptop"></i></span>
+                                <span class="btn-codigo-texto"><strong>Registrar Préstamo</strong><small>Confirmar equipo y estudiante</small></span>
                             </button>
                             
                         </div>
@@ -131,36 +132,17 @@
                                 <h6 class="fw-bold mb-0">
                                     <i class="bi bi-circle-fill text-success me-2" style="font-size: 0.5rem;"></i>Préstamos Activos Hoy
                                 </h6>
-                                <span class="badge bg-success rounded-pill">{{ total_hoy }}</span>
+                                <span class="badge bg-success rounded-pill" data-stat="total_hoy">{{ total_hoy }}</span>
                             </div>
-                            
-                            {% if prestamos_hoy %}
-                                {% for p in prestamos_hoy %}
-                                <div class="prestamo-item {% if p.estado == 'activo' %}activo{% elif p.estado == 'vencido' %}vencido{% else %}proximo{% endif %}">
-                                    <div class="prestamo-item-contenido">
-                                        <div>
-                                            <span class="badge bg-light text-dark me-2">#{{ p.id|stringformat:"03d" }}</span>
-                                            <strong class="small">{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong>
-                                            <div class="small text-muted mt-1">
-                                                {{ p.chromebook.codigo }}
-                                                <span class="mx-1">•</span>
-                                                {{ p.fecha_prestamo|date:"H:i" }} - {{ p.fecha_devolucion|date:"H:i" }}
-                                                <span class="badge {% if p.estado == 'activo' %}bg-success{% elif p.estado == 'reservado' %}bg-primary{% else %}bg-danger{% endif %} ms-1 badge-estado">{{ p.estado }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            {% else %}
-                                <div class="text-center text-muted small py-3">
-                                    <i class="bi bi-inbox"></i> No hay préstamos activos hoy
-                                </div>
-                            {% endif %}
-                            
+
+                            <div id="listaPrestamosHoy">
+                                {% include 'prestamos/_prestamos_hoy.html' %}
+                            </div>
+
                             <div class="prestamos-estadisticas">
                                 <div class="stat-mini">
                                     <small class="text-muted">Hoy</small>
-                                    <div class="stat-mini-numero">{{ total_hoy }}</div>
+                                    <div class="stat-mini-numero" data-stat="total_hoy">{{ total_hoy }}</div>
                                     <small class="text-muted">préstamos</small>
                                 </div>
                                 <div class="stat-mini">
@@ -183,4 +165,5 @@
 
 {% block scripts_extra %}
 <script src="{% static 'js/prestamos.js' %}"></script>
+<script src="{% static 'js/realtime.js' %}"></script>
 {% endblock %}

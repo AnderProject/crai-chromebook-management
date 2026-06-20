@@ -1,35 +1,23 @@
 // =============================================
 // LOADER DE CARGA - CRAI UNEMI
-// Controla la animación de carga
+// Overlay transparente y borroso: aparece en cada carga y en procesos manuales
 // =============================================
 
-document.addEventListener('DOMContentLoaded', function() {
-    
-    var loader = document.getElementById('craiLoader');
-    
-    // Ocultar el loader después de 2 segundos
-    if (loader) {
-        setTimeout(function() {
-            loader.classList.add('oculto');
-        }, 1950);
-    }
-    
-});
-
-// Función para mostrar el loader manualmente (al hacer clic en botones)
+// Mostrar el loader manualmente (procesos / actualizaciones)
 function mostrarLoader() {
     var loader = document.getElementById('craiLoader');
-    if (loader) {
-        loader.classList.remove('oculto');
-        loader.style.opacity = '1';
-        loader.style.visibility = 'visible';
-    }
+    if (loader) loader.classList.remove('oculto');
 }
 
-// Función para ocultar el loader
+// Ocultar el loader
 function ocultarLoader() {
     var loader = document.getElementById('craiLoader');
-    if (loader) {
-        loader.classList.add('oculto');
-    }
+    if (loader) loader.classList.add('oculto');
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    var loader = document.getElementById('craiLoader');
+    if (loader) {
+        setTimeout(ocultarLoader, 1100);
+    }
+});
