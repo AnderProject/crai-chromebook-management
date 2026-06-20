@@ -1,37 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
-    
+
     // Inicializar fecha hoy
     seleccionarFecha('hoy');
-    
-    // Radio buttons de duración
-    var radios = document.querySelectorAll('.duracion-radio');
-    radios.forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            document.querySelectorAll('.duracion-card').forEach(function(card) {
-                card.style.borderColor = '#eef0f5';
-                card.style.background = '#f8f9fb';
-            });
-            var card = this.nextElementSibling;
-            card.style.borderColor = '#1a237e';
-            card.style.background = '#eef1ff';
-        });
-    });
-    
-    // Mover barra de pasos al hacer clic en los campos
+
+    // Mover barra de pasos al interactuar con los campos
     document.getElementById('fechaManual').addEventListener('focus', function() {
         activarPaso(1);
     });
-    
-    document.querySelectorAll('.btn-hora').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            activarPaso(2);
-        });
-    });
-    
+
     document.querySelector('textarea[name="motivo"]').addEventListener('focus', function() {
         activarPaso(3);
     });
-    
+
 });
 
 // =============================================
@@ -53,28 +33,28 @@ function activarPaso(numero) {
 function seleccionarFecha(tipo) {
     var hoy = new Date();
     var fecha;
-    
+
     if (tipo === 'hoy') {
         fecha = hoy;
     } else if (tipo === 'manana') {
         fecha = new Date(hoy);
         fecha.setDate(fecha.getDate() + 1);
     }
-    
+
     var fechaStr = fecha.toISOString().split('T')[0];
     document.getElementById('fechaSeleccionada').value = fechaStr;
     document.getElementById('fechaManual').value = fechaStr;
-    
+
     document.querySelectorAll('.btn-fecha').forEach(function(b) {
         b.classList.remove('activo');
     });
-    
+
     if (event && event.target) {
         event.target.classList.add('activo');
     } else {
         document.querySelector('.btn-fecha').classList.add('activo');
     }
-    
+
     activarPaso(1);
 }
 
@@ -88,31 +68,31 @@ function fechaManualSeleccionada() {
 }
 
 // =============================================
-// HORA
-// =============================================
-function seleccionarHora(hora) {
-    document.querySelectorAll('.btn-hora').forEach(function(b) {
-        b.classList.remove('activo');
-    });
-    event.target.classList.add('activo');
-    document.getElementById('horaSeleccionada').value = hora;
-    activarPaso(2);
-}
-
-// =============================================
 // ENVIAR RESERVA
 // =============================================
 function enviarReserva(event) {
     event.preventDefault();
-    
+
+    // Validar que la hora de fin sea mayor que la de inicio
+    var inicio = document.getElementById('horaInicio').value;
+    var fin = document.getElementById('horaFin').value;
+    if (!inicio || !fin) {
+        alert('Selecciona la hora de inicio y la hora de fin.');
+        return;
+    }
+    if (fin <= inicio) {
+        alert('La hora de fin debe ser mayor que la hora de inicio.');
+        return;
+    }
+
     activarPaso(3);
-    
+
     var form = document.getElementById('formReserva');
     var data = new FormData(form);
-    
+
     form.style.display = 'none';
     document.getElementById('loaderReserva').style.display = 'block';
-    
+
     fetch('/estudiantes/reservar/', {
         method: 'POST',
         body: data,
@@ -122,8 +102,13 @@ function enviarReserva(event) {
     .then(function(data) {
         setTimeout(function() {
             document.getElementById('loaderReserva').style.display = 'none';
-            document.getElementById('confirmacionReserva').style.display = 'block';
-            document.getElementById('codigoConfirmacion').textContent = data.codigo;
+            if (data.success) {
+                document.getElementById('confirmacionReserva').style.display = 'block';
+                document.getElementById('codigoConfirmacion').textContent = data.codigo;
+            } else {
+                form.style.display = 'block';
+                alert(data.message || 'No se pudo crear la reserva.');
+            }
         }, 1500);
     })
     .catch(function() {

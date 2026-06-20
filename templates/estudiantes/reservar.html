@@ -40,10 +40,14 @@
                     <div class="equipo-info">
                         <strong>Se te asignará un Chromebook disponible</strong>
                         <small>
-                            <span id="disponiblesTexto">{{ disponibles }} equipos libres</span> de {{ total_chromebooks }} en total
+                            {% if disponibles > 0 %}Hay equipos disponibles para reservar{% else %}Por ahora no hay equipos disponibles{% endif %}
                         </small>
                     </div>
-                                        <span class="equipo-badge">Disponible</span>
+                    {% if disponibles > 0 %}
+                        <span class="equipo-badge">Disponible</span>
+                    {% else %}
+                        <span class="equipo-badge no-disponible">No disponible</span>
+                    {% endif %}
                 </div>
                 
                 {% if messages %}
@@ -68,40 +72,20 @@
                         <input type="hidden" id="fechaSeleccionada" name="fecha_uso" value="">
                     </div>
                     
-                    <!-- HORA -->
+                    <!-- HORARIO: hora inicio y hora fin (estilo tarjeta) -->
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">
-                            <i class="bi bi-clock me-1"></i>Hora de Inicio
+                            <i class="bi bi-clock me-1"></i>Horario del préstamo
                         </label>
-                        <div class="hora-selector" id="horaSelector">
-                            <button type="button" class="btn-hora activo" onclick="seleccionarHora('08:00')">08:00</button>
-                            <button type="button" class="btn-hora" onclick="seleccionarHora('09:00')">09:00</button>
-                            <button type="button" class="btn-hora" onclick="seleccionarHora('10:00')">10:00</button>
-                            <button type="button" class="btn-hora" onclick="seleccionarHora('11:00')">11:00</button>
-                            <button type="button" class="btn-hora" onclick="seleccionarHora('12:00')">12:00</button>
-                            <button type="button" class="btn-hora" onclick="seleccionarHora('14:00')">14:00</button>
-                            <button type="button" class="btn-hora" onclick="seleccionarHora('15:00')">15:00</button>
-                            <button type="button" class="btn-hora" onclick="seleccionarHora('16:00')">16:00</button>
-                        </div>
-                        <input type="hidden" id="horaSeleccionada" name="hora_inicio" value="08:00">
-                    </div>
-                    
-                    <!-- DURACIÓN -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Duración del préstamo</label>
-                        <div class="duracion-opciones">
-                            <label class="duracion-option">
-                                <input type="radio" name="duracion" value="2" class="duracion-radio">
-                                <div class="duracion-card"><span class="duracion-numero">2</span><span class="duracion-texto">Horas</span></div>
-                            </label>
-                            <label class="duracion-option">
-                                <input type="radio" name="duracion" value="4" class="duracion-radio" checked>
-                                <div class="duracion-card activo"><span class="duracion-numero">4</span><span class="duracion-texto">Horas</span></div>
-                            </label>
-                            <label class="duracion-option">
-                                <input type="radio" name="duracion" value="8" class="duracion-radio">
-                                <div class="duracion-card"><span class="duracion-numero">8</span><span class="duracion-texto">Horas</span></div>
-                            </label>
+                        <div class="horario-grid">
+                            <div class="horario-card">
+                                <span class="horario-label">Hora inicio</span>
+                                <input type="time" class="hora-input" id="horaInicio" name="hora_inicio" value="08:00" onchange="activarPaso(2)">
+                            </div>
+                            <div class="horario-card">
+                                <span class="horario-label">Hora fin</span>
+                                <input type="time" class="hora-input" id="horaFin" name="hora_fin" value="10:00" onchange="activarPaso(2)">
+                            </div>
                         </div>
                     </div>
                     
@@ -147,7 +131,7 @@
             <div class="info-card">
                 <h6><i class="bi bi-info-circle me-2"></i>Información</h6>
                 <ul class="info-lista">
-                    <li><i class="bi bi-check-circle text-success me-2"></i>{{ disponibles }} equipos disponibles</li>
+                    <li><i class="bi bi-check-circle text-success me-2"></i>{% if disponibles > 0 %}Equipos disponibles{% else %}Sin equipos disponibles ahora{% endif %}</li>
                     <li><i class="bi bi-clock me-2"></i>Préstamo máximo: 8 horas</li>
                     <li><i class="bi bi-building me-2"></i>Retiro en CRAI, Planta Baja</li>
                     <li><i class="bi bi-person-badge me-2"></i>Presentar credencial y código</li>

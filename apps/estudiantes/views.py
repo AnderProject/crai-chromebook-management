@@ -151,11 +151,11 @@ def reservar_chromebook(request):
     # Si es POST (AJAX), procesar la reserva
     if request.method == 'POST':
         try:
-            duracion = int(request.POST.get('duracion', 4))
             motivo = request.POST.get('motivo', '')
             fecha_uso = request.POST.get('fecha_uso', '')
             hora_inicio = request.POST.get('hora_inicio', '08:00')
-            
+            hora_fin = request.POST.get('hora_fin', '')
+
             usuario = request.user
 
             # El estudiante ya debe existir como espejo local (entró por login sincronizado).
@@ -188,8 +188,19 @@ def reservar_chromebook(request):
                     break
             
             hora_inicio_dt = datetime.strptime(hora_inicio, '%H:%M').time()
-            hora_fin_dt = (datetime.combine(datetime.today(), hora_inicio_dt) + timedelta(hours=duracion)).time()
-            
+            if hora_fin:
+                hora_fin_dt = datetime.strptime(hora_fin, '%H:%M').time()
+            else:
+                # Compatibilidad: si no llega hora_fin, usar duración (por defecto 4h)
+                duracion = int(request.POST.get('duracion', 4))
+                hora_fin_dt = (datetime.combine(datetime.today(), hora_inicio_dt) + timedelta(hours=duracion)).time()
+
+            if hora_fin_dt <= hora_inicio_dt:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'La hora de fin debe ser mayor que la hora de inicio.'
+                })
+
             fecha = datetime.strptime(fecha_uso, '%Y-%m-%d').date() if fecha_uso else datetime.now().date()
             
             reserva = Reserva.objects.create(

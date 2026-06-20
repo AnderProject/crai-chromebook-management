@@ -279,6 +279,62 @@
     letter-spacing: 0.5px;
 }
 
+/* Horario: tarjetas de Hora inicio / Hora fin (mismo estilo que las de duración) */
+.horario-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.horario-card {
+    background: #f8f9fb;
+    border: 2px solid #eef0f5;
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.horario-card:hover {
+    border-color: #c5cde8;
+    background: #f0f3ff;
+}
+
+.horario-card:focus-within {
+    border-color: #1a237e;
+    background: #eef1ff;
+}
+
+.horario-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.4rem;
+}
+
+.hora-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a237e;
+    cursor: pointer;
+}
+
+.hora-input:focus {
+    outline: none;
+}
+
+/* Badge cuando no hay equipos disponibles */
+.equipo-badge.no-disponible {
+    background: #fdecea;
+    color: #ea4335;
+}
+
 .btn-reservar-submit {
     width: 100%;
     padding: 0.8rem;
