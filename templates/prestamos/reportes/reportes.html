@@ -31,7 +31,7 @@
                             </span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end p-2 shadow" style="width: 300px;">
-                            <h6 class="dropdown-header fw-semibold">📬 Notificaciones</h6>
+                            <h6 class="dropdown-header fw-semibold"><i class="bi bi-bell"></i> Notificaciones</h6>
                             {% if notificaciones %}
                                 {% for notif in notificaciones %}
                                 <div class="dropdown-item small rounded">
@@ -256,7 +256,7 @@
                                             {% for e in tabla_vencidos_est %}
                                             <tr><td>{{ forloop.counter }}</td><td>{{ e.nombre }}</td><td>{{ e.cedula }}</td><td class="text-end"><span class="badge-num badge-rojo">{{ e.total }}</span></td></tr>
                                             {% empty %}
-                                            <tr><td colspan="4" class="reporte-tabla-vacio">Sin préstamos vencidos 🎉</td></tr>
+                                            <tr><td colspan="4" class="reporte-tabla-vacio">Sin préstamos vencidos <i class="bi bi-emoji-smile text-success"></i></td></tr>
                                             {% endfor %}
                                         </tbody>
                                     </table>
@@ -365,7 +365,7 @@
                                             {% for item in op_vencidos %}
                                             <tr><td>{{ item.p.estudiante.get_full_name|default:item.p.estudiante.username }}</td><td><strong>{{ item.p.chromebook.codigo }}</strong></td><td class="text-end"><span class="badge-num badge-rojo">{{ item.horas }}h</span></td></tr>
                                             {% empty %}
-                                            <tr><td colspan="3" class="reporte-tabla-vacio">Sin vencidos 🎉</td></tr>
+                                            <tr><td colspan="3" class="reporte-tabla-vacio">Sin vencidos <i class="bi bi-emoji-smile text-success"></i></td></tr>
                                             {% endfor %}
                                         </tbody>
                                     </table>

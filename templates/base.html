@@ -69,7 +69,7 @@
     {% if messages %}
     <div id="djangoMessages" hidden>
         {% for message in messages %}
-        <span class="dj-msg" data-tipo="{% if '✅' in message.message %}success{% elif '❌' in message.message %}error{% elif '⚠️' in message.message %}warning{% else %}info{% endif %}">{{ message }}</span>
+        <span class="dj-msg" data-tipo="{{ message.tags }}">{{ message }}</span>
         {% endfor %}
     </div>
     {% endif %}

@@ -763,7 +763,7 @@ def agregar_chromebook(request):
         form = ChromebookForm(request.POST, request.FILES)  # ← AGREGAR request.FILES
         if form.is_valid():
             form.save()
-            messages.success(request, '✅ Chromebook registrado exitosamente.')
+            messages.success(request, 'Chromebook registrado exitosamente.')
             return redirect('prestamos:lista_chromebooks')
     else:
         form = ChromebookForm()
@@ -828,7 +828,7 @@ def agregar_mantenimiento(request):
             chromebook.estado = 'mantenimiento'
             chromebook.save()
             
-            messages.success(request, f'✅ {chromebook.codigo} enviado a mantenimiento.')
+            messages.success(request, f'{chromebook.codigo} enviado a mantenimiento.')
             return redirect('prestamos:lista_mantenimientos')
             
         except Chromebook.DoesNotExist:
@@ -913,7 +913,7 @@ def finalizar_mantenimiento(request, id):
             chromebook.estado = 'disponible'
             chromebook.save()
             
-            messages.success(request, f'✅ Mantenimiento finalizado. {chromebook.codigo} disponible.')
+            messages.success(request, f'Mantenimiento finalizado. {chromebook.codigo} disponible.')
             return redirect('prestamos:lista_mantenimientos')
         
         contexto = {

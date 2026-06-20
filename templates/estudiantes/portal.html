@@ -32,7 +32,7 @@
         <!-- Header con saludo -->
         <div class="portal-header">
             <div>
-                <h3 class="fw-bold mb-1">¡Hola, {{ user.first_name }}! 👋</h3>
+                <h3 class="fw-bold mb-1">¡Hola, {{ user.first_name }}! <i class="bi bi-emoji-smile"></i></h3>
                 <p class="text-muted">¿Qué deseas hacer hoy?</p>
             </div>
             <div class="disponibilidad-badge">
@@ -134,20 +134,20 @@
                 <!-- Mensaje del bot -->
                 <div class="mensaje-bot">
                     <div class="mensaje-contenido">
-                        ¡Hola {{ user.first_name }}! 👋 Soy el asistente virtual del CRAI. Puedo ayudarte con:
+                        ¡Hola {{ user.first_name }}! <i class="bi bi-emoji-smile"></i> Soy el asistente virtual del CRAI. Puedo ayudarte con:
                         <br><br>
-                        💻 • Consultar disponibilidad<br>
-                        📅 • Reservar un Chromebook<br>
-                        📋 • Ver tus reservas activas<br>
-                        ❓ • Resolver dudas
+                        <i class="bi bi-laptop"></i> • Consultar disponibilidad<br>
+                        <i class="bi bi-calendar-check"></i> • Reservar un Chromebook<br>
+                        <i class="bi bi-list-check"></i> • Ver tus reservas activas<br>
+                        <i class="bi bi-question-circle"></i> • Resolver dudas
                     </div>
                 </div>
             </div>
             
             <div class="chatbot-chips" id="chatbotChips">
-                <button class="chatbot-chip" onclick="sugerencia('Ver disponibilidad')">💻 Disponibilidad</button>
-                <button class="chatbot-chip" onclick="sugerencia('Quiero reservar un chromebook')">📅 Reservar</button>
-                <button class="chatbot-chip" onclick="sugerencia('Ver mis reservas')">📋 Mis reservas</button>
+                <button class="chatbot-chip" onclick="sugerencia('Ver disponibilidad')"><i class="bi bi-laptop"></i> Disponibilidad</button>
+                <button class="chatbot-chip" onclick="sugerencia('Quiero reservar un chromebook')"><i class="bi bi-calendar-check"></i> Reservar</button>
+                <button class="chatbot-chip" onclick="sugerencia('Ver mis reservas')"><i class="bi bi-list-check"></i> Mis reservas</button>
             </div>
 
             <div class="chatbot-input">

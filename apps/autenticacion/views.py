@@ -137,7 +137,7 @@ def login_estudiante(request):
                 if 'Estudiante' in grupos or (not user.is_staff and not user.is_superuser):
                     login(request, user)
                     limpiar_mensajes(request)
-                    messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}! 🎓')
+                    messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}!')
                     return redirect('estudiantes:portal_estudiante')
                 else:
                     messages.error(request, 'Credenciales Incorrectas.')
@@ -179,7 +179,7 @@ def login_administrador(request):
                 if 'Administrador' in grupos or 'Recepcionista' in grupos or user.is_staff or user.is_superuser:
                     login(request, user)
                     limpiar_mensajes(request)
-                    messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}! 🛡️')
+                    messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}!')
                     return redirect('prestamos:portal')
                 else:
                     messages.error(request, 'Credenciales Incorrectas')
