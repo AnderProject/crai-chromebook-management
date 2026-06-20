@@ -10,5 +10,9 @@ __pycache__/
 # Django
 db.sqlite3
 
+# Media subido en runtime (evidencias de prestamos/devoluciones)
+# Las imagenes de referencia en media/chromebooks/ SI se versionan.
+media/evidencias/
+
 # Variables de entorno
 .env
