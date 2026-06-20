@@ -62,17 +62,38 @@
                     </div>
                     
                     <div class="estudiantes-stats">
-                        <div class="stat-card">
-                            <div class="stat-label">Total</div>
-                            <div class="stat-valor">{{ total_estudiantes }}</div>
+                        <div class="dashboard-stat-card">
+                            <div class="stat-card-glow"></div>
+                            <div class="stat-card-content">
+                                <div class="stat-icono-dash bg-azul"><i class="bi bi-people"></i></div>
+                                <div class="stat-info-dash">
+                                    <span class="stat-numero-dash">{{ total_estudiantes }}</span>
+                                    <span class="stat-label-dash">Total</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-bar bg-azul"></div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Con préstamo</div>
-                            <div class="stat-valor text-success">{{ estudiantes_activos }}</div>
+                        <div class="dashboard-stat-card">
+                            <div class="stat-card-glow"></div>
+                            <div class="stat-card-content">
+                                <div class="stat-icono-dash bg-verde"><i class="bi bi-laptop"></i></div>
+                                <div class="stat-info-dash">
+                                    <span class="stat-numero-dash">{{ estudiantes_activos }}</span>
+                                    <span class="stat-label-dash">Con préstamo</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-bar bg-verde"></div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Vencidos</div>
-                            <div class="stat-valor text-danger">{{ vencidos }}</div>
+                        <div class="dashboard-stat-card">
+                            <div class="stat-card-glow"></div>
+                            <div class="stat-card-content">
+                                <div class="stat-icono-dash bg-rojo"><i class="bi bi-exclamation-triangle"></i></div>
+                                <div class="stat-info-dash">
+                                    <span class="stat-numero-dash">{{ vencidos }}</span>
+                                    <span class="stat-label-dash">Vencidos</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-bar bg-rojo"></div>
                         </div>
                     </div>
                     
@@ -143,21 +164,46 @@
 
 <div class="overlay" id="overlay" onclick="cerrarPerfil()"></div>
 <div class="modal-lateral" id="modalPerfil">
-    <div class="p-4">
-        <button class="btn-close float-end" onclick="cerrarPerfil()"></button>
-        <div id="perfilContenido">
-            <div class="text-center mb-3">
-                <div class="avatar-sm bg-primary mx-auto mb-2" style="width:60px;height:60px;font-size:1.5rem;" id="perfilAvatar">-</div>
-                <h6 class="fw-bold mb-1" id="perfilNombre">-</h6>
-                <small class="text-muted" id="perfilCedula">-</small>
+    <div class="perfil-header">
+        <button class="btn-close btn-close-white perfil-cerrar" onclick="cerrarPerfil()"></button>
+        <div class="perfil-avatar-grande" id="perfilAvatar">-</div>
+        <h5 class="fw-bold mb-0 text-white" id="perfilNombre">-</h5>
+        <small class="text-white-50" id="perfilCedula">-</small>
+    </div>
+    <div class="perfil-cuerpo">
+        <div class="perfil-datos">
+            <div class="perfil-dato">
+                <span class="perfil-dato-label"><i class="bi bi-mortarboard"></i> Carrera</span>
+                <span class="perfil-dato-valor" id="perfilCarrera">-</span>
             </div>
-            <hr>
-            <p class="small"><strong>Carrera:</strong> <span id="perfilCarrera">-</span></p>
-            <p class="small"><strong>Semestre:</strong> <span id="perfilSemestre">-</span></p>
-            <p class="small"><strong>Email:</strong> <span id="perfilEmail">-</span></p>
-            <hr>
-            <h6 class="fw-bold small"><i class="bi bi-clock-history"></i> Historial de Préstamos</h6>
-            <div id="perfilHistorial">-</div>
+            <div class="perfil-dato">
+                <span class="perfil-dato-label"><i class="bi bi-calendar3"></i> Semestre</span>
+                <span class="perfil-dato-valor" id="perfilSemestre">-</span>
+            </div>
+            <div class="perfil-dato">
+                <span class="perfil-dato-label"><i class="bi bi-envelope"></i> Email</span>
+                <span class="perfil-dato-valor" id="perfilEmail">-</span>
+            </div>
+        </div>
+
+        <div class="perfil-resumen" id="perfilResumen"></div>
+
+        <h6 class="perfil-seccion-titulo"><i class="bi bi-clock-history"></i> Historial de Préstamos</h6>
+        <div id="perfilHistorial" class="perfil-historial"></div>
+    </div>
+</div>
+
+<!-- Visor de foto de evidencia (ampliada) -->
+<div class="modal fade" id="modalFotoEvidencia" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:16px; overflow:hidden;">
+            <div class="modal-header border-0 bg-dark text-white">
+                <h6 class="modal-title fw-bold"><i class="bi bi-image me-2"></i><span id="fotoEvidenciaTitulo">Evidencia</span></h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 text-center bg-dark">
+                <img id="fotoEvidenciaImg" src="" alt="Evidencia" style="max-width:100%; max-height:75vh;">
+            </div>
         </div>
     </div>
 </div>

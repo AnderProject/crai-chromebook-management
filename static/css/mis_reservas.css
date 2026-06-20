@@ -97,11 +97,58 @@
     50% { transform: scale(1.2); }
 }
 
-.codigo-txt { 
-    background: rgba(255,255,255,0.8); padding: 0.3rem 0.6rem; border-radius: 6px; 
-    font-weight: 700; font-size: 0.8rem; color: #1a237e; letter-spacing: 2px; 
-    border: 1px solid rgba(26,35,126,0.15); 
+.codigo-txt {
+    background: rgba(255,255,255,0.8); padding: 0.3rem 0.6rem; border-radius: 6px;
+    font-weight: 700; font-size: 0.8rem; color: #1a237e; letter-spacing: 2px;
+    border: 1px solid rgba(26,35,126,0.15);
 }
+
+.btn-cancelar-reserva {
+    background: rgba(234,67,53,0.1); color: #ea4335;
+    border: 1px solid rgba(234,67,53,0.25);
+    width: 32px; height: 32px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 0.8rem; transition: 0.2s; z-index: 1; flex-shrink: 0;
+}
+.btn-cancelar-reserva:hover { background: #ea4335; color: #fff; transform: scale(1.05); }
+
+/* ==========================================
+   MODAL CONFIRMAR CANCELACIÓN
+   ========================================== */
+.modal-cancelar-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(20, 22, 40, 0.45); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-cancelar-overlay.visible { display: flex; animation: fadeOverlay 0.2s ease; }
+@keyframes fadeOverlay { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-cancelar-card {
+    background: #fff; border-radius: 16px; padding: 1.8rem 1.6rem;
+    width: 100%; max-width: 380px; text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    animation: popModal 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+@keyframes popModal { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.modal-cancelar-icono {
+    width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 1rem;
+    background: rgba(234,67,53,0.12); color: #ea4335;
+    display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+}
+.modal-cancelar-titulo { font-weight: 700; color: #212529; margin-bottom: 0.4rem; }
+.modal-cancelar-texto { font-size: 0.85rem; color: #666; margin-bottom: 1.4rem; }
+
+.modal-cancelar-acciones { display: flex; gap: 0.7rem; }
+.btn-modal-no, .btn-modal-si {
+    flex: 1; padding: 0.6rem 1rem; border-radius: 10px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; border: none;
+}
+.btn-modal-no { background: #f1f3f5; color: #444; }
+.btn-modal-no:hover { background: #e2e6ea; }
+.btn-modal-si { background: #ea4335; color: #fff; }
+.btn-modal-si:hover { background: #c5221f; }
+.btn-modal-si:disabled { opacity: 0.6; cursor: default; }
 
 /* Progreso live */
 .progreso-live { flex: 1; }

@@ -129,12 +129,19 @@ def reservar_chromebook(request):
     from apps.prestamos.services.api_estudiantes import obtener_estudiante, ApiEstudiantesError
     from apps.prestamos.services.sincronizacion import sincronizar_estudiante
     from django.http import JsonResponse
-    from datetime import datetime, timedelta
+    from datetime import datetime, timedelta, time as dtime
     import random
     import string
+
+    # Horario permitido para reservas (08:00 a 17:00)
+    HORA_APERTURA = dtime(8, 0)
+    HORA_CIERRE = dtime(17, 0)
+    MAX_RESERVAS_VIGENTES = 2
     
     # Si es GET, mostrar el formulario con datos reales
     if request.method == 'GET':
+        from apps.prestamos.views import _expirar_reservas_vencidas
+        _expirar_reservas_vencidas()
         # Obtener disponibilidad real
         total = Chromebook.objects.count()
         disponibles = Chromebook.objects.filter(estado='disponible').count()
@@ -201,8 +208,26 @@ def reservar_chromebook(request):
                     'message': 'La hora de fin debe ser mayor que la hora de inicio.'
                 })
 
+            if hora_inicio_dt < HORA_APERTURA or hora_fin_dt > HORA_CIERRE:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'El horario de reservas es de 08:00 a 17:00.'
+                })
+
+            # Límite de reservas vigentes (en espera o en curso) por estudiante.
+            vigentes = Reserva.objects.filter(
+                estudiante=estudiante,
+                estado__in=['pendiente', 'confirmada']
+            ).count()
+            if vigentes >= MAX_RESERVAS_VIGENTES:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Solo puedes tener {MAX_RESERVAS_VIGENTES} reservas activas a la vez. '
+                               'Espera a que se completen o cancela alguna.'
+                })
+
             fecha = datetime.strptime(fecha_uso, '%Y-%m-%d').date() if fecha_uso else datetime.now().date()
-            
+
             reserva = Reserva.objects.create(
                 estudiante=estudiante,
                 carrera=carrera,
@@ -237,7 +262,10 @@ def reservar_chromebook(request):
 def mis_reservas(request):
     """Historial de reservas del estudiante con datos reales"""
     from apps.prestamos.models import Reserva, Estudiante, Usuario as PerfilUsuario
-    
+    from apps.prestamos.views import _expirar_reservas_vencidas
+
+    _expirar_reservas_vencidas()
+
     reservas = []
     total_reservas = 0
     activas = 0
@@ -266,6 +294,49 @@ def mis_reservas(request):
         'completadas': completadas,
     }
     return render(request, 'estudiantes/mis_reservas.html', contexto)
+
+
+@login_required
+def api_cancelar_reserva(request):
+    """Cancela una reserva en espera del propio estudiante (desde 'Mis Reservas')."""
+    from django.http import JsonResponse
+    from apps.prestamos.models import Reserva, Estudiante, Usuario as PerfilUsuario
+    import json
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido.'}, status=405)
+
+    try:
+        data = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'Solicitud inválida.'}, status=400)
+
+    reserva_id = data.get('reserva_id')
+    if not reserva_id:
+        return JsonResponse({'success': False, 'message': 'Falta el identificador de la reserva.'}, status=400)
+
+    try:
+        perfil = PerfilUsuario.objects.get(user=request.user)
+        estudiante = Estudiante.objects.get(usuario=perfil)
+    except (PerfilUsuario.DoesNotExist, Estudiante.DoesNotExist):
+        return JsonResponse({'success': False, 'message': 'Tu perfil de estudiante no está disponible.'}, status=403)
+
+    # Solo puede cancelar SUS propias reservas (el filtro por estudiante lo garantiza).
+    try:
+        reserva = Reserva.objects.get(id=reserva_id, estudiante=estudiante)
+    except Reserva.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Reserva no encontrada.'}, status=404)
+
+    if reserva.estado != 'pendiente':
+        return JsonResponse({
+            'success': False,
+            'message': f'Solo puedes cancelar reservas en espera. Esta ya está {reserva.get_estado_display().lower()}.'
+        })
+
+    reserva.estado = 'cancelada'
+    reserva.save()
+
+    return JsonResponse({'success': True, 'message': 'Reserva cancelada.'})
 
 
 # ==========================================
@@ -419,34 +490,51 @@ def api_chatbot(request):
                     hora_fin = accion_data.get('hora_fin', '09:00')
                     motivo = accion_data.get('motivo', '')
 
+                    from datetime import time as dtime
                     fecha_dt = datetime.strptime(fecha_uso, '%Y-%m-%d').date()
                     hora_inicio_dt = datetime.strptime(hora_inicio, '%H:%M').time()
                     hora_fin_dt = datetime.strptime(hora_fin, '%H:%M').time()
 
-                    while True:
-                        codigo = ''.join(random.choices(string.digits, k=6))
-                        if not Reserva.objects.filter(codigo_verificacion=codigo).exists():
-                            break
-
-                    reserva = Reserva.objects.create(
+                    vigentes = Reserva.objects.filter(
                         estudiante=estudiante,
-                        carrera=estudiante.carrera,
-                        fecha_uso=fecha_dt,
-                        hora_inicio=hora_inicio_dt,
-                        hora_fin=hora_fin_dt,
-                        motivo=motivo or 'Reserva vía chatbot',
-                        codigo_verificacion=codigo,
-                        estado='pendiente',
-                    )
-                    respuesta = (
-                        f'✅ *¡Reserva creada!*\n'
-                        f'👤 A nombre de: {nombre_completo}\n'
-                        f'📅 Fecha: {fecha_uso}\n'
-                        f'⏰ Horario: {hora_inicio} - {hora_fin}\n'
-                        f'🔑 Código: *{codigo}*\n\n'
-                        f'Presenta este código en el CRAI para confirmar tu reserva.'
-                    )
-                    accion_realizada = 'reservar'
+                        estado__in=['pendiente', 'confirmada']
+                    ).count()
+
+                    if hora_fin_dt <= hora_inicio_dt or hora_inicio_dt < dtime(8, 0) or hora_fin_dt > dtime(17, 0):
+                        respuesta = (
+                            'El horario de reservas es de 08:00 a 17:00 y la hora de fin '
+                            'debe ser mayor que la de inicio. Intenta con otro horario.'
+                        )
+                    elif vigentes >= 2:
+                        respuesta = (
+                            'Ya tienes 2 reservas activas. Espera a que se completen '
+                            'o cancela alguna antes de reservar otra.'
+                        )
+                    else:
+                        while True:
+                            codigo = ''.join(random.choices(string.digits, k=6))
+                            if not Reserva.objects.filter(codigo_verificacion=codigo).exists():
+                                break
+
+                        reserva = Reserva.objects.create(
+                            estudiante=estudiante,
+                            carrera=estudiante.carrera,
+                            fecha_uso=fecha_dt,
+                            hora_inicio=hora_inicio_dt,
+                            hora_fin=hora_fin_dt,
+                            motivo=motivo or 'Reserva vía chatbot',
+                            codigo_verificacion=codigo,
+                            estado='pendiente',
+                        )
+                        respuesta = (
+                            f'✅ *¡Reserva creada!*\n'
+                            f'👤 A nombre de: {nombre_completo}\n'
+                            f'📅 Fecha: {fecha_uso}\n'
+                            f'⏰ Horario: {hora_inicio} - {hora_fin}\n'
+                            f'🔑 Código: *{codigo}*\n\n'
+                            f'Presenta este código en el CRAI para confirmar tu reserva.'
+                        )
+                        accion_realizada = 'reservar'
 
                 elif accion == 'cancelar' and estudiante:
                     codigo = accion_data.get('codigo', '')
@@ -530,7 +618,7 @@ def api_info_estudiante(request):
 def api_crear_reserva(request):
     """Crea una reserva desde n8n (autenticado con X-N8N-KEY). Acepta duracion o hora_fin."""
     import json
-    from datetime import datetime, timedelta
+    from datetime import datetime, timedelta, time as dtime
     import random
     import string
     from apps.prestamos.models import Reserva, Estudiante, Carrera, Notificacion
@@ -580,6 +668,18 @@ def api_crear_reserva(request):
     else:
         duracion = int(data.get('duracion', 4))
         hora_fin_dt = (datetime.combine(datetime.today(), hora_inicio_dt) + timedelta(hours=duracion)).time()
+
+    if hora_fin_dt <= hora_inicio_dt:
+        return JsonResponse({'error': 'La hora de fin debe ser mayor que la de inicio'}, status=400)
+    if hora_inicio_dt < dtime(8, 0) or hora_fin_dt > dtime(17, 0):
+        return JsonResponse({'error': 'El horario de reservas es de 08:00 a 17:00'}, status=400)
+
+    vigentes = Reserva.objects.filter(
+        estudiante=estudiante,
+        estado__in=['pendiente', 'confirmada']
+    ).count()
+    if vigentes >= 2:
+        return JsonResponse({'error': 'El estudiante ya tiene 2 reservas activas'}, status=400)
 
     fecha = datetime.strptime(fecha_uso, '%Y-%m-%d').date()
 

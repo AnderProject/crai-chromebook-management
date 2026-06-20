@@ -303,6 +303,11 @@
     color: #721c24;
 }
 
+.badge-reservado {
+    background-color: #cfe2ff;
+    color: #084298;
+}
+
 /* ==========================================
    BOTONES DEL DASHBOARD
    ========================================== */

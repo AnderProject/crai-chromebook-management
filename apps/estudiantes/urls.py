@@ -7,6 +7,7 @@ urlpatterns = [
     path('portal/', views.portal_estudiante, name='portal_estudiante'),
     path('reservar/', views.reservar_chromebook, name='reservar'),
     path('mis-reservas/', views.mis_reservas, name='mis_reservas'),
+    path('api/cancelar-reserva/', views.api_cancelar_reserva, name='api_cancelar_reserva'),
 
     # Chatbot con n8n
     path('api/chatbot/', views.api_chatbot, name='api_chatbot'),

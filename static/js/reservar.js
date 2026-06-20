@@ -84,6 +84,10 @@ function enviarReserva(event) {
         alert('La hora de fin debe ser mayor que la hora de inicio.');
         return;
     }
+    if (inicio < '08:00' || fin > '17:00') {
+        alert('El horario de reservas es de 08:00 a 17:00.');
+        return;
+    }
 
     activarPaso(3);
 

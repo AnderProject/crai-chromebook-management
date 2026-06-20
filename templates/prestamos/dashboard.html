@@ -295,6 +295,34 @@
     </div>
 </div>
 
+<!-- MODAL: EVIDENCIA DE DEVOLUCIÓN (QR) -->
+<div class="modal fade" id="modalQREvidenciaDev" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body text-center p-4">
+                <h5 class="fw-bold mb-1"><i class="bi bi-camera text-warning"></i> Evidencia de Devolución</h5>
+                <p class="text-muted small mb-2" id="devEquipoTexto">Toma una foto del equipo antes de devolverlo</p>
+                <p class="text-muted small mb-3">Escanea el QR con tu celular para tomar la foto del equipo</p>
+                <div id="qrContainerDev" style="background: #f8f9fa; padding: 1rem; border-radius: 12px; display: inline-block;">
+                    <img id="qrImagenDev" src="" alt="QR" style="width: 200px; height: 200px;">
+                </div>
+                <div id="vistaPreviaContainerDev" style="display: none; margin-top: 1rem;">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    <p class="small text-success fw-bold mt-2">¡Foto recibida correctamente!</p>
+                </div>
+                <p class="small text-warning mt-2"><i class="bi bi-clock"></i> El QR se renueva automáticamente</p>
+                <p class="small mt-2" id="estadoEvidenciaDev">Esperando foto...</p>
+                <button class="btn btn-warning w-100 mt-2" onclick="confirmarDevolucionFinal()" id="btnConfirmarDev" disabled>
+                    <i class="bi bi-check-lg me-1"></i>Confirmar devolución
+                </button>
+                <button class="btn btn-link btn-sm text-muted w-100 mt-1" onclick="devolverSinEvidencia()">
+                    Devolver sin evidencia
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- MODAL: QR PARA EVIDENCIA -->
 <!-- MODAL: QR PARA EVIDENCIA -->

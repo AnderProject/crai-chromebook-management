@@ -107,7 +107,7 @@
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
                             <thead>
-                                <tr><th>#</th><th>Chromebook</th><th>Tipo</th><th>Problema</th><th>Técnico</th><th>Fecha Inicio</th><th>Estado</th><th>Acciones</th></tr>
+                                <tr><th>#</th><th>Chromebook</th><th>Tipo</th><th>Garantía</th><th>Problema</th><th>Técnico</th><th>Fecha Inicio</th><th>Estado</th><th>Acciones</th></tr>
                             </thead>
                             <tbody>
                                 {% if mantenimientos %}
@@ -115,19 +115,24 @@
                                     <tr>
                                         <td><strong>#{{ m.id }}</strong></td>
                                         <td><strong>{{ m.chromebook.codigo }}</strong><br><small class="text-muted">{{ m.chromebook.marca }} {{ m.chromebook.modelo }}</small></td>
-                                        <td><span class="badge bg-info">{{ m.tipo|title }}</span>{% if m.en_garantia %} <span class="badge bg-success">Garantía</span>{% endif %}</td>
+                                        <td><span class="badge bg-info">{{ m.tipo|title }}</span></td>
+                                        <td>{% if m.en_garantia %}<span class="badge bg-success">Aplica</span>{% else %}<span class="badge bg-danger">No aplica</span>{% endif %}</td>
                                         <td><small>{{ m.descripcion_problema|truncatechars:50|default:'-' }}</small></td>
                                         <td>{{ m.tecnico|default:'-' }}</td>
                                         <td>{{ m.fecha_inicio|date:"d/m/Y" }}</td>
                                         <td>{% if m.estado == 'en_proceso' %}<span class="badge bg-warning text-dark">En proceso</span>{% else %}<span class="badge bg-success">Finalizado</span>{% endif %}</td>
                                         <td>
+                                            {% if m.estado == 'en_proceso' %}
                                             <button class="btn btn-sm btn-outline-warning me-1" title="Editar" onclick="editarMantenimiento('{{ m.id }}')"><i class="bi bi-pencil"></i></button>
-                                            {% if m.estado == 'en_proceso' %}<a href="{% url 'prestamos:finalizar_mantenimiento' m.id %}" class="btn btn-sm btn-outline-success"><i class="bi bi-check-circle"></i> Finalizar</a>{% endif %}
+                                            <a href="{% url 'prestamos:finalizar_mantenimiento' m.id %}" class="btn btn-sm btn-outline-success"><i class="bi bi-check-circle"></i> Finalizar</a>
+                                            {% else %}
+                                            <span class="text-muted small">—</span>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                     {% endfor %}
                                 {% else %}
-                                    <tr><td colspan="8" class="text-center text-muted py-4"><i class="bi bi-inbox display-6 d-block mb-2"></i>No hay mantenimientos registrados</td></tr>
+                                    <tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-inbox display-6 d-block mb-2"></i>No hay mantenimientos registrados</td></tr>
                                 {% endif %}
                             </tbody>
                         </table>

@@ -55,13 +55,17 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Cards de estadísticas */
+/* Cards de estadísticas (diseño dashboard) */
 .estudiantes-stats {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.25rem;
 }
+
+/* Variante roja para las cards del dashboard (Vencidos) */
+.stat-icono-dash.bg-rojo { background: #fdecea; color: #ea4335; }
+.dashboard-stat-card .stat-card-bar.bg-rojo { background: linear-gradient(90deg, #ea4335, #ff6b6b); }
 
 .stat-card {
     background: var(--blanco);
@@ -92,20 +96,49 @@
 /* Filas de estudiantes */
 .estudiante-row {
     background: var(--blanco);
-    border-radius: 8px;
-    padding: 0.6rem 1rem;
-    border: 1px solid #f0f0f0;
-    margin-bottom: 0.4rem;
-    transition: all 0.15s;
+    border-radius: 12px;
+    padding: 0.75rem 1.1rem;
+    border: 1px solid #eef0f5;
+    margin-bottom: 0.6rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+.estudiante-row::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--info);
+    transform: scaleY(0);
+    transition: transform 0.18s ease;
 }
 
 .estudiante-row:hover {
-    background: #f8faff;
+    transform: translateY(-2px);
     border-color: #d0d8e8;
+    box-shadow: 0 8px 22px rgba(26,115,232,0.12);
+}
+
+.estudiante-row:hover::before {
+    transform: scaleY(1);
+}
+
+.estudiante-row:hover .bi-chevron-right {
+    transform: translateX(3px);
+    color: var(--info) !important;
+}
+
+.estudiante-row .bi-chevron-right {
+    transition: transform 0.18s ease, color 0.18s ease;
 }
 
 .estudiante-info {
@@ -151,18 +184,210 @@
 .modal-lateral {
     position: fixed;
     top: 0;
-    right: -420px;
-    width: 400px;
+    right: -560px;
+    width: 520px;
+    max-width: 92vw;
     height: 100vh;
-    background: var(--blanco);
-    box-shadow: -4px 0 20px rgba(0,0,0,0.1);
-    transition: right 0.3s ease;
+    background: #f7f8fb;
+    box-shadow: -8px 0 30px rgba(0,0,0,0.18);
+    transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1050;
     overflow-y: auto;
 }
 
 .modal-lateral.abierto {
     right: 0;
+}
+
+/* Encabezado del perfil */
+.perfil-header {
+    position: relative;
+    background: linear-gradient(135deg, #1a73e8, #4a90ff);
+    color: #fff;
+    padding: 2rem 1.5rem 1.75rem;
+    text-align: center;
+}
+
+.perfil-cerrar {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.perfil-avatar-grande {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0 auto 0.75rem;
+}
+
+.perfil-cuerpo {
+    padding: 1.25rem 1.5rem 2rem;
+}
+
+/* Datos del estudiante */
+.perfil-datos {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #eef0f5;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    padding: 0.25rem 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.perfil-dato {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid #f1f3f7;
+}
+
+.perfil-dato:last-child { border-bottom: none; }
+
+.perfil-dato-label {
+    font-size: 0.8rem;
+    color: var(--texto-claro);
+    font-weight: 500;
+}
+
+.perfil-dato-valor {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #212529;
+    text-align: right;
+}
+
+/* Resumen (mini-cards) */
+.perfil-resumen {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+}
+
+.perfil-resumen-card {
+    background: #fff;
+    border: 1px solid #eef0f5;
+    border-radius: 12px;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.perfil-resumen-num {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.perfil-resumen-lbl {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--texto-claro);
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Sección historial */
+.perfil-seccion-titulo {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #212529;
+    margin-bottom: 0.75rem;
+}
+
+.perfil-historial {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+/* Tarjeta de préstamo dentro del historial */
+.historial-card {
+    background: #fff;
+    border: 1px solid #eef0f5;
+    border-left: 4px solid #c7ccd6;
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: box-shadow 0.18s ease;
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+}
+
+.historial-card:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+.historial-card.estado-devuelto { border-left-color: #34a853; }
+.historial-card.estado-activo { border-left-color: #ff9800; }
+.historial-card.estado-vencido { border-left-color: #ea4335; }
+
+.historial-foto {
+    width: 54px;
+    height: 54px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1px solid #e3e6ee;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.18s ease;
+}
+
+.historial-foto:hover { transform: scale(1.05); }
+
+.historial-foto-vacia {
+    width: 54px;
+    height: 54px;
+    border-radius: 10px;
+    background: #f1f3f7;
+    color: #b6bcc8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.historial-info { flex: 1; min-width: 0; }
+
+.historial-codigo {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #212529;
+}
+
+.historial-meta {
+    font-size: 0.72rem;
+    color: var(--texto-claro);
+    margin-top: 0.15rem;
+}
+
+.historial-badge {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+.historial-badge.estado-devuelto { background: #e6f4ea; color: #34a853; }
+.historial-badge.estado-activo { background: #fff3e0; color: #ff9800; }
+.historial-badge.estado-vencido { background: #fdecea; color: #ea4335; }
+
+.historial-vacio {
+    text-align: center;
+    color: var(--texto-claro);
+    font-size: 0.85rem;
+    padding: 1.5rem 0;
 }
 
 .overlay {

@@ -28,7 +28,9 @@ def portal(request):
 def dashboard(request):
     """Vista principal del dashboard con datos reales"""
     from .models import Chromebook, Prestamo, Reserva, Notificacion
-    
+
+    _expirar_reservas_vencidas()
+
     # Obtener solo primer nombre y primer apellido
     primer_nombre = request.user.first_name.split()[0] if request.user.first_name else 'Admin'
     primer_apellido = request.user.last_name.split()[0] if request.user.last_name else 'CRAI'
@@ -81,6 +83,8 @@ def dashboard(request):
 def api_dashboard_stats(request):
     """Contadores del dashboard + tabla de últimos préstamos (para refresco en vivo)."""
     from .models import Chromebook, Prestamo, Reserva
+
+    _expirar_reservas_vencidas()
 
     total_chromebooks = Chromebook.objects.count()
     disponibles = Chromebook.objects.filter(estado='disponible').count()
@@ -202,30 +206,42 @@ def api_reportes_temporal(request):
 
 @csrf_exempt
 def api_devolver_prestamo(request):
-    """API para registrar la devolución de un Chromebook"""
+    """API para registrar la devolución de un Chromebook (con evidencia opcional)."""
     if request.method == 'POST':
+        from .models import Evidencia
+        from django.core.files import File
+
         data = json.loads(request.body)
         prestamo_id = data.get('prestamo_id')
-        
+        foto_nombre = data.get('foto_nombre', '')
+
         try:
             prestamo = Prestamo.objects.get(id=prestamo_id)
-            
+
             if prestamo.estado != 'activo':
                 return JsonResponse({'success': False, 'message': 'Este préstamo ya fue devuelto o está vencido.'})
-            
+
             prestamo.fecha_devuelto = timezone.now()
             prestamo.estado = 'devuelto'
             prestamo.save()
-            
+
             chromebook = prestamo.chromebook
             chromebook.estado = 'disponible'
             chromebook.save()
-            
+
+            # Guardar evidencia de devolución si el admin tomó la foto.
+            if foto_nombre:
+                temp_path = os.path.join(settings.MEDIA_ROOT, 'evidencias', foto_nombre)
+                if os.path.exists(temp_path):
+                    evidencia = Evidencia.objects.create(prestamo=prestamo, tipo='devolucion', descripcion='Evidencia de devolución')
+                    with open(temp_path, 'rb') as f:
+                        evidencia.foto.save(foto_nombre, File(f), save=True)
+
             return JsonResponse({'success': True, 'message': f'{chromebook.codigo} devuelto exitosamente.'})
-            
+
         except Prestamo.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Préstamo no encontrado.'})
-    
+
     return JsonResponse({'success': False, 'message': 'Método no permitido'})
 
 
@@ -239,15 +255,19 @@ def api_subir_evidencia(request):
 
 @csrf_exempt
 def api_generar_qr_evidencia(request):
-    """Genera un token QR temporal para subir evidencia"""
+    """Genera un token QR temporal para subir evidencia (entrega o devolución)."""
     if request.method == 'POST':
         data = json.loads(request.body)
         reserva_id = data.get('reserva_id')
-        
+        prestamo_id = data.get('prestamo_id')
+        tipo = data.get('tipo', 'entrega')
+
         token = str(uuid.uuid4())[:8]
-        
+
         qr_tokens[token] = {
             'reserva_id': reserva_id,
+            'prestamo_id': prestamo_id,
+            'tipo': tipo,
             'expiracion': timezone.now() + timedelta(minutes=2),
             'recibida': False
         }
@@ -276,16 +296,25 @@ def pagina_evidencia(request, token):
     if request.method == 'POST' and request.FILES.get('foto'):
         foto = request.FILES['foto']
         reserva_id = data.get('reserva_id')
-        
+        prestamo_id = data.get('prestamo_id')
+
         try:
-            from .models import Reserva
-            reserva = Reserva.objects.select_related('estudiante__usuario__user').get(id=reserva_id)
-            nombre_completo = reserva.estudiante.usuario.user.get_full_name().replace(' ', '_')
-            nombre_estudiante = unicodedata.normalize('NFKD', nombre_completo).encode('ASCII', 'ignore').decode('ASCII')
-            codigo_reserva = reserva.codigo_verificacion
-            nombre_archivo = f'{nombre_estudiante}_{codigo_reserva}.jpg'
+            if prestamo_id:
+                # Evidencia de devolución: se nombra por estudiante + equipo + préstamo.
+                from .models import Prestamo
+                prestamo = Prestamo.objects.select_related('estudiante', 'chromebook').get(id=prestamo_id)
+                nombre_completo = (prestamo.estudiante.get_full_name() or prestamo.estudiante.username).replace(' ', '_')
+                nombre_estudiante = unicodedata.normalize('NFKD', nombre_completo).encode('ASCII', 'ignore').decode('ASCII')
+                nombre_archivo = f'{nombre_estudiante}_DEV_{prestamo.chromebook.codigo}_{prestamo_id}.jpg'
+            else:
+                from .models import Reserva
+                reserva = Reserva.objects.select_related('estudiante__usuario__user').get(id=reserva_id)
+                nombre_completo = reserva.estudiante.usuario.user.get_full_name().replace(' ', '_')
+                nombre_estudiante = unicodedata.normalize('NFKD', nombre_completo).encode('ASCII', 'ignore').decode('ASCII')
+                codigo_reserva = reserva.codigo_verificacion
+                nombre_archivo = f'{nombre_estudiante}_{codigo_reserva}.jpg'
         except:
-            nombre_archivo = f'reserva_{reserva_id}_{token}.jpg'
+            nombre_archivo = f'evidencia_{prestamo_id or reserva_id}_{token}.jpg'
         
         temp_dir = os.path.join(settings.MEDIA_ROOT, 'evidencias')
         os.makedirs(temp_dir, exist_ok=True)
@@ -985,29 +1014,56 @@ def lista_estudiantes(request):
 
 @csrf_exempt
 def api_perfil_estudiante(request, id):
+    from .models import Evidencia
+
     try:
         estudiante = Estudiante.objects.select_related('usuario__user', 'carrera').get(id=id)
         user = estudiante.usuario.user
-        
-        prestamos = Prestamo.objects.filter(estudiante=user).select_related('chromebook').order_by('-fecha_prestamo')[:10]
-        
-        historial_html = ''
+
+        prestamos = Prestamo.objects.filter(estudiante=user).select_related('chromebook').order_by('-fecha_prestamo')[:15]
+
+        # Evidencias por préstamo (preferimos la de devolución; si no, la de entrega).
+        prestamo_ids = [p.id for p in prestamos]
+        fotos_por_prestamo = {}
+        if prestamo_ids:
+            for ev in Evidencia.objects.filter(prestamo_id__in=prestamo_ids).order_by('fecha_subida'):
+                if not ev.foto:
+                    continue
+                actual = fotos_por_prestamo.get(ev.prestamo_id)
+                # 'devolucion' tiene prioridad sobre cualquier otra evidencia previa.
+                if actual is None or ev.tipo == 'devolucion':
+                    fotos_por_prestamo[ev.prestamo_id] = {'url': ev.foto.url, 'tipo': ev.tipo}
+
+        historial = []
+        total = 0
+        activos = 0
+        vencidos = 0
         for p in prestamos:
-            fecha_str = p.fecha_prestamo.strftime("%d/%m/%Y") if p.fecha_prestamo else "-"
-            color = 'text-success' if p.estado == 'devuelto' else ('text-danger' if p.estado == 'vencido' else 'text-warning')
-            historial_html += f'<div class="small text-muted">{fecha_str} - {p.chromebook.codigo} • {p.duracion_horas}h • <span class="{color}">{p.estado}</span></div>'
-        
-        if not historial_html:
-            historial_html = '<small class="text-muted">Sin historial de préstamos</small>'
-        
+            total += 1
+            if p.estado == 'activo':
+                activos += 1
+            elif p.estado == 'vencido':
+                vencidos += 1
+            foto = fotos_por_prestamo.get(p.id)
+            historial.append({
+                'codigo': p.chromebook.codigo,
+                'fecha': p.fecha_prestamo.strftime('%d/%m/%Y %H:%M') if p.fecha_prestamo else '-',
+                'fecha_devuelto': p.fecha_devuelto.strftime('%d/%m/%Y %H:%M') if p.fecha_devuelto else None,
+                'duracion': p.duracion_horas,
+                'estado': p.estado,
+                'foto_url': foto['url'] if foto else None,
+                'foto_tipo': foto['tipo'] if foto else None,
+            })
+
         return JsonResponse({
             'avatar': f'{user.first_name[0].upper()}{user.last_name[0].upper()}',
             'nombre': user.get_full_name() or user.username,
             'cedula': estudiante.usuario.cedula,
             'carrera': estudiante.carrera.nombre,
             'semestre': estudiante.semestre,
-            'email': user.email,
-            'historial': historial_html,
+            'email': user.email or '-',
+            'resumen': {'total': total, 'activos': activos, 'vencidos': vencidos},
+            'historial': historial,
         })
     except Estudiante.DoesNotExist:
         return JsonResponse({'error': 'Estudiante no encontrado'}, status=404)
@@ -1154,6 +1210,29 @@ def api_buscar_estudiante(request):
             'carrera': estudiante.carrera.nombre if estudiante.carrera else 'No registrada',
             'semestre': estudiante.semestre,
         }})
+
+
+def _expirar_reservas_vencidas():
+    """Marca como 'vencida' las reservas 'pendiente' cuyo retiro no se hizo.
+
+    Una reserva vence si pasaron 15 minutos de su hora de inicio (en su fecha de
+    uso) y el estudiante no la confirmó en el CRAI. La reserva no aparta un equipo
+    concreto, así que solo cambia de estado (sale del conteo de vigentes).
+    """
+    from datetime import datetime, timedelta
+    from .models import Reserva
+
+    ahora = timezone.now()
+    pendientes = Reserva.objects.filter(estado='pendiente')
+    vencidas_ids = []
+    for r in pendientes:
+        limite = timezone.make_aware(
+            datetime.combine(r.fecha_uso, r.hora_inicio)
+        ) + timedelta(minutes=15)
+        if ahora > limite:
+            vencidas_ids.append(r.id)
+    if vencidas_ids:
+        Reserva.objects.filter(id__in=vencidas_ids).update(estado='vencida')
 
 
 def _activar_reservas_pendientes():
@@ -1366,14 +1445,26 @@ def api_editar_chromebook(request, id):
     if request.method == 'POST':
         data = json.loads(request.body)
         try:
+            from .models import Mantenimiento
             cb = Chromebook.objects.get(id=id)
+            estado_anterior = cb.estado
+            nuevo_estado = data.get('estado', cb.estado)
             cb.marca = data.get('marca', cb.marca)
             cb.modelo = data.get('modelo', cb.modelo)
             cb.serie = data.get('serie', cb.serie)
-            cb.estado = data.get('estado', cb.estado)
+            cb.estado = nuevo_estado
             cb.condicion = data.get('condicion', cb.condicion)
             cb.notas = data.get('notas', cb.notas)
             cb.save()
+
+            # Si el equipo sale de mantenimiento desde el inventario, cerrar el/los
+            # mantenimientos abiertos para que no queden "en proceso" descuadrados.
+            if estado_anterior == 'mantenimiento' and nuevo_estado != 'mantenimiento':
+                Mantenimiento.objects.filter(chromebook=cb, estado='en_proceso').update(
+                    estado='finalizado',
+                    fecha_fin=timezone.now().date(),
+                )
+
             return JsonResponse({'success': True})
         except Chromebook.DoesNotExist:
             return JsonResponse({'success': False})

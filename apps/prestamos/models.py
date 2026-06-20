@@ -146,8 +146,9 @@ class Reserva(models.Model):
         ('confirmada', 'Confirmada'),
         ('cancelada', 'Cancelada'),
         ('completada', 'Completada'),
+        ('vencida', 'Vencida'),
     ]
-    
+
     estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE, related_name='reservas')
     carrera = models.ForeignKey(Carrera, on_delete=models.PROTECT)
     fecha_uso = models.DateField(verbose_name='Fecha de Uso')
