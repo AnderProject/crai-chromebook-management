@@ -329,6 +329,195 @@
     outline: none;
 }
 
+/* ===== Selector de hora personalizado ===== */
+.horario-card {
+    position: relative;
+}
+
+.time-select {
+    position: relative;
+}
+
+.time-trigger {
+    width: 100%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a237e;
+}
+
+.time-chevron {
+    font-size: 0.85rem;
+    color: #8a93c2;
+    transition: transform 0.2s ease;
+}
+
+.time-trigger.activo .time-chevron {
+    transform: rotate(180deg);
+}
+
+.time-dropdown {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: calc(100% + 10px);
+    width: 140px;
+    max-height: 210px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: #fff;
+    border: 1px solid #e3e7f5;
+    border-radius: 14px;
+    box-shadow: 0 14px 34px rgba(26, 35, 126, 0.16);
+    padding: 0.4rem;
+    margin: 0;
+    list-style: none;
+    z-index: 50;
+    display: none;
+    scrollbar-width: thin;
+    scrollbar-color: #c5cde8 transparent;
+}
+
+.time-dropdown.abierto {
+    display: block;
+    animation: timeFade 0.15s ease;
+}
+
+.time-dropdown::-webkit-scrollbar {
+    width: 8px;
+}
+
+.time-dropdown::-webkit-scrollbar-thumb {
+    background: #c5cde8;
+    border-radius: 8px;
+}
+
+.time-dropdown::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.time-option {
+    padding: 0.55rem 0.75rem;
+    border-radius: 9px;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #3a3f63;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+
+.time-option:hover {
+    background: #eef1ff;
+    color: #1a237e;
+}
+
+.time-option.seleccionado {
+    background: #1a237e;
+    color: #fff;
+}
+
+@keyframes timeFade {
+    from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Opción "Ahora · HH:MM" del selector de inicio */
+.time-option.time-ahora {
+    background: #eef1ff;
+    color: #1a237e;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    border: 1px dashed #c5cde8;
+}
+
+.time-option.time-ahora.seleccionado {
+    background: #1a237e;
+    color: #fff;
+    border-color: #1a237e;
+}
+
+/* ===== Modal de alerta (validaciones) ===== */
+.modal-alerta {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(20, 24, 51, 0.55);
+    backdrop-filter: blur(3px);
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal-alerta.visible {
+    display: flex;
+    animation: modalFade 0.18s ease;
+}
+
+.modal-alerta-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 1.75rem 1.5rem 1.5rem;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 22px 60px rgba(20, 24, 51, 0.3);
+    animation: modalPop 0.2s ease;
+}
+
+.modal-alerta-icono {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: #fff4e5;
+    color: #f5a623;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+}
+
+.modal-alerta-msg {
+    font-size: 1rem;
+    color: #2b2f4a;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+}
+
+.modal-alerta-btn {
+    border: none;
+    background: #1a237e;
+    color: #fff;
+    font-weight: 600;
+    padding: 0.65rem 2rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.modal-alerta-btn:hover {
+    background: #283593;
+}
+
+@keyframes modalFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
 /* Badge cuando no hay equipos disponibles */
 .equipo-badge.no-disponible {
     background: #fdecea;
@@ -351,6 +540,62 @@
 .btn-reservar-submit:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(26,35,126,0.3);
+}
+
+/* Botones de acción tras confirmar la reserva */
+.confirmacion-acciones {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.btn-conf {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.btn-conf i {
+    font-size: 1rem;
+}
+
+.btn-conf-primary {
+    background: linear-gradient(135deg, #1a237e, #283593);
+    color: #fff;
+}
+
+.btn-conf-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(26, 35, 126, 0.3);
+    color: #fff;
+}
+
+.btn-conf-secondary {
+    background: #fff;
+    color: #1a237e;
+    border-color: #c5cde8;
+}
+
+.btn-conf-secondary:hover {
+    background: #eef1ff;
+    border-color: #1a237e;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 420px) {
+    .confirmacion-acciones {
+        flex-direction: column;
+    }
 }
 
 .reservar-sidebar {

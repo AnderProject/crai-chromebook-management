@@ -226,7 +226,21 @@ def reservar_chromebook(request):
                                'Espera a que se completen o cancela alguna.'
                 })
 
-            fecha = datetime.strptime(fecha_uso, '%Y-%m-%d').date() if fecha_uso else datetime.now().date()
+            from django.utils import timezone
+            hoy = timezone.localdate()
+            fecha = datetime.strptime(fecha_uso, '%Y-%m-%d').date() if fecha_uso else hoy
+            if fecha < hoy:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'No puedes reservar en una fecha pasada.'
+                })
+
+            # Para hoy, el turno no puede haber empezado ya (evita reservas que nacen vencidas).
+            if fecha == hoy and hora_inicio_dt <= timezone.localtime().time():
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Ese horario ya pasó por hoy. Elige una hora más tarde o reserva para otro día.'
+                })
 
             reserva = Reserva.objects.create(
                 estudiante=estudiante,
@@ -504,6 +518,13 @@ def api_chatbot(request):
                         respuesta = (
                             'El horario de reservas es de 08:00 a 17:00 y la hora de fin '
                             'debe ser mayor que la de inicio. Intenta con otro horario.'
+                        )
+                    elif fecha_dt < timezone.localdate() or (
+                        fecha_dt == timezone.localdate() and hora_inicio_dt <= timezone.localtime().time()
+                    ):
+                        respuesta = (
+                            'Esa fecha u horario ya pasó. Reserva para hoy a una hora más tarde '
+                            'o para otro día.'
                         )
                     elif vigentes >= 2:
                         respuesta = (

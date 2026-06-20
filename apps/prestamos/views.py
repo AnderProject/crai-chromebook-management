@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 from django.contrib.auth.models import User
 from .models import Chromebook, Prestamo, Estudiante, Usuario as PerfilUsuario
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from django.conf import settings
 import unicodedata
 import json
@@ -22,6 +22,16 @@ def portal(request):
     """Portal principal de módulos - Bienvenida"""
     contexto = {'titulo_pagina': 'Portal - CRAI UNEMI'}
     return render(request, 'prestamos/portal.html', contexto)
+
+
+CRAI_HORA_APERTURA = time(8, 0)
+CRAI_HORA_CIERRE = time(17, 0)
+
+
+def _crai_abierto(ahora=None):
+    """True si el CRAI está en horario de atención (08:00–17:00, hora del servidor)."""
+    actual = (ahora or timezone.localtime()).time()
+    return CRAI_HORA_APERTURA <= actual < CRAI_HORA_CIERRE
 
 
 @login_required
@@ -71,6 +81,8 @@ def dashboard(request):
         'reservas_hoy': reservas_hoy,
         'primer_nombre': primer_nombre,
         'primer_apellido': primer_apellido,
+        'crai_abierto': _crai_abierto(),
+        'crai_horario': f'{CRAI_HORA_APERTURA.strftime("%H:%M")} a {CRAI_HORA_CIERRE.strftime("%H:%M")}',
     }
     return render(request, 'prestamos/dashboard.html', contexto)
 
@@ -337,6 +349,61 @@ def pagina_evidencia(request, token):
     response = render(request, 'prestamos/evidencia_subir.html', {'token': token})
     response['ngrok-skip-browser-warning'] = 'true'
     return response
+
+
+@csrf_exempt
+def api_subir_evidencia_webcam(request):
+    """Guarda una foto de evidencia capturada con la webcam del propio equipo.
+
+    Recibe JSON: { reserva_id | prestamo_id, tipo, imagen (dataURL base64) }.
+    Guarda en media/evidencias con la MISMA convención de nombres que el flujo QR
+    y devuelve nombre_archivo, para que confirmar_prestamo/devolución lo reutilicen.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+
+    import base64
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'JSON inválido'}, status=400)
+
+    reserva_id = data.get('reserva_id')
+    prestamo_id = data.get('prestamo_id')
+    imagen = data.get('imagen', '')
+
+    if not imagen:
+        return JsonResponse({'success': False, 'message': 'No se recibió la imagen.'})
+    if ',' in imagen:
+        imagen = imagen.split(',', 1)[1]
+    try:
+        binario = base64.b64decode(imagen)
+    except Exception:
+        return JsonResponse({'success': False, 'message': 'Imagen inválida.'})
+
+    # Mismo nombre de archivo que en pagina_evidencia (flujo QR)
+    try:
+        if prestamo_id:
+            prestamo = Prestamo.objects.select_related('estudiante', 'chromebook').get(id=prestamo_id)
+            nombre_completo = (prestamo.estudiante.get_full_name() or prestamo.estudiante.username).replace(' ', '_')
+            nombre_estudiante = unicodedata.normalize('NFKD', nombre_completo).encode('ASCII', 'ignore').decode('ASCII')
+            nombre_archivo = f'{nombre_estudiante}_DEV_{prestamo.chromebook.codigo}_{prestamo_id}.jpg'
+        else:
+            from .models import Reserva
+            reserva = Reserva.objects.select_related('estudiante__usuario__user').get(id=reserva_id)
+            nombre_completo = reserva.estudiante.usuario.user.get_full_name().replace(' ', '_')
+            nombre_estudiante = unicodedata.normalize('NFKD', nombre_completo).encode('ASCII', 'ignore').decode('ASCII')
+            nombre_archivo = f'{nombre_estudiante}_{reserva.codigo_verificacion}.jpg'
+    except Exception:
+        nombre_archivo = f'evidencia_webcam_{prestamo_id or reserva_id}.jpg'
+
+    temp_dir = os.path.join(settings.MEDIA_ROOT, 'evidencias')
+    os.makedirs(temp_dir, exist_ok=True)
+    with open(os.path.join(temp_dir, nombre_archivo), 'wb') as f:
+        f.write(binario)
+
+    return JsonResponse({'success': True, 'nombre_archivo': nombre_archivo})
 
 
 @login_required
@@ -976,7 +1043,7 @@ def registro_rapido(request):
     total_hoy = prestamos_hoy.count()
 
     return render(request, 'prestamos/prestamos/registro_rapido.html', {
-        'titulo_pagina': 'Registro Rápido - CRAI UNEMI',
+        'titulo_pagina': 'Nuevo Préstamo - CRAI UNEMI',
         'disponibles': disponibles, 'prestamos_hoy': prestamos_hoy, 'total_hoy': total_hoy,
         'fecha_hoy': hoy.strftime('%Y-%m-%d'),
         'hora_actual': ahora.strftime('%H:%M'),
@@ -1078,7 +1145,11 @@ def verificar_codigo_reservacion(request):
         try:
             from .models import Reserva
             reserva = Reserva.objects.select_related('estudiante__usuario__user', 'estudiante__carrera').get(codigo_verificacion=codigo)
-            
+
+            # Aviso anticipado: ¿se puede activar ahora? (mismo criterio que el bloqueo
+            # duro de confirmar_prestamo). Permite deshabilitar el botón antes de la foto.
+            puede_activar, ventana_msg = _validar_ventana_reserva(reserva)
+
             return JsonResponse({'success': True, 'data': {
                 'nombre': reserva.estudiante.usuario.user.get_full_name(),
                 'cedula': reserva.estudiante.usuario.cedula,
@@ -1089,11 +1160,58 @@ def verificar_codigo_reservacion(request):
                 'duracion': f'{reserva.calcular_duracion()} horas',
                 'estado': reserva.estado,
                 'reserva_id': reserva.id,
+                'puede_activar': puede_activar,
+                'ventana_msg': ventana_msg,
             }})
         except Reserva.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Código no encontrado.'})
     
     return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+
+def _validar_ventana_reserva(reserva):
+    """Valida que la reserva pueda ACTIVARSE ahora (estado, fecha y horario).
+
+    Solo una reserva 'pendiente' se activa, y únicamente el día de su uso dentro de
+    su horario (con 10 min de gracia antes del inicio). Evita que un código válido
+    para otro día/hora —o una reserva ya vencida/procesada— active el préstamo.
+    Devuelve (ok: bool, mensaje: str).
+    """
+    # 1) Estado: solo las pendientes son activables.
+    if reserva.estado != 'pendiente':
+        motivos = {
+            'confirmada': 'Esta reservación ya fue confirmada; el equipo ya se entregó.',
+            'completada': 'Esta reservación ya se completó.',
+            'cancelada': 'Esta reservación fue cancelada.',
+            'vencida': 'Esta reservación venció y ya no está vigente. El estudiante debe generar una nueva.',
+        }
+        return False, motivos.get(reserva.estado, 'Esta reservación ya fue procesada.')
+
+    ahora = timezone.localtime()
+    hoy = ahora.date()
+    h_ini = reserva.hora_inicio.strftime('%H:%M')
+    h_fin = reserva.hora_fin.strftime('%H:%M')
+
+    # 2) Fecha: para otro día.
+    if reserva.fecha_uso > hoy:
+        return False, (f'Todavía no es el momento: esta reserva es para el '
+                       f'{reserva.fecha_uso.strftime("%d/%m/%Y")} ({h_ini}–{h_fin}). '
+                       f'Podrás activarla ese día, dentro de su horario.')
+    if reserva.fecha_uso < hoy:
+        return False, (f'Esta reserva era para el {reserva.fecha_uso.strftime("%d/%m/%Y")} '
+                       f'y ya no está vigente. El estudiante debe generar una nueva.')
+
+    # 3) Horario del día de hoy.
+    ahora_naive = ahora.replace(tzinfo=None)
+    inicio = datetime.combine(hoy, reserva.hora_inicio) - timedelta(minutes=10)
+    fin = datetime.combine(hoy, reserva.hora_fin)
+    if ahora_naive < inicio:
+        return False, (f'Todavía no es el momento. El horario de esta reserva es '
+                       f'{h_ini}–{h_fin}; podrás activarla a partir de las {h_ini}.')
+    if ahora_naive > fin:
+        return False, (f'El horario de esta reserva ({h_ini}–{h_fin}) ya pasó, por lo que '
+                       f'venció. El estudiante debe generar una nueva reservación.')
+    return True, ''
 
 
 @csrf_exempt
@@ -1103,16 +1221,25 @@ def confirmar_prestamo(request):
         data = json.loads(request.body)
         reserva_id = data.get('reserva_id')
         foto_nombre = data.get('foto_nombre', '')
-        
+
         try:
             from .models import Reserva, Evidencia
             from django.core.files import File
-            
+
             reserva = Reserva.objects.get(id=reserva_id)
-            
-            if reserva.estado != 'pendiente':
-                return JsonResponse({'success': False, 'message': 'Esta reserva ya fue procesada.'})
-            
+
+            # El CRAI solo entrega equipos en su horario de atención (08:00–17:00).
+            if not _crai_abierto():
+                return JsonResponse({'success': False, 'message': (
+                    f'El CRAI atiende de {CRAI_HORA_APERTURA.strftime("%H:%M")} a '
+                    f'{CRAI_HORA_CIERRE.strftime("%H:%M")}. No es posible activar préstamos fuera de ese horario.'
+                )})
+
+            # Bloqueo único: estado (solo pendientes), fecha y horario de la reserva.
+            ventana_ok, ventana_msg = _validar_ventana_reserva(reserva)
+            if not ventana_ok:
+                return JsonResponse({'success': False, 'message': ventana_msg})
+
             chromebook = Chromebook.objects.filter(estado='disponible').first()
             
             if not chromebook:
@@ -1278,6 +1405,13 @@ def api_registrar_prestamo(request):
     if fin <= ahora:
         return JsonResponse({'success': False, 'message': 'El horario indicado ya pasó.'})
 
+    # El turno del préstamo/reserva debe caer dentro del horario CRAI (08:00–17:00).
+    if inicio.time() < CRAI_HORA_APERTURA or fin.time() > CRAI_HORA_CIERRE:
+        return JsonResponse({'success': False, 'message': (
+            f'El horario de atención del CRAI es de {CRAI_HORA_APERTURA.strftime("%H:%M")} a '
+            f'{CRAI_HORA_CIERRE.strftime("%H:%M")}. Ajusta la hora del préstamo.'
+        )})
+
     try:
         chromebook = Chromebook.objects.get(id=chromebook_id)
         estudiante_user = User.objects.get(id=user_id)
@@ -1395,6 +1529,149 @@ def ajustes(request):
         'sesiones': sesiones,
     }
     return render(request, 'prestamos/ajustes.html', contexto)
+
+
+def _es_tics(user):
+    """Solo TICs/administradores acceden a la gestión de personal."""
+    return user.is_superuser or user.groups.filter(name__in=['Administrador', 'Tics']).exists()
+
+
+ROLES_PERSONAL = ('Recepcionista', 'Administrador')
+
+
+@login_required
+def gestion_personal(request):
+    """Panel de administración: alta de personal y asignación de roles.
+
+    Acceso restringido a administradores/TICs (ver _es_tics). El recepcionista no
+    puede entrar ni por enlace ni por URL directa: se le redirige al dashboard.
+    """
+    from django.contrib import messages
+    from django.contrib.auth.models import Group
+    from .models import TipoUsuario
+    from apps.prestamos.services.usuarios import generar_username, generar_username_unico
+
+    if not _es_tics(request.user):
+        messages.error(request, 'No tienes permisos para acceder a esta sección.')
+        return redirect('prestamos:dashboard')
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion', 'crear')
+
+        # ---- Cambiar el rol de un usuario ya existente ----
+        if accion == 'cambiar_rol':
+            objetivo = User.objects.filter(id=request.POST.get('user_id')).first()
+            nuevo_rol = (request.POST.get('rol') or '').strip()
+
+            if objetivo is None:
+                messages.error(request, 'Usuario no encontrado.')
+            elif nuevo_rol not in ROLES_PERSONAL:
+                messages.error(request, 'Rol no válido.')
+            elif objetivo == request.user:
+                messages.error(request, 'No puedes cambiar tu propio rol.')
+            elif objetivo.is_superuser:
+                messages.error(request, 'No se puede cambiar el rol de un superusuario.')
+            else:
+                objetivo.groups.remove(*Group.objects.filter(name__in=ROLES_PERSONAL))
+                grupo, _ = Group.objects.get_or_create(name=nuevo_rol)
+                objetivo.groups.add(grupo)
+                tipo, _ = TipoUsuario.objects.get_or_create(nombre=nuevo_rol)
+                perfil = getattr(objetivo, 'perfil', None)
+                if perfil:
+                    perfil.tipo_usuario = tipo
+                    perfil.save(update_fields=['tipo_usuario'])
+                messages.success(request, f'Rol actualizado: {objetivo.get_full_name() or objetivo.username} ahora es {nuevo_rol}.')
+            return redirect('prestamos:gestion_personal')
+
+        # ---- Eliminar una cuenta de personal ----
+        if accion == 'eliminar':
+            objetivo = User.objects.filter(id=request.POST.get('user_id')).first()
+
+            if objetivo is None:
+                messages.error(request, 'Usuario no encontrado.')
+            elif objetivo == request.user:
+                messages.error(request, 'No puedes eliminar tu propia cuenta.')
+            elif objetivo.is_superuser:
+                messages.error(request, 'No se puede eliminar un superusuario.')
+            elif not objetivo.groups.filter(name__in=ROLES_PERSONAL).exists():
+                messages.error(request, 'Solo puedes eliminar cuentas de personal.')
+            else:
+                nombre = objetivo.get_full_name() or objetivo.username
+                objetivo.delete()
+                messages.success(request, f'Cuenta eliminada: {nombre}.')
+            return redirect('prestamos:gestion_personal')
+
+        # ---- Crear una cuenta de personal ----
+        nombres = (request.POST.get('nombres') or '').strip()
+        apellidos = (request.POST.get('apellidos') or '').strip()
+        cedula = (request.POST.get('cedula') or '').strip()
+        telefono = (request.POST.get('telefono') or '').strip()
+        correo = (request.POST.get('correo') or '').strip()
+        password = (request.POST.get('password') or '').strip()
+        rol = (request.POST.get('rol') or 'Recepcionista').strip()
+
+        if not nombres or not apellidos:
+            messages.error(request, 'Nombres y apellidos son obligatorios.')
+        elif rol not in ROLES_PERSONAL:
+            messages.error(request, 'Rol no válido.')
+        elif not (cedula.isdigit() and len(cedula) == 10):
+            messages.error(request, 'La cédula debe tener 10 dígitos.')
+        elif PerfilUsuario.objects.filter(cedula=cedula).exists():
+            messages.error(request, f'Ya existe un usuario con la cédula {cedula}.')
+        elif not password or len(password) < 6:
+            messages.error(request, 'La contraseña debe tener al menos 6 caracteres.')
+        else:
+            username = generar_username_unico(nombres, apellidos)
+            if not correo:
+                correo = f'{generar_username(nombres, apellidos)}@unemi.edu.ec'
+
+            grupo, _ = Group.objects.get_or_create(name=rol)
+            tipo, _ = TipoUsuario.objects.get_or_create(nombre=rol)
+
+            user = User.objects.create(
+                username=username,
+                first_name=nombres,
+                last_name=apellidos,
+                email=correo,
+                is_active=True,
+            )
+            user.set_password(password)
+            user.save()
+            user.groups.add(grupo)
+
+            PerfilUsuario.objects.create(
+                user=user,
+                tipo_usuario=tipo,
+                cedula=cedula,
+                telefono=telefono[:10],
+                origen='local',
+            )
+
+            messages.success(request, f'{rol} creado. Usuario: {username} · Correo: {correo}')
+            return redirect('prestamos:gestion_personal')
+
+    # Listado del personal (recepcionistas y administradores registrados)
+    personal = list(
+        User.objects.filter(groups__name__in=ROLES_PERSONAL)
+        .select_related('perfil')
+        .prefetch_related('groups')
+        .order_by('last_name', 'first_name')
+        .distinct()
+    )
+    # Anota el rol principal y si es editable (no superusuario ni uno mismo)
+    for p in personal:
+        nombres_grupos = {g.name for g in p.groups.all()}
+        p.rol_actual = 'Administrador' if 'Administrador' in nombres_grupos else 'Recepcionista'
+        p.editable = (not p.is_superuser) and (p.id != request.user.id)
+
+    contexto = {
+        'titulo_pagina': 'Gestión de Personal - CRAI UNEMI',
+        'personal': personal,
+        'total_personal': len(personal),
+        'total_admins': sum(1 for p in personal if p.rol_actual == 'Administrador'),
+        'total_recep': sum(1 for p in personal if p.rol_actual == 'Recepcionista'),
+    }
+    return render(request, 'prestamos/personal.html', contexto)
 
 
 

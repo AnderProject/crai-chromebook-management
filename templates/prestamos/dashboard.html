@@ -5,6 +5,7 @@
 
 {% block estilos_extra %}
 <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+<link href="{% static 'css/modales_prestamo.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block titulo %}Dashboard - CRAI UNEMI{% endblock %}
@@ -92,11 +93,15 @@
                     <h2 class="fw-bold texto-oscuro mb-0">
                         <i class="bi bi-speedometer2 me-2 text-primary"></i>Panel de Control
                     </h2>
-                    <div class="btn-toolbar">
-                        <button type="button" class="btn-codigo-reservacion" data-bs-toggle="modal" data-bs-target="#modalCodigoReservacion">
+                    <div class="btn-toolbar flex-column align-items-end">
+                        <button type="button" class="btn-codigo-reservacion"
+                                {% if crai_abierto %}data-bs-toggle="modal" data-bs-target="#modalCodigoReservacion"{% else %}disabled title="Disponible solo en horario CRAI ({{ crai_horario }})"{% endif %}>
                         <span class="btn-codigo-icono"><i class="bi bi-qr-code-scan"></i></span>
                         <span class="btn-codigo-texto"><strong>Ingresar Código</strong><small>de Reservación</small></span>
                     </button>
+                    {% if not crai_abierto %}
+                        <span class="aviso-crai"><i class="bi bi-clock-history"></i>Fuera de horario CRAI · {{ crai_horario }}</span>
+                    {% endif %}
                     </div>
                 </div>
                 <div class="row g-3 mb-4">
@@ -178,53 +183,45 @@
 <!-- MODAL: INGRESAR CÓDIGO DE RESERVACIÓN -->
 <div class="modal fade" id="modalCodigoReservacion" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold"><i class="bi bi-qr-code-scan me-2 text-primary"></i>Verificar Reservación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content mp">
+            <div class="mp-header">
+                <h5 class="mp-title"><i class="bi bi-qr-code-scan"></i>Verificar Reservación</h5>
+                <button type="button" class="mp-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
             </div>
-            <div class="modal-body">
+            <div class="mp-body">
                 <div id="pasoIngresarCodigo">
-                    <p class="text-muted small mb-3">Ingresa el código de 6 dígitos proporcionado al estudiante.</p>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Código de Reservación</label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
-                            <input type="text" class="form-control text-center fw-bold" id="codigoReservacion" placeholder="Ej: A1B2C3" maxlength="6" style="font-size: 1.5rem; letter-spacing: 6px; text-transform: uppercase;">
-                        </div>
-                        <small class="text-muted">El código incluye letras mayúsculas y números</small>
+                    <p class="mp-hint">Ingresa el código de 6 caracteres que se le entregó al estudiante.</p>
+                    <div class="mp-codigo-wrap">
+                        <label class="mp-codigo-label">Código de reservación</label>
+                        <input type="text" class="mp-codigo-input" id="codigoReservacion" placeholder="A1B2C3" maxlength="6">
+                        <small class="mp-codigo-help">Letras mayúsculas y números</small>
                     </div>
-                    <button class="btn btn-primary w-100 py-2 fw-semibold" onclick="verificarCodigo()"><i class="bi bi-search me-2"></i>Verificar Código</button>
-                    <div id="mensajeError" class="alert alert-danger mt-3 d-none"></div>
+                    <button class="mp-btn mp-btn-primary mp-btn-full" onclick="verificarCodigo()"><i class="bi bi-search"></i>Verificar código</button>
+                    <div id="mensajeError" class="mp-error d-none"></div>
                 </div>
                 <div id="pasoDetallesReservacion" style="display: none;">
-                    <div class="text-center mb-3"><span class="badge bg-success fs-6 px-3 py-2"><i class="bi bi-check-circle me-1"></i>Código Verificado</span></div>
-                    <div class="card bg-light border-0 mb-3">
-                        <div class="card-body">
-                            <h6 class="fw-bold mb-2"><i class="bi bi-person-circle me-2"></i>Datos del Estudiante</h6>
-                            <div class="row small">
-                                <div class="col-6"><strong>Nombre:</strong></div><div class="col-6" id="detalleNombre">-</div>
-                                <div class="col-6"><strong>Cédula:</strong></div><div class="col-6" id="detalleCedula">-</div>
-                                <div class="col-6"><strong>Carrera:</strong></div><div class="col-6" id="detalleCarrera">-</div>
-                                <div class="col-6"><strong>Semestre:</strong></div><div class="col-6" id="detalleSemestre">-</div>
-                            </div>
-                        </div>
+                    <div class="mp-verificado">
+                        <span class="mp-badge-ok"><i class="bi bi-check-circle-fill"></i>Código verificado</span>
                     </div>
-                    <div class="card bg-light border-0 mb-3">
-                        <div class="card-body">
-                            <h6 class="fw-bold mb-2"><i class="bi bi-calendar-check me-2"></i>Detalles de la Reservación</h6>
-                            <div class="row small">
-                                <div class="col-6"><strong>Fecha de Uso:</strong></div><div class="col-6" id="detalleFecha">-</div>
-                                <div class="col-6"><strong>Horario:</strong></div><div class="col-6" id="detalleHorario">-</div>
-                                <div class="col-6"><strong>Duración:</strong></div><div class="col-6" id="detalleDuracion">-</div>
-                                <div class="col-6"><strong>Chromebook:</strong></div><div class="col-6" id="detalleChromebook">-</div>
-                                <div class="col-6"><strong>Estado:</strong></div><div class="col-6" id="detalleEstado">-</div>
-                            </div>
-                        </div>
+                    <div class="mp-card">
+                        <p class="mp-card-titulo"><i class="bi bi-person-circle"></i>Datos del estudiante</p>
+                        <div class="mp-dato"><span>Nombre</span><span id="detalleNombre">-</span></div>
+                        <div class="mp-dato"><span>Cédula</span><span id="detalleCedula">-</span></div>
+                        <div class="mp-dato"><span>Carrera</span><span id="detalleCarrera">-</span></div>
+                        <div class="mp-dato"><span>Semestre</span><span id="detalleSemestre">-</span></div>
                     </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-secondary flex-grow-1" onclick="volverIngresarCodigo()"><i class="bi bi-arrow-left me-1"></i>Verificar otro código</button>
-                        <button class="btn btn-success flex-grow-1" onclick="abrirCamaraEvidencia()"><i class="bi bi-camera me-1"></i>Tomar Foto y Confirmar</button>
+                    <div class="mp-card">
+                        <p class="mp-card-titulo"><i class="bi bi-calendar-check"></i>Detalles de la reservación</p>
+                        <div class="mp-dato"><span>Fecha de uso</span><span id="detalleFecha">-</span></div>
+                        <div class="mp-dato"><span>Horario</span><span id="detalleHorario">-</span></div>
+                        <div class="mp-dato"><span>Duración</span><span id="detalleDuracion">-</span></div>
+                        <div class="mp-dato"><span>Chromebook</span><span id="detalleChromebook">-</span></div>
+                        <div class="mp-dato"><span>Estado</span><span id="detalleEstado">-</span></div>
+                    </div>
+                    <div id="avisoVentana" class="mp-aviso-ventana d-none"><i class="bi bi-clock-history"></i><span id="avisoVentanaTexto"></span></div>
+                    <div class="mp-acciones">
+                        <button class="mp-btn mp-btn-soft" onclick="volverIngresarCodigo()"><i class="bi bi-arrow-left"></i>Otro código</button>
+                        <button class="mp-btn mp-btn-success" id="btnTomarFoto" onclick="abrirCamaraEvidencia()"><i class="bi bi-camera"></i>Tomar foto y confirmar</button>
                     </div>
                     <input type="file" id="inputFotoEvidencia" accept="image/*" capture="environment" style="display: none;" onchange="subirEvidencia()">
                 </div>
@@ -236,14 +233,14 @@
 <!-- MODAL: CONFIRMACIÓN DE PRÉSTAMO -->
 <div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-            <div class="modal-body text-center p-4">
-                <i class="bi bi-question-circle-fill text-warning mb-3" style="font-size: 3rem;"></i>
-                <h5 class="fw-bold mb-2">¿Confirmar Préstamo?</h5>
-                <p class="text-muted small mb-3">Se entregará el equipo al estudiante.</p>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-outline-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
-                    <button class="btn btn-success flex-grow-1" id="btnConfirmarAccion">Confirmar</button>
+        <div class="modal-content mp">
+            <div class="mp-confirm-body">
+                <div class="mp-confirm-icono mp-icono-warn"><i class="bi bi-question-lg"></i></div>
+                <h5 class="mp-confirm-titulo">¿Confirmar préstamo?</h5>
+                <p class="mp-confirm-texto">Se entregará el equipo al estudiante.</p>
+                <div class="mp-acciones">
+                    <button class="mp-btn mp-btn-soft" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="mp-btn mp-btn-success" id="btnConfirmarAccion">Confirmar</button>
                 </div>
             </div>
         </div>
@@ -253,12 +250,12 @@
 <!-- MODAL: MENSAJE -->
 <div class="modal fade" id="modalMensaje" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-            <div class="modal-body text-center p-4">
-                <div class="mb-3" id="mensajeIcono"></div>
-                <h5 class="fw-bold mb-2" id="mensajeTitulo"></h5>
-                <p class="text-muted small mb-3" id="mensajeTexto"></p>
-                <button class="btn btn-primary px-4" data-bs-dismiss="modal" id="btnMensajeCerrar">Aceptar</button>
+        <div class="modal-content mp">
+            <div class="mp-confirm-body">
+                <div class="mb-2" id="mensajeIcono"></div>
+                <h5 class="mp-confirm-titulo" id="mensajeTitulo"></h5>
+                <p class="mp-confirm-texto" id="mensajeTexto"></p>
+                <button class="mp-btn mp-btn-primary px-4" data-bs-dismiss="modal" id="btnMensajeCerrar">Aceptar</button>
             </div>
         </div>
     </div>
@@ -267,14 +264,14 @@
 <!-- MODAL: CONFIRMAR DEVOLUCIÓN -->
 <div class="modal fade" id="modalDevolucion" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-            <div class="modal-body text-center p-4">
-                <i class="bi bi-arrow-repeat text-warning mb-3" style="font-size: 3rem;"></i>
-                <h5 class="fw-bold mb-2">¿Confirmar Devolución?</h5>
-                <p class="text-muted small mb-3" id="devolucionMensaje">El equipo será liberado y estará disponible nuevamente.</p>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-outline-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
-                    <button class="btn btn-warning flex-grow-1" id="btnConfirmarDevolucion"><i class="bi bi-check-lg me-1"></i>Confirmar</button>
+        <div class="modal-content mp">
+            <div class="mp-confirm-body">
+                <div class="mp-confirm-icono mp-icono-warn"><i class="bi bi-arrow-repeat"></i></div>
+                <h5 class="mp-confirm-titulo">¿Confirmar devolución?</h5>
+                <p class="mp-confirm-texto" id="devolucionMensaje">El equipo será liberado y estará disponible nuevamente.</p>
+                <div class="mp-acciones">
+                    <button class="mp-btn mp-btn-soft" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="mp-btn mp-btn-success" id="btnConfirmarDevolucion"><i class="bi bi-check-lg"></i>Confirmar</button>
                 </div>
             </div>
         </div>
@@ -284,12 +281,12 @@
 <!-- MODAL: MENSAJE DEVOLUCIÓN -->
 <div class="modal fade" id="modalMensajeDevolucion" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-            <div class="modal-body text-center p-4">
-                <div class="mb-3" id="devolucionIcono"></div>
-                <h5 class="fw-bold mb-2" id="devolucionTitulo"></h5>
-                <p class="text-muted small mb-3" id="devolucionTexto"></p>
-                <button class="btn btn-primary px-4" data-bs-dismiss="modal" onclick="location.reload()">Aceptar</button>
+        <div class="modal-content mp">
+            <div class="mp-confirm-body">
+                <div class="mb-2" id="devolucionIcono"></div>
+                <h5 class="mp-confirm-titulo" id="devolucionTitulo"></h5>
+                <p class="mp-confirm-texto" id="devolucionTexto"></p>
+                <button class="mp-btn mp-btn-primary px-4" data-bs-dismiss="modal" onclick="location.reload()">Aceptar</button>
             </div>
         </div>
     </div>
@@ -324,26 +321,48 @@
 </div>
 
 
-<!-- MODAL: QR PARA EVIDENCIA -->
-<!-- MODAL: QR PARA EVIDENCIA -->
+<!-- MODAL: EVIDENCIA (WEBCAM / QR) -->
 <div class="modal fade" id="modalQREvidencia" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-            <div class="modal-body text-center p-4">
-                <h5 class="fw-bold mb-2"><i class="bi bi-camera"></i> Evidencia Fotográfica</h5>
-                <p class="text-muted small mb-3">Escanea el QR con tu celular para tomar una foto del equipo</p>
-                <div id="qrContainer" style="background: #f8f9fa; padding: 1rem; border-radius: 12px; display: inline-block;">
-                    <img id="qrImagen" src="" alt="QR" style="width: 200px; height: 200px;">
+        <div class="modal-content mp">
+            <div class="mp-header">
+                <h5 class="mp-title"><i class="bi bi-camera"></i>Evidencia fotográfica</h5>
+                <button type="button" class="mp-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="mp-body text-center">
+
+                <div class="mp-segment">
+                    <button type="button" id="segWebcam" onclick="mostrarOpcionWebcam()"><i class="bi bi-webcam"></i>Cámara web</button>
+                    <button type="button" id="segQR" class="activo" onclick="mostrarOpcionQR()"><i class="bi bi-phone"></i>Celular (QR)</button>
                 </div>
-                <!-- Vista previa de la foto -->
-                <div id="vistaPreviaContainer" style="display: none; margin-top: 1rem;">
+
+                <!-- Opción QR -->
+                <div id="vistaQR">
+                    <p class="mp-evidencia-nota">Escanea el QR con el celular para tomar la foto del equipo.</p>
+                    <div id="qrContainer" class="mp-qr-box"><img id="qrImagen" src="" alt="QR"></div>
+                    <p class="mp-evidencia-nota"><i class="bi bi-clock"></i> El QR se renueva automáticamente</p>
+                </div>
+
+                <!-- Opción Webcam -->
+                <div id="vistaWebcam" style="display: none;">
+                    <video id="webcamVideo" class="mp-webcam-video" autoplay playsinline muted></video>
+                    <canvas id="webcamCanvas" style="display: none;"></canvas>
+                    <button type="button" class="mp-btn mp-btn-primary mp-btn-full" style="margin-top: 0.8rem;" id="btnCapturarWebcam" onclick="capturarFotoWebcam()">
+                        <i class="bi bi-camera-fill"></i>Capturar foto
+                    </button>
+                    <p class="mp-evidencia-nota" id="webcamError"></p>
+                </div>
+
+                <!-- Vista previa (compartida) -->
+                <div id="vistaPreviaContainer" class="mp-preview" style="display: none;">
                     <p class="small text-success fw-bold"><i class="bi bi-check-circle"></i> Foto recibida</p>
-                    <img id="vistaPreviaFoto" src="" alt="Evidencia" style="width: 100%; max-width: 250px; border-radius: 12px; border: 2px solid #34a853;">
+                    <img id="vistaPreviaFoto" src="" alt="Evidencia">
                 </div>
-                <p class="small text-warning mt-2"><i class="bi bi-clock"></i> Válido por 2 minutos</p>
-                <p class="small mt-2" id="estadoEvidencia">Esperando foto...</p>
-                <button class="btn btn-success w-100 mt-2" onclick="cerrarModalQR()" id="btnConfirmarDespuesQR" disabled>
-                    <i class="bi bi-check-lg me-1"></i>Continuar
+
+                <p class="mp-estado" id="estadoEvidencia">Esperando foto...</p>
+
+                <button class="mp-btn mp-btn-success mp-btn-full" onclick="cerrarModalQR()" id="btnConfirmarDespuesQR" disabled>
+                    <i class="bi bi-check-lg"></i>Continuar
                 </button>
             </div>
         </div>

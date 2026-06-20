@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block titulo %}Préstamo Rápido - CRAI UNEMI{% endblock %}
+{% block titulo %}Nuevo Préstamo - CRAI UNEMI{% endblock %}
 
 {% block estilos_extra %}
 <link href="{% static 'css/base.css' %}" rel="stylesheet">
@@ -53,13 +53,15 @@
                 <div class="registro-container">
                     
                     <div class="registro-header">
-                        <div>
-                            <h5 class="fw-bold mb-0">Registro Rápido</h5>
-                            <small class="text-muted">Préstamo de Chromebooks</small>
+                        <div class="registro-titulo">
+                            <span class="registro-titulo-icono"><i class="bi bi-laptop"></i></span>
+                            <div>
+                                <h5 class="fw-bold mb-0">Nuevo Préstamo</h5>
+                                <small class="text-muted">Registra la entrega de un Chromebook a un estudiante</small>
+                            </div>
                         </div>
-                        <span class="badge bg-light text-dark border">
-                            <i class="bi bi-circle-fill text-success me-1" style="font-size: 0.5rem;"></i>
-                            {{ disponibles }} disponibles
+                        <span class="badge-disponibles">
+                            <i class="bi bi-circle-fill"></i>{{ disponibles }} disponibles
                         </span>
                     </div>
                     
@@ -108,12 +110,12 @@
                                         <input type="date" class="input-elegante" id="fechaPrestamo" value="{{ fecha_hoy }}" min="{{ fecha_hoy }}">
                                     </div>
                                     <div class="horario-campo">
-                                        <label class="horario-label" for="horaInicio">Hora inicio</label>
-                                        <input type="time" class="input-elegante" id="horaInicio" value="{{ hora_actual }}">
+                                        <label class="horario-label" for="horaInicio">Hora inicio <span class="horario-vivo" id="horaInicioVivo" title="Se actualiza con la hora actual"><i class="bi bi-broadcast"></i>en vivo</span></label>
+                                        <input type="time" class="input-elegante" id="horaInicio" value="{{ hora_actual }}" min="08:00" max="17:00">
                                     </div>
                                     <div class="horario-campo">
                                         <label class="horario-label" for="horaFin">Hora fin</label>
-                                        <input type="time" class="input-elegante" id="horaFin" value="{{ hora_mas_dos }}">
+                                        <input type="time" class="input-elegante" id="horaFin" value="{{ hora_mas_dos }}" min="08:00" max="17:00">
                                     </div>
                                 </div>
                                 <div id="infoHorario" class="mt-2 small text-muted"></div>

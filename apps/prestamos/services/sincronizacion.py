@@ -14,6 +14,7 @@ from django.utils import timezone
 from apps.prestamos.models import (
     Facultad, Carrera, TipoUsuario, Usuario, Estudiante,
 )
+from apps.prestamos.services.usuarios import generar_username_unico
 
 
 @transaction.atomic
@@ -22,17 +23,20 @@ def sincronizar_estudiante(data, password_inicial=None):
 
     Args:
         data: dict con las claves de la API de matrículas (cedula, nombres,
-              apellidos, correo, facultad, carrera, semestre, activo, id...).
+              apellidos, correo, telefono, facultad, carrera, semestre, activo, id...).
         password_inicial: contraseña a fijar SOLO al crear el User por primera vez.
-              Si es None, se usa la cédula (convención: usuario y clave = cédula).
+              Si es None, se usa la cédula (convención: clave inicial = cédula).
 
     Returns:
         (estudiante, creado): el Estudiante local y un bool de si el User es nuevo.
 
-    Idempotente: ejecutarla varias veces deja el mismo estado y refleja los
-    cambios de la API (cambio de carrera, semestre, etc.).
+    La clave natural de cruce con la API es la CÉDULA. El username local sigue la
+    convención institucional (inicial 1er nombre + 1er apellido + inicial 2º
+    apellido). Idempotente: ejecutarla varias veces deja el mismo estado.
     """
     cedula = str(data['cedula']).strip()
+    nombres = data.get('nombres', '')
+    apellidos = data.get('apellidos', '')
 
     # 1) Catálogo: facultad y carrera
     facultad, _ = Facultad.objects.get_or_create(nombre=data['facultad'])
@@ -44,21 +48,32 @@ def sincronizar_estudiante(data, password_inicial=None):
     # 2) Rol
     tipo_estudiante, _ = TipoUsuario.objects.get_or_create(nombre='Estudiante')
 
-    # 3) auth.User (username = cédula, clave estable y única)
-    user, user_creado = User.objects.update_or_create(
-        username=cedula,
-        defaults={
-            'first_name': data.get('nombres', ''),
-            'last_name': data.get('apellidos', ''),
-            'email': data.get('correo', ''),
-            'is_active': bool(data.get('activo', True)),
-        },
-    )
-    if user_creado:
+    # 3) auth.User. Se localiza por cédula (clave natural); el username sigue la
+    #    convención institucional y solo se asigna al crear (estable después).
+    perfil_existente = Usuario.objects.select_related('user').filter(cedula=cedula).first()
+
+    if perfil_existente:
+        user = perfil_existente.user
+        user.first_name = nombres
+        user.last_name = apellidos
+        user.email = data.get('correo', '')
+        user.is_active = bool(data.get('activo', True))
+        user.save()
+        user_creado = False
+    else:
+        username = generar_username_unico(nombres, apellidos)
+        user = User.objects.create(
+            username=username,
+            first_name=nombres,
+            last_name=apellidos,
+            email=data.get('correo', ''),
+            is_active=bool(data.get('activo', True)),
+        )
         user.set_password(password_inicial or cedula)
         user.save()
         grupo_estudiante, _ = Group.objects.get_or_create(name='Estudiante')
         user.groups.add(grupo_estudiante)
+        user_creado = True
 
     # 4) Perfil local (marca origen='api' para no pisar usuarios manuales)
     perfil, _ = Usuario.objects.update_or_create(
@@ -66,6 +81,7 @@ def sincronizar_estudiante(data, password_inicial=None):
         defaults={
             'tipo_usuario': tipo_estudiante,
             'cedula': cedula,
+            'telefono': str(data.get('telefono') or '')[:10],
             'origen': 'api',
             'matricula_id': data.get('id'),
             'sincronizado': timezone.now(),

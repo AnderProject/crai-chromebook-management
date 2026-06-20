@@ -102,6 +102,16 @@
                     </div>
                 </div>
                 
+                <!-- Búsqueda por código de máquina -->
+                <div class="barra-busqueda">
+                    <div class="busqueda-input-wrap">
+                        <i class="bi bi-search busqueda-icono"></i>
+                        <input type="text" id="buscarMantenimiento" class="busqueda-input" placeholder="Buscar por código de máquina (ej. CB-003)" autocomplete="off">
+                        <button type="button" id="btnLimpiarBusqueda" class="busqueda-limpiar" title="Limpiar"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                    <button type="button" id="btnBuscarMantenimiento" class="btn-buscar"><i class="bi bi-search me-1"></i>Buscar</button>
+                </div>
+
                 <!-- Tabla -->
                 <div class="tabla-prestamos">
                     <div class="table-responsive">
@@ -112,7 +122,7 @@
                             <tbody>
                                 {% if mantenimientos %}
                                     {% for m in mantenimientos %}
-                                    <tr>
+                                    <tr data-codigo="{{ m.chromebook.codigo|lower }}">
                                         <td><strong>#{{ m.id }}</strong></td>
                                         <td><strong>{{ m.chromebook.codigo }}</strong><br><small class="text-muted">{{ m.chromebook.marca }} {{ m.chromebook.modelo }}</small></td>
                                         <td><span class="badge bg-info">{{ m.tipo|title }}</span></td>
@@ -134,6 +144,7 @@
                                 {% else %}
                                     <tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-inbox display-6 d-block mb-2"></i>No hay mantenimientos registrados</td></tr>
                                 {% endif %}
+                                <tr id="filaSinResultados" class="d-none"><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-search display-6 d-block mb-2"></i>No hay equipos con ese código.</td></tr>
                             </tbody>
                         </table>
                     </div>

@@ -810,6 +810,18 @@ tr:hover .badge-estado {
     transform: translateY(0);
 }
 
+.btn-codigo-reservacion:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(0.4);
+    box-shadow: none;
+}
+
+.btn-codigo-reservacion:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 .btn-codigo-icono {
     width: 32px;
     height: 32px;
@@ -939,4 +951,34 @@ tr:hover .badge-estado {
 .btn-volver-inventario:hover {
     background: #dee2e6;
     color: #212529;
+}
+/* Aviso "Fuera de horario CRAI" bajo el botón de ingresar código */
+.aviso-crai {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    color: #8d6e00;
+    font-size: 0.74rem;
+    font-weight: 600;
+    animation: avisoCraiIn 0.4s ease;
+}
+
+.aviso-crai i {
+    font-size: 0.85rem;
+    animation: avisoCraiTic 2s steps(1) infinite;
+}
+
+@keyframes avisoCraiIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes avisoCraiTic {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.45; }
 }

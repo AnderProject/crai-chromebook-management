@@ -519,3 +519,70 @@ body.modo-oscuro .border-start {
         background: rgba(40, 167, 69, 0.06);
     }
 }
+/* ==========================================
+   MEJORAS DE INTERACCIÓN (global)
+   Botones de acción, inputs, fecha/hora, selects
+   ========================================== */
+
+/* Botones de acción en tablas (editar / ver / finalizar / prestar...) */
+.table .btn-sm,
+.tabla-prestamos .btn-sm {
+    border-radius: 9px;
+    transition: transform 0.16s ease, box-shadow 0.16s ease,
+                background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+
+.table .btn-sm:hover,
+.tabla-prestamos .btn-sm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 13px rgba(0, 0, 0, 0.14);
+}
+
+.table .btn-sm:active,
+.tabla-prestamos .btn-sm:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Lift sutil para botones outline de acción en general */
+.btn-outline-primary,
+.btn-outline-success,
+.btn-outline-warning,
+.btn-outline-danger,
+.btn-outline-info {
+    transition: transform 0.16s ease, box-shadow 0.16s ease,
+                background-color 0.16s ease, color 0.16s ease;
+}
+
+/* Inputs, selects y áreas de texto: foco con color de marca + animación */
+.form-control,
+.form-select {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--info);
+    box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.12);
+}
+
+/* Cursor de mano en selectores de fecha/hora */
+input[type="date"],
+input[type="time"] {
+    cursor: pointer;
+}
+
+/* Animar el icono nativo del calendario / reloj (Chrome/Edge) */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 3px;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+    background-color: rgba(26, 115, 232, 0.15);
+    transform: scale(1.15);
+}

@@ -79,12 +79,14 @@ def sincronizar_y_autenticar(cedula, contraseña):
     if data is None:
         return None, None  # no es estudiante; deja el mensaje genérico al llamador
 
-    sincronizar_estudiante(data, password_inicial=cedula)
-    user = authenticate(username=cedula, password=contraseña)
+    estudiante, _ = sincronizar_estudiante(data, password_inicial=cedula)
+    # El username sigue la convención institucional (no es la cédula); se autentica con él.
+    username = estudiante.usuario.user.username
+    user = authenticate(username=username, password=contraseña)
 
     if user is None:
         # El estudiante existe pero la contraseña no coincide con la inicial.
-        return None, 'Tu usuario y tu contraseña inicial son tu número de cédula.'
+        return None, 'Tu contraseña inicial es tu número de cédula.'
 
     return user, None
 
@@ -144,11 +146,14 @@ def login_estudiante(request):
             else:
                 messages.error(request, mensaje_sync or 'Usuario o contraseña incorrectos.')
     
+    # En error/GET se vuelve al MISMO selector con la vista de estudiante abierta
+    # y el mensaje de error visible ahí mismo (no se redirige a otra página).
     contexto = {
         'formulario': formulario,
+        'abrir_vista': 'estudiante',
         'titulo_pagina': 'Login Estudiante - CRAI UNEMI'
     }
-    return render(request, 'autenticacion/login_estudiante.html', contexto)
+    return render(request, 'autenticacion/seleccionar_perfil.html', contexto)
 
 
 # ==========================================
@@ -186,11 +191,13 @@ def login_administrador(request):
             else:
                 messages.error(request, 'Usuario o contraseña incorrectos.')
     
+    # En error/GET se vuelve al MISMO selector con la vista de admin abierta.
     contexto = {
         'formulario': formulario,
+        'abrir_vista': 'administrador',
         'titulo_pagina': 'Login Administrador - CRAI UNEMI'
     }
-    return render(request, 'autenticacion/login_admin.html', contexto)
+    return render(request, 'autenticacion/seleccionar_perfil.html', contexto)
 
 
 # ==========================================

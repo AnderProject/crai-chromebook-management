@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Gestión de Personal - CRAI UNEMI{% endblock %}
+
+{% block estilos_extra %}
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+<link href="{% static 'css/personal.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block toast_messages %}{% endblock %}
+
+{% block contenido %}
+<div class="dashboard-container">
+
+    <nav class="navbar navbar-expand-lg navbar-dashboard sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-white" href="{% url 'prestamos:dashboard' %}">
+                <i class="bi bi-book me-2"></i>CRAI UNEMI</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown dropdown-perfil">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center pe-3" href="#" data-bs-toggle="dropdown" style="gap: 0.6rem;">
+                            <div class="avatar-dashboard">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                            <div class="d-none d-md-block text-start" style="line-height: 1.2;">
+                                <span style="font-weight: 600; font-size: 0.85rem; color: white;">{{ user.first_name }} {{ user.last_name }}</span><br>
+                                <small style="font-size: 0.65rem; opacity: 0.7; color: white;">Administrador</small>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow">
+                            <div class="dropdown-header"><strong>{{ user.get_full_name }}</strong></div>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'autenticacion:cerrar_sesion' %}"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid"><div class="row">
+        {% include "prestamos/_sidebar.html" with activo="personal" %}
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+            <div class="personal-panel">
+
+                <!-- Cabecera -->
+                <div class="personal-header">
+                    <div>
+                        <h2 class="personal-titulo"><i class="bi bi-people-fill me-2"></i>Gestión de Personal</h2>
+                        <p class="personal-subtitulo">Administra las cuentas y asigna los roles del sistema.</p>
+                    </div>
+                    <button type="button" class="btn-personal-nuevo" onclick="abrirModal('modalCrear')">
+                        <i class="bi bi-plus-lg me-1"></i>Agregar personal
+                    </button>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+                            {{ message }}
+                            <button class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Mini-stats -->
+                <div class="personal-stats">
+                    <div class="stat-mini">
+                        <div class="stat-mini-icono icono-total"><i class="bi bi-people"></i></div>
+                        <div><span class="stat-mini-num">{{ total_personal }}</span><span class="stat-mini-lbl">Total</span></div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-icono icono-admin"><i class="bi bi-shield-lock"></i></div>
+                        <div><span class="stat-mini-num">{{ total_admins }}</span><span class="stat-mini-lbl">Administradores</span></div>
+                    </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-icono icono-recep"><i class="bi bi-person-badge"></i></div>
+                        <div><span class="stat-mini-num">{{ total_recep }}</span><span class="stat-mini-lbl">Recepcionistas</span></div>
+                    </div>
+                </div>
+
+                <!-- Tabla -->
+                <div class="personal-card">
+                    {% if personal %}
+                    <div class="table-responsive">
+                        <table class="tabla-personal">
+                            <thead>
+                                <tr>
+                                    <th>Persona</th>
+                                    <th>Rol</th>
+                                    <th>Usuario</th>
+                                    <th>Cédula</th>
+                                    <th>Correo</th>
+                                    <th class="text-end">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in personal %}
+                                <tr>
+                                    <td>
+                                        <div class="persona-cell">
+                                            <div class="persona-avatar">{{ p.first_name|first|upper }}{{ p.last_name|first|upper }}</div>
+                                            <span>{{ p.first_name }} {{ p.last_name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="rol-badge {% if p.rol_actual == 'Administrador' %}rol-admin{% else %}rol-recep{% endif %}">
+                                            <i class="bi {% if p.rol_actual == 'Administrador' %}bi-shield-lock{% else %}bi-person-badge{% endif %} me-1"></i>{{ p.rol_actual }}
+                                        </span>
+                                    </td>
+                                    <td><span class="usuario-chip">{{ p.username }}</span></td>
+                                    <td class="text-muted">{{ p.perfil.cedula|default:"—" }}</td>
+                                    <td class="small text-muted">{{ p.email|default:"—" }}</td>
+                                    <td class="text-end">
+                                        {% if p.editable %}
+                                        <div class="acciones-fila">
+                                            <button type="button" class="btn-editar-rol"
+                                                    onclick="abrirEditarRol('{{ p.id }}', '{{ p.first_name }} {{ p.last_name }}', '{{ p.rol_actual }}')">
+                                                <i class="bi bi-pencil-square me-1"></i>Cambiar rol
+                                            </button>
+                                            <button type="button" class="btn-eliminar" title="Eliminar"
+                                                    onclick="abrirEliminar('{{ p.id }}', '{{ p.first_name }} {{ p.last_name }}')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                        {% else %}
+                                        <span class="protegido" title="Cuenta protegida"><i class="bi bi-lock-fill me-1"></i>Protegido</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="personal-vacio">
+                        <i class="bi bi-people"></i>
+                        <p>Aún no hay personal registrado.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </main>
+    </div></div>
+</div>
+
+<!-- ===== Modal: Crear personal ===== -->
+<div class="modal-personal" id="modalCrear">
+    <div class="modal-personal-card">
+        <div class="modal-personal-head">
+            <h5><i class="bi bi-person-plus me-2"></i>Nuevo personal</h5>
+            <button type="button" class="modal-x" onclick="cerrarModal('modalCrear')"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'prestamos:gestion_personal' %}" class="modal-personal-body">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="crear">
+            <div class="campo">
+                <label>Rol</label>
+                <select name="rol" required>
+                    <option value="Recepcionista" selected>Recepcionista</option>
+                    <option value="Administrador">Administrador</option>
+                </select>
+            </div>
+            <div class="campo-grid">
+                <div class="campo">
+                    <label>Nombres</label>
+                    <input type="text" name="nombres" placeholder="Ej: María José" required>
+                </div>
+                <div class="campo">
+                    <label>Apellidos</label>
+                    <input type="text" name="apellidos" placeholder="Ej: Pérez Loor" required>
+                </div>
+            </div>
+            <div class="campo-grid">
+                <div class="campo">
+                    <label>Cédula</label>
+                    <input type="text" name="cedula" placeholder="10 dígitos" maxlength="10" pattern="\d{10}" required>
+                </div>
+                <div class="campo">
+                    <label>Teléfono <span class="opc">(opcional)</span></label>
+                    <input type="text" name="telefono" placeholder="09XXXXXXXX" maxlength="10">
+                </div>
+            </div>
+            <div class="campo">
+                <label>Correo <span class="opc">(opcional, se genera solo)</span></label>
+                <input type="email" name="correo" placeholder="usuario@unemi.edu.ec">
+            </div>
+            <div class="campo">
+                <label>Contraseña</label>
+                <input type="text" name="password" placeholder="Mínimo 6 caracteres" required>
+            </div>
+            <div class="modal-personal-foot">
+                <button type="button" class="btn-modal-cancel" onclick="cerrarModal('modalCrear')">Cancelar</button>
+                <button type="submit" class="btn-modal-ok"><i class="bi bi-check2-circle me-1"></i>Crear cuenta</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== Modal: Cambiar rol ===== -->
+<div class="modal-personal" id="modalEditarRol">
+    <div class="modal-personal-card modal-sm">
+        <div class="modal-personal-head">
+            <h5><i class="bi bi-shield-check me-2"></i>Cambiar rol</h5>
+            <button type="button" class="modal-x" onclick="cerrarModal('modalEditarRol')"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'prestamos:gestion_personal' %}" class="modal-personal-body">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="cambiar_rol">
+            <input type="hidden" name="user_id" id="editUserId">
+            <p class="editar-persona">Persona: <strong id="editNombre"></strong></p>
+            <div class="campo">
+                <label>Nuevo rol</label>
+                <select name="rol" id="editRol" required>
+                    <option value="Recepcionista">Recepcionista</option>
+                    <option value="Administrador">Administrador</option>
+                </select>
+            </div>
+            <div class="modal-personal-foot">
+                <button type="button" class="btn-modal-cancel" onclick="cerrarModal('modalEditarRol')">Cancelar</button>
+                <button type="submit" class="btn-modal-ok"><i class="bi bi-check2-circle me-1"></i>Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== Modal: Eliminar personal ===== -->
+<div class="modal-personal" id="modalEliminar">
+    <div class="modal-personal-card modal-sm">
+        <div class="modal-personal-head">
+            <h5 class="text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Eliminar cuenta</h5>
+            <button type="button" class="modal-x" onclick="cerrarModal('modalEliminar')"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'prestamos:gestion_personal' %}" class="modal-personal-body">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="eliminar">
+            <input type="hidden" name="user_id" id="delUserId">
+            <p class="editar-persona">¿Seguro que deseas eliminar a <strong id="delNombre"></strong>? Esta acción no se puede deshacer.</p>
+            <div class="modal-personal-foot">
+                <button type="button" class="btn-modal-cancel" onclick="cerrarModal('modalEliminar')">Cancelar</button>
+                <button type="submit" class="btn-modal-danger"><i class="bi bi-trash me-1"></i>Sí, eliminar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/personal.js' %}"></script>
+{% endblock %}

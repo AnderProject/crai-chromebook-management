@@ -1,6 +1,8 @@
 var chromebookSeleccionado = null;
 var estudianteSeleccionado = null;
 
+var horaInicioEditada = false;
+
 document.addEventListener('DOMContentLoaded', function() {
 
     // Resumen de horario en vivo
@@ -8,6 +10,15 @@ document.addEventListener('DOMContentLoaded', function() {
         var el = document.getElementById(idCampo);
         if (el) { el.addEventListener('change', actualizarInfoHorario); }
     });
+
+    // Hora de inicio = hora actual, en vivo (hasta que el usuario la edite manualmente)
+    var campoHoraInicio = document.getElementById('horaInicio');
+    if (campoHoraInicio) {
+        campoHoraInicio.addEventListener('input', dejarDeSeguirHora);
+        sincronizarHoraInicio();
+        setInterval(sincronizarHoraInicio, 15000);
+    }
+
     actualizarInfoHorario();
 
     // Buscar Chromebook
@@ -25,10 +36,12 @@ document.addEventListener('DOMContentLoaded', function() {
             var div = document.getElementById('infoChromebook');
             if (data.success) {
                 chromebookSeleccionado = data.data;
-                div.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>' + data.data.codigo + ' • ' + data.data.marca + ' ' + data.data.modelo + ' • <strong>' + data.data.estado + '</strong></span>';
+                div.innerHTML = tarjetaResultado('ok', 'bi-laptop', data.data.codigo,
+                    data.data.marca + ' ' + data.data.modelo,
+                    '<span class="resultado-estado estado-' + data.data.estado + '">' + data.data.estado + '</span>');
             } else {
                 chromebookSeleccionado = null;
-                div.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>' + data.message + '</span>';
+                div.innerHTML = tarjetaResultado('error', 'bi-x-circle', 'No encontrado', data.message, '');
             }
         });
     });
@@ -48,10 +61,10 @@ document.addEventListener('DOMContentLoaded', function() {
             var div = document.getElementById('infoEstudiante');
             if (data.success) {
                 estudianteSeleccionado = data.data;
-                div.innerHTML = '<span class="text-info"><i class="bi bi-person-check me-1"></i>' + data.data.nombre + ' • ' + data.data.carrera + '</span>';
+                div.innerHTML = tarjetaResultado('ok', 'bi-person-check', data.data.nombre, data.data.carrera, '');
             } else {
                 estudianteSeleccionado = null;
-                div.innerHTML = '<span class="text-danger"><i class="bi bi-person-x me-1"></i>' + data.message + '</span>';
+                div.innerHTML = tarjetaResultado('error', 'bi-person-x', 'No encontrado', data.message, '');
             }
         });
     });
@@ -71,6 +84,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (horaFin <= horaInicio) {
             mostrarToast('La hora de fin debe ser posterior a la de inicio.', 'warning');
+            return;
+        }
+        if (horaInicio < '08:00' || horaFin > '17:00') {
+            mostrarToast('El horario de atención del CRAI es de 08:00 a 17:00.', 'warning');
             return;
         }
 
@@ -124,6 +141,33 @@ function actualizarInfoHorario() {
         ? '<span class="text-primary"><i class="bi bi-calendar-check me-1"></i>Reserva</span>'
         : '<span class="text-success"><i class="bi bi-clock me-1"></i>Inmediato</span>';
     info.innerHTML = etiqueta + ' &bull; duración ' + horas + ' h';
+}
+
+function dejarDeSeguirHora() {
+    horaInicioEditada = true;
+    var chip = document.getElementById('horaInicioVivo');
+    if (chip) { chip.style.display = 'none'; }
+}
+
+function sincronizarHoraInicio() {
+    if (horaInicioEditada) { return; }
+    var campo = document.getElementById('horaInicio');
+    if (!campo) { return; }
+    var ahora = new Date();
+    var hh = String(ahora.getHours()).padStart(2, '0');
+    var mm = String(ahora.getMinutes()).padStart(2, '0');
+    var nueva = hh + ':' + mm;
+    if (campo.value !== nueva) {
+        campo.value = nueva;
+        actualizarInfoHorario();
+    }
+}
+
+function tarjetaResultado(tipo, icono, titulo, detalle, extra) {
+    return '<div class="resultado-card resultado-' + tipo + '">' +
+        '<span class="resultado-icono"><i class="bi ' + icono + '"></i></span>' +
+        '<span class="resultado-info"><strong>' + titulo + '</strong>' +
+        '<span>' + detalle + '</span></span>' + (extra || '') + '</div>';
 }
 
 function getCSRFToken() {

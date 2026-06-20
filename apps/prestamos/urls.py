@@ -32,6 +32,7 @@ urlpatterns = [
     path('api/perfil-estudiante/<int:id>/', views.api_perfil_estudiante, name='api_perfil_estudiante'),
     path('api/devolver-prestamo/', views.api_devolver_prestamo, name='api_devolver_prestamo'),
     path('api/subir-evidencia/', views.api_subir_evidencia, name='api_subir_evidencia'),
+    path('api/subir-evidencia-webcam/', views.api_subir_evidencia_webcam, name='api_subir_evidencia_webcam'),
     path('api/generar-qr-evidencia/', views.api_generar_qr_evidencia, name='api_generar_qr'),
     path('evidencia/<str:token>/', views.pagina_evidencia, name='pagina_evidencia'),
     path('api/verificar-evidencia/', views.api_verificar_evidencia, name='api_verificar_evidencia'),
@@ -45,6 +46,9 @@ urlpatterns = [
     path('api/editar-mantenimiento/<int:id>/', views.api_editar_mantenimiento, name='api_editar_mantenimiento'),
     path('ajustes/', views.ajustes, name='ajustes'),
     path('reportes/', views.reportes, name='reportes'),
+
+    # TICs: gestión de personal (crear recepcionistas)
+    path('personal/', views.gestion_personal, name='gestion_personal'),
     path('api/detalle-chromebook/<int:id>/', views.api_detalle_chromebook, name='api_detalle_chromebook'),
     path('api/editar-chromebook/<int:id>/', views.api_editar_chromebook, name='api_editar_chromebook'),
     path('api/generar-qr-foto-chromebook/', views.api_generar_qr_foto_chromebook, name='api_generar_qr_foto'),

@@ -80,11 +80,25 @@
                         <div class="horario-grid">
                             <div class="horario-card">
                                 <span class="horario-label">Hora inicio</span>
-                                <input type="time" class="hora-input" id="horaInicio" name="hora_inicio" value="08:00" min="08:00" max="17:00" onchange="activarPaso(2)">
+                                <div class="time-select" id="selInicio">
+                                    <button type="button" class="time-trigger" id="triggerInicio" aria-haspopup="listbox">
+                                        <span class="time-value" id="valInicio">08:00</span>
+                                        <i class="bi bi-chevron-down time-chevron"></i>
+                                    </button>
+                                    <ul class="time-dropdown" id="dropInicio" role="listbox"></ul>
+                                </div>
+                                <input type="hidden" id="horaInicio" name="hora_inicio" value="08:00">
                             </div>
                             <div class="horario-card">
                                 <span class="horario-label">Hora fin</span>
-                                <input type="time" class="hora-input" id="horaFin" name="hora_fin" value="10:00" min="08:00" max="17:00" onchange="activarPaso(2)">
+                                <div class="time-select" id="selFin">
+                                    <button type="button" class="time-trigger" id="triggerFin" aria-haspopup="listbox">
+                                        <span class="time-value" id="valFin">10:00</span>
+                                        <i class="bi bi-chevron-down time-chevron"></i>
+                                    </button>
+                                    <ul class="time-dropdown" id="dropFin" role="listbox"></ul>
+                                </div>
+                                <input type="hidden" id="horaFin" name="hora_fin" value="10:00">
                             </div>
                         </div>
                         <small class="text-muted d-block mt-1"><i class="bi bi-info-circle me-1"></i>Horario disponible: 08:00 a 17:00</small>
@@ -115,12 +129,12 @@
                     <p class="text-muted small">Tu código de verificación es:</p>
                     <div class="codigo-display" id="codigoConfirmacion" style="margin: 1rem auto; max-width: 300px;">------</div>
                     <p class="text-muted small">Preséntalo en el CRAI para retirar tu equipo</p>
-                    <div class="d-flex gap-2 mt-3 justify-content-center">
-                        <a href="{% url 'estudiantes:mis_reservas' %}" class="btn btn-primary btn-sm">
-                            <i class="bi bi-list-check me-1"></i>Ir a Mis Reservas
+                    <div class="confirmacion-acciones">
+                        <a href="{% url 'estudiantes:mis_reservas' %}" class="btn-conf btn-conf-primary">
+                            <i class="bi bi-list-check"></i>Ir a Mis Reservas
                         </a>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="nuevaReserva()">
-                            <i class="bi bi-plus-circle me-1"></i>Nueva Reserva
+                        <button type="button" class="btn-conf btn-conf-secondary" onclick="nuevaReserva()">
+                            <i class="bi bi-plus-circle"></i>Nueva Reserva
                         </button>
                     </div>
                 </div>
@@ -145,7 +159,16 @@
         </div>
         
     </div>
-    
+
+</div>
+
+<!-- Modal de alerta (validaciones) -->
+<div class="modal-alerta" id="modalAlerta">
+    <div class="modal-alerta-card">
+        <div class="modal-alerta-icono"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <p class="modal-alerta-msg" id="modalAlertaMsg"></p>
+        <button type="button" class="modal-alerta-btn" onclick="cerrarAlerta()">Entendido</button>
+    </div>
 </div>
 {% endblock %}
 

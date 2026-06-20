@@ -1,0 +1,297 @@
+/* =====================================================
+   Modales del flujo de préstamo (código, evidencia,
+   confirmación) — diseño limpio y on-brand (#1a237e).
+   Solo estilos: NO altera IDs ni funcionalidad.
+   ===================================================== */
+
+.modal-content.mp {
+    border: none !important;
+    border-radius: 20px !important;
+    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(20, 24, 51, 0.3);
+}
+
+/* ---- Cabecera con gradiente ---- */
+.mp-header {
+    background: linear-gradient(135deg, #1a237e, #283593);
+    padding: 1.05rem 1.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.mp-header .mp-title {
+    margin: 0;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mp-header .mp-close {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: background 0.15s ease;
+}
+
+.mp-header .mp-close:hover { background: rgba(255, 255, 255, 0.3); }
+
+.mp-body { padding: 1.4rem; }
+
+/* ---- Paso 1: código ---- */
+.mp-hint {
+    color: #8a90a8;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.mp-codigo-wrap { margin-bottom: 0.9rem; }
+
+.mp-codigo-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #5a6080;
+    margin-bottom: 0.5rem;
+}
+
+.mp-codigo-input {
+    width: 100%;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 10px;
+    text-transform: uppercase;
+    color: #1a237e;
+    border: 2px solid #e3e7f5;
+    border-radius: 14px;
+    padding: 0.7rem 0.5rem;
+    background: #f7f9ff;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mp-codigo-input:focus {
+    outline: none;
+    border-color: #1a237e;
+    box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.12);
+}
+
+.mp-codigo-help {
+    display: block;
+    text-align: center;
+    color: #aab0c4;
+    font-size: 0.78rem;
+    margin-top: 0.5rem;
+}
+
+/* ---- Botones ---- */
+.mp-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    transition: all 0.18s ease;
+}
+
+.mp-btn-primary { background: linear-gradient(135deg, #1a237e, #283593); color: #fff; }
+.mp-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(26, 35, 126, 0.3); }
+
+.mp-btn-success { background: linear-gradient(135deg, #2e7d32, #43a047); color: #fff; }
+.mp-btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(46, 125, 50, 0.3); }
+
+.mp-btn-soft { background: #fff; border: 1.5px solid #d3d8ec; color: #5a6080; }
+.mp-btn-soft:hover { background: #f4f5fa; border-color: #1a237e; color: #1a237e; }
+
+.mp-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.mp-btn-full { width: 100%; }
+
+.mp-acciones { display: flex; gap: 0.6rem; }
+.mp-acciones .mp-btn { flex: 1; }
+
+/* Aviso cuando la reserva no se puede activar todavía (fecha/horario) */
+.mp-aviso-ventana {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    color: #8d6e00;
+    font-size: 0.86rem;
+    font-weight: 500;
+    line-height: 1.35;
+    padding: 0.75rem 0.9rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+.mp-aviso-ventana i { font-size: 1.05rem; margin-top: 1px; }
+
+/* ---- Paso 2: detalles ---- */
+.mp-verificado {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.mp-badge-ok {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+}
+
+.mp-card {
+    background: #f7f9ff;
+    border: 1px solid #eef0f5;
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.mp-card-titulo {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #1a237e;
+    margin: 0 0 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.mp-dato {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.28rem 0;
+    font-size: 0.86rem;
+}
+
+.mp-dato span:first-child { color: #8a90a8; }
+.mp-dato span:last-child { color: #2b2f4a; font-weight: 600; text-align: right; }
+
+.mp-error {
+    background: #fdecea;
+    color: #c62828;
+    border-radius: 10px;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.85rem;
+    margin-top: 0.9rem;
+}
+
+/* ---- Evidencia: segmento webcam / QR ---- */
+.mp-segment {
+    display: flex;
+    background: #eef1ff;
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+    margin-bottom: 1.1rem;
+}
+
+.mp-segment button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 0.55rem;
+    border-radius: 9px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #5a6080;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.mp-segment button.activo {
+    background: #fff;
+    color: #1a237e;
+    box-shadow: 0 2px 8px rgba(26, 35, 126, 0.15);
+}
+
+/* ---- Webcam ---- */
+.mp-webcam-video {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 14px;
+    background: #11131f;
+    border: 1px solid #e3e7f5;
+}
+
+/* ---- QR ---- */
+.mp-qr-box {
+    background: #f7f9ff;
+    border: 1px solid #eef0f5;
+    padding: 1rem;
+    border-radius: 16px;
+    display: inline-block;
+}
+
+.mp-qr-box img { width: 200px; height: 200px; display: block; }
+
+.mp-evidencia-nota {
+    color: #8a90a8;
+    font-size: 0.8rem;
+    margin: 0.8rem 0 0.2rem;
+}
+
+.mp-estado { font-size: 0.85rem; margin: 0.5rem 0; min-height: 1.2rem; }
+
+.mp-preview {
+    margin-top: 1rem;
+}
+
+.mp-preview img {
+    width: 100%;
+    max-width: 260px;
+    border-radius: 14px;
+    border: 2px solid #43a047;
+}
+
+/* ---- Confirmación / mensaje ---- */
+.mp-confirm-body {
+    text-align: center;
+    padding: 1.8rem 1.5rem 1.5rem;
+}
+
+.mp-confirm-icono {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+}
+
+.mp-icono-warn { background: #fff4e5; color: #f5a623; }
+.mp-icono-ok { background: #e8f5e9; color: #2e7d32; }
+
+.mp-confirm-titulo { font-weight: 700; font-size: 1.15rem; color: #2b2f4a; margin-bottom: 0.4rem; }
+.mp-confirm-texto { color: #8a90a8; font-size: 0.9rem; margin-bottom: 1.25rem; }

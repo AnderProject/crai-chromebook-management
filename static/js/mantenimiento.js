@@ -1,4 +1,45 @@
 // =============================================
+// BÚSQUEDA POR CÓDIGO DE MÁQUINA
+// =============================================
+document.addEventListener('DOMContentLoaded', function () {
+    var input = document.getElementById('buscarMantenimiento');
+    var btn = document.getElementById('btnBuscarMantenimiento');
+    var limpiar = document.getElementById('btnLimpiarBusqueda');
+    if (!input) { return; }
+
+    if (btn) { btn.addEventListener('click', filtrarMantenimientos); }
+    input.addEventListener('keyup', function (e) {
+        if (e.key === 'Enter') { filtrarMantenimientos(); }
+    });
+    if (limpiar) {
+        limpiar.addEventListener('click', function () {
+            input.value = '';
+            filtrarMantenimientos();
+            input.focus();
+        });
+    }
+});
+
+function filtrarMantenimientos() {
+    var input = document.getElementById('buscarMantenimiento');
+    var termino = (input.value || '').trim().toLowerCase();
+    var filas = document.querySelectorAll('tbody tr[data-codigo]');
+    var visibles = 0;
+
+    filas.forEach(function (fila) {
+        var codigo = fila.getAttribute('data-codigo') || '';
+        var coincide = !termino || codigo.indexOf(termino) !== -1;
+        fila.classList.toggle('d-none', !coincide);
+        if (coincide) { visibles++; }
+    });
+
+    var sinResultados = document.getElementById('filaSinResultados');
+    if (sinResultados) {
+        sinResultados.classList.toggle('d-none', !(termino && visibles === 0));
+    }
+}
+
+// =============================================
 // EDICIÓN DE MANTENIMIENTO - CRAI UNEMI
 // =============================================
 

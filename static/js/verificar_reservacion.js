@@ -49,6 +49,20 @@ function verificarCodigo() {
             document.getElementById('detalleChromebook').textContent = 'Por asignar';
             document.getElementById('detalleEstado').innerHTML = '<span class="badge bg-warning">' + data.data.estado + '</span>';
             reservaIdActual = data.data.reserva_id;
+
+            // Ventana de activación: si la reserva es para otra fecha/hora, avisar
+            // y bloquear el botón de foto (el backend igual lo rechaza, esto es UX).
+            var aviso = document.getElementById('avisoVentana');
+            var btnFoto = document.getElementById('btnTomarFoto');
+            if (data.data.puede_activar === false) {
+                document.getElementById('avisoVentanaTexto').textContent = data.data.ventana_msg;
+                aviso.classList.remove('d-none');
+                btnFoto.disabled = true;
+            } else {
+                aviso.classList.add('d-none');
+                btnFoto.disabled = false;
+            }
+
             document.getElementById('pasoIngresarCodigo').style.display = 'none';
             document.getElementById('pasoDetallesReservacion').style.display = 'block';
         } else {
@@ -67,6 +81,10 @@ function volverIngresarCodigo() {
     document.getElementById('pasoDetallesReservacion').style.display = 'none';
     document.getElementById('codigoReservacion').value = '';
     document.getElementById('mensajeError').classList.add('d-none');
+    var aviso = document.getElementById('avisoVentana');
+    if (aviso) aviso.classList.add('d-none');
+    var btnFoto = document.getElementById('btnTomarFoto');
+    if (btnFoto) btnFoto.disabled = false;
     reservaIdActual = null;
     fotoEvidenciaNombre = null;
     window.fotoParaPrestamo = null;
@@ -125,13 +143,21 @@ var tokenEvidencia = null;
 var intervaloVerificacion = null;
 var intervaloRefreshQR = null;
 var tiempoRestante = 120;
+var webcamStream = null;
 
 function abrirCamaraEvidencia() {
     if (!reservaIdActual) {
         alert('Primero verifica un código de reservación.');
         return;
     }
-    
+
+    // Vista por defecto: QR (la webcam es opcional)
+    document.getElementById('segQR').classList.add('activo');
+    document.getElementById('segWebcam').classList.remove('activo');
+    document.getElementById('vistaQR').style.display = 'block';
+    document.getElementById('vistaWebcam').style.display = 'none';
+    detenerWebcam();
+
     // Limpiar estado anterior del modal QR
     document.getElementById('qrContainer').style.display = 'inline-block';
     document.getElementById('vistaPreviaContainer').style.display = 'none';
@@ -140,15 +166,128 @@ function abrirCamaraEvidencia() {
     document.getElementById('btnConfirmarDespuesQR').disabled = true;
     fotoEvidenciaNombre = null;
     window.fotoParaPrestamo = null;
-    
+
     generarNuevoQR();
-    
+
     var modalQR = new bootstrap.Modal(document.getElementById('modalQREvidencia'));
     modalQR.show();
-    
+
     document.getElementById('modalQREvidencia').addEventListener('hidden.bs.modal', function() {
         clearInterval(intervaloVerificacion);
         clearInterval(intervaloRefreshQR);
+        detenerWebcam();
+    });
+}
+
+// =============================================
+// CAPTURA POR WEBCAM (alternativa al QR)
+// =============================================
+function mostrarOpcionWebcam() {
+    document.getElementById('segWebcam').classList.add('activo');
+    document.getElementById('segQR').classList.remove('activo');
+    document.getElementById('vistaQR').style.display = 'none';
+    document.getElementById('vistaWebcam').style.display = 'block';
+    // Detener el sondeo del QR mientras se usa la cámara
+    clearInterval(intervaloVerificacion);
+    clearInterval(intervaloRefreshQR);
+    iniciarWebcam();
+}
+
+function mostrarOpcionQR() {
+    document.getElementById('segQR').classList.add('activo');
+    document.getElementById('segWebcam').classList.remove('activo');
+    document.getElementById('vistaWebcam').style.display = 'none';
+    document.getElementById('vistaQR').style.display = 'block';
+    detenerWebcam();
+
+    // Reiniciar el flujo QR si aún no hay foto confirmada
+    if (!fotoEvidenciaNombre) {
+        document.getElementById('qrContainer').style.display = 'inline-block';
+        document.getElementById('vistaPreviaContainer').style.display = 'none';
+        document.getElementById('btnConfirmarDespuesQR').disabled = true;
+        window.fotoParaPrestamo = null;
+        generarNuevoQR();
+    }
+}
+
+function iniciarWebcam() {
+    var video = document.getElementById('webcamVideo');
+    var err = document.getElementById('webcamError');
+    err.textContent = '';
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        err.innerHTML = '<span class="text-danger">Este navegador no permite usar la cámara. Usa la opción Celular (QR).</span>';
+        return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+        .then(function(stream) {
+            webcamStream = stream;
+            video.srcObject = stream;
+            document.getElementById('estadoEvidencia').innerHTML =
+                '<span class="text-info"><i class="bi bi-camera"></i> Cámara lista. Captura la foto del equipo.</span>';
+        })
+        .catch(function() {
+            err.innerHTML = '<span class="text-danger">No se pudo acceder a la cámara. Revisa los permisos o usa el QR.</span>';
+        });
+}
+
+function detenerWebcam() {
+    if (webcamStream) {
+        webcamStream.getTracks().forEach(function(t) { t.stop(); });
+        webcamStream = null;
+    }
+    var video = document.getElementById('webcamVideo');
+    if (video) video.srcObject = null;
+}
+
+function capturarFotoWebcam() {
+    if (!reservaIdActual) return;
+    var video = document.getElementById('webcamVideo');
+    var err = document.getElementById('webcamError');
+
+    if (!webcamStream || !video.videoWidth) {
+        err.innerHTML = '<span class="text-danger">La cámara aún no está lista.</span>';
+        return;
+    }
+
+    var canvas = document.getElementById('webcamCanvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    var dataURL = canvas.toDataURL('image/jpeg', 0.85);
+
+    err.textContent = '';
+    document.getElementById('estadoEvidencia').innerHTML =
+        '<span class="text-info"><i class="bi bi-hourglass-split"></i> Guardando foto...</span>';
+
+    fetch('/prestamos/api/subir-evidencia-webcam/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+        body: JSON.stringify({ reserva_id: reservaIdActual, tipo: 'entrega', imagen: dataURL })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            fotoEvidenciaNombre = data.nombre_archivo || '';
+            window.fotoParaPrestamo = fotoEvidenciaNombre;
+            detenerWebcam();
+            document.getElementById('vistaWebcam').style.display = 'none';
+            var prev = document.getElementById('vistaPreviaContainer');
+            prev.style.display = 'block';
+            prev.innerHTML =
+                '<p class="small text-success fw-bold mb-2"><i class="bi bi-check-circle"></i> Foto capturada</p>' +
+                '<img src="' + dataURL + '" alt="Evidencia" style="width:100%;max-width:260px;border-radius:14px;border:2px solid #43a047;">';
+            document.getElementById('estadoEvidencia').innerHTML =
+                '<span class="text-success"><i class="bi bi-check-circle"></i> ¡Foto lista! Haz clic en Continuar.</span>';
+            document.getElementById('btnConfirmarDespuesQR').disabled = false;
+        } else {
+            err.innerHTML = '<span class="text-danger">' + (data.message || 'No se pudo guardar la foto.') + '</span>';
+            document.getElementById('estadoEvidencia').innerHTML = '';
+        }
+    })
+    .catch(function() {
+        err.innerHTML = '<span class="text-danger">Error al guardar la foto.</span>';
     });
 }
 
