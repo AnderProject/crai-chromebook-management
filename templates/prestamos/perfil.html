@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Mi Perfil - CRAI UNEMI{% endblock %}
+
+{% block estilos_extra %}
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+<link href="{% static 'css/perfil.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block contenido %}
+<div class="dashboard-container">
+
+    <nav class="navbar navbar-expand-lg navbar-dashboard sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-white" href="{% url 'prestamos:dashboard' %}">
+                <i class="bi bi-book me-2"></i>CRAI UNEMI</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown dropdown-perfil">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center pe-3" href="#" data-bs-toggle="dropdown" style="gap: 0.6rem;">
+                            <div class="avatar-dashboard">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                            <div class="d-none d-md-block text-start" style="line-height: 1.2;">
+                                <span style="font-weight: 600; font-size: 0.85rem; color: white;">{{ user.first_name }}</span><br>
+                                <small style="font-size: 0.65rem; opacity: 0.7; color: white;">{{ rol }}</small>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow">
+                            <div class="dropdown-header"><strong>{{ user.get_full_name }}</strong></div>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'autenticacion:cerrar_sesion' %}"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid"><div class="row">
+        {% include "prestamos/_sidebar.html" with activo="perfil" %}
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+            <div class="perfil-container">
+
+                <h2 class="fw-bold mb-4"><i class="bi bi-person-circle me-2 text-primary"></i>Mi Perfil</h2>
+
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="row g-4">
+                    <!-- Tarjeta de identidad + foto -->
+                    <div class="col-lg-5">
+                        <div class="perfil-card perfil-identidad">
+                            <div class="perfil-foto-wrap">
+                                {% if perfil_usuario.foto %}
+                                    <img src="{{ perfil_usuario.foto.url }}" alt="Foto de perfil" class="perfil-foto" id="perfilFotoPreview">
+                                {% else %}
+                                    <div class="perfil-foto perfil-foto-iniciales" id="perfilFotoPreview">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                                {% endif %}
+                            </div>
+                            <h4 class="fw-bold mb-0 mt-3">{{ user.get_full_name }}</h4>
+                            <span class="perfil-rol-badge"><i class="bi bi-shield-check me-1"></i>{{ rol }}</span>
+
+                            <form method="post" enctype="multipart/form-data" action="{% url 'prestamos:actualizar_foto_perfil' %}" class="perfil-foto-form" id="formFotoPerfil">
+                                {% csrf_token %}
+                                <label class="perfil-foto-btn" for="inputFotoPerfil">
+                                    <i class="bi bi-camera me-1"></i>Cambiar foto
+                                </label>
+                                <input type="file" id="inputFotoPerfil" name="foto" accept="image/*" hidden onchange="document.getElementById('formFotoPerfil').submit()">
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Datos -->
+                    <div class="col-lg-7">
+                        <div class="perfil-card">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-person-vcard me-2 text-primary"></i>Datos personales</h6>
+                            <div class="perfil-dato"><span><i class="bi bi-person"></i>Usuario</span><strong>{{ user.username }}</strong></div>
+                            <div class="perfil-dato"><span><i class="bi bi-card-text"></i>Cédula</span><strong>{{ perfil_usuario.cedula|default:'—' }}</strong></div>
+                            <div class="perfil-dato"><span><i class="bi bi-envelope"></i>Correo</span><strong>{{ user.email|default:'—' }}</strong></div>
+                            <div class="perfil-dato"><span><i class="bi bi-telephone"></i>Teléfono</span><strong>{{ perfil_usuario.telefono|default:'—' }}</strong></div>
+                            <div class="perfil-dato"><span><i class="bi bi-shield-check"></i>Rol</span><strong>{{ rol }}</strong></div>
+                        </div>
+
+                        <!-- Cambiar contraseña -->
+                        <div class="perfil-card mt-4">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-shield-lock me-2 text-primary"></i>Cambiar contraseña</h6>
+                            <form method="post" action="{% url 'prestamos:cambiar_password_perfil' %}" id="formPassword">
+                                {% csrf_token %}
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold">Contraseña actual</label>
+                                    <input type="password" name="actual" class="form-control" required>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label small fw-semibold">Nueva contraseña</label>
+                                        <input type="password" name="nueva" class="form-control" minlength="8" required>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <label class="form-label small fw-semibold">Confirmar nueva</label>
+                                        <input type="password" name="confirmar" class="form-control" minlength="8" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm mt-2"><i class="bi bi-check-lg me-1"></i>Actualizar contraseña</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div></div>
+</div>
+{% endblock %}

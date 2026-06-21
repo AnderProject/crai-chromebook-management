@@ -63,7 +63,15 @@ def dashboard(request):
     
     hoy = timezone.now().date()
     reservas_hoy = Reserva.objects.filter(fecha_uso=hoy, estado='pendiente').count()
-    
+
+    # Reservas aún sin procesar (equipos ya apartados por estudiantes), incluso futuras.
+    reservas_pendientes = (
+        Reserva.objects
+        .filter(estado='pendiente')
+        .select_related('estudiante__usuario__user', 'estudiante__carrera')
+        .order_by('fecha_uso', 'hora_inicio')
+    )
+
     contexto = {
         'titulo_pagina': 'Dashboard - CRAI UNEMI',
         'total_chromebooks': total_chromebooks,
@@ -79,6 +87,7 @@ def dashboard(request):
         'notificaciones': notificaciones,
         'total_notificaciones': Notificacion.objects.count(),
         'reservas_hoy': reservas_hoy,
+        'reservas_pendientes': reservas_pendientes,
         'primer_nombre': primer_nombre,
         'primer_apellido': primer_apellido,
         'crai_abierto': _crai_abierto(),
@@ -407,9 +416,28 @@ def api_subir_evidencia_webcam(request):
 
 
 @login_required
+@login_required
+@csrf_exempt
+def api_toggle_matriculas(request):
+    """Conecta/desconecta la integración con la API de matrículas (flag global)."""
+    from .models import ConfiguracionSistema
+    config = ConfiguracionSistema.obtener()
+    if request.method == 'POST':
+        config.api_matriculas_activa = not config.api_matriculas_activa
+        config.save(update_fields=['api_matriculas_activa', 'actualizado'])
+    return JsonResponse({'success': True, 'activa': config.api_matriculas_activa})
+
+
 def api_test_conexion(request):
     """Prueba la conexión con la API de matrículas"""
     import requests
+    from .models import ConfiguracionSistema
+    if not ConfiguracionSistema.obtener().api_matriculas_activa:
+        return JsonResponse({
+            'success': False,
+            'desconectada': True,
+            'message': 'La API de matrículas está desconectada. Actívala para probar la conexión.',
+        })
     try:
         url = f'{settings.API_MATRICULAS_BASE_URL.rstrip("/")}/'
         resp = requests.get(
@@ -436,6 +464,14 @@ def api_sincronizar_estudiantes(request):
     """Sincroniza todos los estudiantes desde la API de matrículas"""
     from .services.api_estudiantes import listar_estudiantes, ApiEstudiantesError
     from .services.sincronizacion import sincronizar_estudiante
+    from .models import ConfiguracionSistema
+
+    if not ConfiguracionSistema.obtener().api_matriculas_activa:
+        return JsonResponse({
+            'success': False,
+            'desconectada': True,
+            'message': 'La API de matrículas está desconectada. Actívala para sincronizar.',
+        })
 
     try:
         estudiantes = listar_estudiantes()
@@ -1046,6 +1082,7 @@ def registro_rapido(request):
         'titulo_pagina': 'Nuevo Préstamo - CRAI UNEMI',
         'disponibles': disponibles, 'prestamos_hoy': prestamos_hoy, 'total_hoy': total_hoy,
         'fecha_hoy': hoy.strftime('%Y-%m-%d'),
+        'fecha_manana': (hoy + timedelta(days=1)).strftime('%Y-%m-%d'),
         'hora_actual': ahora.strftime('%H:%M'),
         'hora_mas_dos': (ahora + timedelta(hours=2)).strftime('%H:%M'),
     })
@@ -1167,6 +1204,35 @@ def verificar_codigo_reservacion(request):
             return JsonResponse({'success': False, 'message': 'Código no encontrado.'})
     
     return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+
+@csrf_exempt
+def revelar_codigo_reserva(request):
+    """Revela el código de una reserva pendiente SOLO si la cédula coincide.
+
+    Para el caso en que el estudiante olvidó su código: el recepcionista ingresa
+    la cédula y, si corresponde al dueño de la reserva, se muestra el código.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+    from .models import Reserva
+    data = json.loads(request.body)
+    reserva_id = data.get('reserva_id')
+    cedula = (data.get('cedula') or '').strip()
+
+    if not cedula:
+        return JsonResponse({'success': False, 'message': 'Ingresa la cédula del estudiante.'})
+
+    try:
+        reserva = Reserva.objects.select_related('estudiante__usuario').get(id=reserva_id, estado='pendiente')
+    except Reserva.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Reserva no encontrada o ya procesada.'})
+
+    if reserva.estudiante.usuario.cedula != cedula:
+        return JsonResponse({'success': False, 'message': 'La cédula no coincide con el estudiante de esta reserva.'})
+
+    return JsonResponse({'success': True, 'codigo': reserva.codigo_verificacion})
 
 
 def _validar_ventana_reserva(reserva):
@@ -1319,6 +1385,9 @@ def api_buscar_estudiante(request):
 
         # Sync on-demand: si no está en el espejo local, traerlo de matrículas.
         if estudiante is None:
+            from .models import ConfiguracionSistema
+            if not ConfiguracionSistema.obtener().api_matriculas_activa:
+                return JsonResponse({'success': False, 'message': 'Estudiante no encontrado localmente y la API de matrículas está desconectada.'})
             try:
                 data_api = obtener_estudiante(cedula)
             except ApiEstudiantesError:
@@ -1412,13 +1481,48 @@ def api_registrar_prestamo(request):
             f'{CRAI_HORA_CIERRE.strftime("%H:%M")}. Ajusta la hora del préstamo.'
         )})
 
+    import random, string
+    from .models import Reserva, Estudiante
+
     try:
-        chromebook = Chromebook.objects.get(id=chromebook_id)
         estudiante_user = User.objects.get(id=user_id)
-    except Chromebook.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Chromebook no encontrado.'})
     except User.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Usuario no encontrado.'})
+
+    es_reserva = inicio > ahora
+
+    # ── RESERVA (para más tarde o para mañana): genera una Reserva pendiente con
+    #    código. Aparece en "Reservaciones Pendientes" y el estudiante usa el código.
+    if es_reserva:
+        try:
+            estudiante = Estudiante.objects.select_related('carrera').get(usuario__user_id=user_id)
+        except Estudiante.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Ese usuario no es un estudiante; no se puede generar la reserva.'})
+
+        while True:
+            codigo = ''.join(random.choices(string.digits, k=6))
+            if not Reserva.objects.filter(codigo_verificacion=codigo).exists():
+                break
+
+        Reserva.objects.create(
+            estudiante=estudiante, carrera=estudiante.carrera,
+            fecha_uso=inicio.date(), hora_inicio=inicio.time(), hora_fin=fin.time(),
+            estado='pendiente', codigo_verificacion=codigo,
+            motivo='Reserva registrada en recepción',
+        )
+        return JsonResponse({
+            'success': True,
+            'codigo': codigo,
+            'es_reserva': True,
+            'message': f'Reserva creada para el {fecha} de {hora_inicio} a {hora_fin}. '
+                       f'Código para el estudiante: {codigo}.',
+        })
+
+    # ── PRÉSTAMO INMEDIATO: asigna el equipo ahora.
+    try:
+        chromebook = Chromebook.objects.get(id=chromebook_id)
+    except Chromebook.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Chromebook no encontrado.'})
 
     if chromebook.estado == 'mantenimiento':
         return JsonResponse({'success': False, 'message': 'Este Chromebook está en mantenimiento.'})
@@ -1433,29 +1537,33 @@ def api_registrar_prestamo(request):
     if solapado:
         return JsonResponse({'success': False, 'message': 'El Chromebook ya tiene un préstamo o reserva en ese horario.'})
 
-    import random, string
     codigo = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
     duracion = max(1, round((fin - inicio).total_seconds() / 3600))
-    es_reserva = inicio > ahora
 
-    Prestamo.objects.create(
+    prestamo = Prestamo.objects.create(
         estudiante=estudiante_user, chromebook=chromebook,
         fecha_prestamo=inicio, fecha_devolucion=fin,
-        estado='reservado' if es_reserva else 'activo',
-        duracion_horas=duracion, codigo_verificacion=codigo,
+        estado='activo', duracion_horas=duracion, codigo_verificacion=codigo,
     )
+    chromebook.estado = 'prestado'
+    chromebook.save(update_fields=['estado'])
 
-    if es_reserva:
-        if chromebook.estado == 'disponible':
-            chromebook.estado = 'reservado'
-            chromebook.save(update_fields=['estado'])
-        msg = f'Reserva registrada. {chromebook.codigo} apartado para el {fecha} de {hora_inicio} a {hora_fin}.'
-    else:
-        chromebook.estado = 'prestado'
-        chromebook.save(update_fields=['estado'])
-        msg = f'Préstamo registrado. {chromebook.codigo} asignado.'
+    # Guardar foto de evidencia si la recepción la capturó (opcional).
+    foto_nombre = data.get('foto_nombre', '')
+    if foto_nombre:
+        from .models import Evidencia
+        from django.core.files import File
+        temp_path = os.path.join(settings.MEDIA_ROOT, 'evidencias', foto_nombre)
+        if os.path.exists(temp_path):
+            evidencia = Evidencia.objects.create(prestamo=prestamo, tipo='entrega', descripcion='Evidencia de entrega')
+            with open(temp_path, 'rb') as f:
+                evidencia.foto.save(foto_nombre, File(f), save=True)
 
-    return JsonResponse({'success': True, 'message': msg})
+    return JsonResponse({
+        'success': True,
+        'es_reserva': False,
+        'message': f'Préstamo registrado. {chromebook.codigo} asignado.',
+    })
         
 
 
@@ -1518,17 +1626,70 @@ def ficha_estudiantil(request):
 @login_required
 def ajustes(request):
     """Página de configuración del sistema"""
-    from .models import SesionUsuario
-    
+    from .models import SesionUsuario, ConfiguracionSistema
+
     sesiones = SesionUsuario.objects.filter(
         usuario=request.user
     ).order_by('-fecha_inicio')[:10]
-    
+
     contexto = {
         'titulo_pagina': 'Ajustes - CRAI UNEMI',
         'sesiones': sesiones,
+        'api_activa': ConfiguracionSistema.obtener().api_matriculas_activa,
     }
     return render(request, 'prestamos/ajustes.html', contexto)
+
+
+@login_required
+def perfil(request):
+    """Perfil del usuario: datos, foto y cambio de contraseña."""
+    perfil_usuario = getattr(request.user, 'perfil', None)
+    rol = request.user.groups.values_list('name', flat=True).first() or 'Usuario'
+    return render(request, 'prestamos/perfil.html', {
+        'titulo_pagina': 'Mi Perfil - CRAI UNEMI',
+        'perfil_usuario': perfil_usuario,
+        'rol': rol,
+    })
+
+
+@login_required
+def actualizar_foto_perfil(request):
+    """Sube/actualiza la foto de perfil del usuario."""
+    from django.contrib import messages
+    if request.method == 'POST' and request.FILES.get('foto'):
+        perfil_usuario = getattr(request.user, 'perfil', None)
+        if perfil_usuario is None:
+            messages.error(request, 'No se encontró el perfil del usuario.')
+        else:
+            perfil_usuario.foto = request.FILES['foto']
+            perfil_usuario.save(update_fields=['foto'])
+            messages.success(request, 'Foto de perfil actualizada.')
+    return redirect('prestamos:perfil')
+
+
+@login_required
+def cambiar_password_perfil(request):
+    """Cambio de contraseña desde el propio perfil (verifica la actual)."""
+    from django.contrib import messages
+    from django.contrib.auth import update_session_auth_hash
+
+    if request.method == 'POST':
+        actual = request.POST.get('actual', '')
+        nueva = request.POST.get('nueva', '')
+        confirmar = request.POST.get('confirmar', '')
+
+        if not request.user.check_password(actual):
+            messages.error(request, 'La contraseña actual no es correcta.')
+        elif len(nueva) < 8:
+            messages.error(request, 'La nueva contraseña debe tener al menos 8 caracteres.')
+        elif nueva != confirmar:
+            messages.error(request, 'La confirmación no coincide con la nueva contraseña.')
+        else:
+            request.user.set_password(nueva)
+            request.user.save()
+            update_session_auth_hash(request, request.user)  # mantener la sesión
+            messages.success(request, 'Contraseña actualizada correctamente.')
+    return redirect('prestamos:perfil')
 
 
 def _es_tics(user):

@@ -119,41 +119,32 @@
                     </div>
                 </div>
                 
-                <!-- Barra de búsqueda -->
-                <div class="card border-0 shadow-sm mb-3">
-                    <div class="card-body py-2">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-5">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                                    <input type="text" class="form-control" placeholder="Buscar por código, marca o modelo..." id="buscarChromebook" onkeyup="filtrarChromebooks()">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <select class="form-select" id="filtroEstado" onchange="filtrarChromebooks()">
-                                    <option value="">Todos los estados</option>
-                                    <option value="disponible">Disponible</option>
-                                    <option value="prestado">Prestado</option>
-                                    <option value="mantenimiento">Mantenimiento</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <select class="form-select" id="filtroMarca" onchange="filtrarChromebooks()">
-                                    <option value="">Todas las marcas</option>
-                                    <option value="HP">HP</option>
-                                    <option value="Lenovo">Lenovo</option>
-                                    <option value="Dell">Dell</option>
-                                    <option value="Acer">Acer</option>
-                                    <option value="ASUS">ASUS</option>
-                                    <option value="Samsung">Samsung</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2 text-end">
-                                <button class="btn btn-outline-secondary btn-sm" onclick="filtrarChromebooks()">
-                                    <i class="bi bi-funnel"></i> Filtrar
-                                </button>
-                            </div>
-                        </div>
+                <!-- Barra de búsqueda y filtros -->
+                <div class="filtros-barra">
+                    <div class="filtro-busqueda">
+                        <i class="bi bi-search filtro-icono"></i>
+                        <input type="text" class="filtro-input" placeholder="Buscar por código, marca o modelo..." id="buscarChromebook" onkeyup="filtrarChromebooks()" autocomplete="off">
+                    </div>
+                    <div class="filtro-select-wrap">
+                        <i class="bi bi-funnel filtro-select-icono"></i>
+                        <select class="filtro-select" id="filtroEstado" onchange="filtrarChromebooks()">
+                            <option value="">Todos los estados</option>
+                            <option value="disponible">Disponible</option>
+                            <option value="prestado">Prestado</option>
+                            <option value="mantenimiento">Mantenimiento</option>
+                        </select>
+                    </div>
+                    <div class="filtro-select-wrap">
+                        <i class="bi bi-tag filtro-select-icono"></i>
+                        <select class="filtro-select" id="filtroMarca" onchange="filtrarChromebooks()">
+                            <option value="">Todas las marcas</option>
+                            <option value="HP">HP</option>
+                            <option value="Lenovo">Lenovo</option>
+                            <option value="Dell">Dell</option>
+                            <option value="Acer">Acer</option>
+                            <option value="ASUS">ASUS</option>
+                            <option value="Samsung">Samsung</option>
+                        </select>
                     </div>
                 </div>
                 

@@ -13,9 +13,12 @@ document.addEventListener('DOMContentLoaded', function () {
     construirDropdown('dropFin', 'horaFin', 'valFin');
     configurarTriggers();
 
-    // Fecha mínima = hoy (hora Ecuador); inicializa en "hoy"
+    // Fecha permitida: hoy o mañana (máximo un día de anticipación)
     var inputFecha = document.getElementById('fechaManual');
-    if (inputFecha) inputFecha.min = ahoraEcuador().fecha;
+    if (inputFecha) {
+        inputFecha.min = ahoraEcuador().fecha;
+        inputFecha.max = fechaManana();
+    }
     seleccionarFecha('hoy');
 
     var motivo = document.querySelector('textarea[name="motivo"]');
@@ -32,6 +35,14 @@ document.addEventListener('DOMContentLoaded', function () {
 // =============================================
 function pad(n) { return (n < 10 ? '0' : '') + n; }
 function minutosAStr(min) { return pad(Math.floor(min / 60)) + ':' + pad(min % 60); }
+
+// Fecha de mañana (YYYY-MM-DD) en zona horaria de Ecuador
+function fechaManana() {
+    var p = ahoraEcuador().fecha.split('-');
+    var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
+    d.setUTCDate(d.getUTCDate() + 1);
+    return d.toISOString().split('T')[0];
+}
 
 // Fecha y hora actuales en zona horaria de Ecuador (independiente del equipo)
 function ahoraEcuador() {
@@ -177,7 +188,6 @@ function seleccionarFecha(tipo) {
     }
 
     document.getElementById('fechaSeleccionada').value = fecha;
-    document.getElementById('fechaManual').value = fecha;
 
     document.querySelectorAll('.btn-fecha').forEach(function (b) { b.classList.remove('activo'); });
     if (typeof event !== 'undefined' && event && event.target && event.target.classList.contains('btn-fecha')) {
@@ -240,6 +250,7 @@ function enviarReserva(event) {
 
     if (!fecha) { mostrarAlerta('Selecciona la fecha de uso.'); return; }
     if (fecha < ahoraEcuador().fecha) { mostrarAlerta('No puedes reservar en una fecha pasada.'); return; }
+    if (fecha > fechaManana()) { mostrarAlerta('Solo puedes reservar para hoy o para mañana (máximo un día de anticipación).'); return; }
     if (!inicio || !fin) { mostrarAlerta('Selecciona la hora de inicio y la hora de fin.'); return; }
     if (fin <= inicio) { mostrarAlerta('La hora de fin debe ser mayor que la hora de inicio.'); return; }
     if (inicio < '08:00' || fin > '17:00') { mostrarAlerta('El horario de reservas es de 08:00 a 17:00.'); return; }

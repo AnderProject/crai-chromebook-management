@@ -64,6 +64,7 @@ class Usuario(models.Model):
     tipo_usuario = models.ForeignKey(TipoUsuario, on_delete=models.PROTECT, verbose_name='Tipo de Usuario')
     cedula = models.CharField(max_length=10, unique=True, verbose_name='Cédula')
     telefono = models.CharField(max_length=10, blank=True, null=True, verbose_name='Teléfono')
+    foto = models.ImageField(upload_to='perfiles/', blank=True, null=True, verbose_name='Foto de perfil')
 
     # Trazabilidad del espejo con la API de matrículas
     origen = models.CharField(max_length=10, choices=ORIGEN_CHOICES, default='local', verbose_name='Origen')
@@ -346,3 +347,24 @@ class SesionUsuario(models.Model):
     
     def __str__(self):
         return f'{self.usuario.username} - {self.ip}'
+
+class ConfiguracionSistema(models.Model):
+    """Configuración global del sistema (fila única/singleton)."""
+    api_matriculas_activa = models.BooleanField(
+        default=True, verbose_name='Conexión con API de Matrículas activa'
+    )
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tb_configuracion_sistema'
+        verbose_name = 'Configuración del Sistema'
+        verbose_name_plural = 'Configuración del Sistema'
+
+    def __str__(self):
+        return 'Configuración del sistema'
+
+    @classmethod
+    def obtener(cls):
+        """Devuelve (creando si hace falta) la única fila de configuración."""
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

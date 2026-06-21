@@ -92,34 +92,65 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         var esReserva = new Date(fecha + 'T' + horaInicio) > new Date();
-        var verbo = esReserva ? 'reservar' : 'prestar';
-        if (!confirm('¿Confirmar ' + verbo + ' ' + chromebookSeleccionado.codigo + ' a ' + estudianteSeleccionado.nombre + ' el ' + fecha + ' de ' + horaInicio + ' a ' + horaFin + '?')) {
-            return;
-        }
 
-        fetch('/prestamos/api/registrar-prestamo/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
-            body: JSON.stringify({
-                chromebook_id: chromebookSeleccionado.id,
-                user_id: estudianteSeleccionado.user_id,
-                fecha: fecha,
-                hora_inicio: horaInicio,
-                hora_fin: horaFin
-            })
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.success) {
-                mostrarToastTrasReload(data.message, 'success');
-                location.reload();
-            } else {
-                mostrarToast(data.message, 'error');
-            }
-        });
+        // Llenar y mostrar el modal de confirmación (en vez del confirm() del navegador)
+        document.getElementById('confirmTitulo').textContent = esReserva ? 'Confirmar reserva' : 'Confirmar préstamo';
+        document.getElementById('confirmSubtitulo').textContent = esReserva
+            ? 'Se apartará el equipo para el horario indicado.'
+            : 'Se entregará el equipo ahora mismo.';
+        document.getElementById('confirmChromebook').textContent =
+            chromebookSeleccionado.codigo + ' · ' + chromebookSeleccionado.marca + ' ' + chromebookSeleccionado.modelo;
+        document.getElementById('confirmEstudiante').textContent = estudianteSeleccionado.nombre;
+        document.getElementById('confirmFecha').textContent = fecha;
+        document.getElementById('confirmHorario').textContent = horaInicio + ' – ' + horaFin;
+
+        var modal = new bootstrap.Modal(document.getElementById('modalConfirmarPrestamo'));
+        modal.show();
+
+        var btnFinal = document.getElementById('btnConfirmarPrestamoFinal');
+        btnFinal.onclick = function () {
+            ejecutarRegistroPrestamo(modal, btnFinal, fecha, horaInicio, horaFin);
+        };
     });
 
 });
+
+function ejecutarRegistroPrestamo(modal, btnFinal, fecha, horaInicio, horaFin) {
+    // Estado de carga en el botón del modal
+    btnFinal.disabled = true;
+    var htmlOriginal = btnFinal.innerHTML;
+    btnFinal.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Procesando...';
+
+    fetch('/prestamos/api/registrar-prestamo/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+        body: JSON.stringify({
+            chromebook_id: chromebookSeleccionado.id,
+            user_id: estudianteSeleccionado.user_id,
+            fecha: fecha,
+            hora_inicio: horaInicio,
+            hora_fin: horaFin
+        })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        if (data.success) {
+            mostrarToastTrasReload(data.message, 'success');
+            location.reload();
+        } else {
+            btnFinal.disabled = false;
+            btnFinal.innerHTML = htmlOriginal;
+            modal.hide();
+            mostrarToast(data.message, 'error');
+        }
+    })
+    .catch(function () {
+        btnFinal.disabled = false;
+        btnFinal.innerHTML = htmlOriginal;
+        modal.hide();
+        mostrarToast('Error al conectar con el servidor.', 'error');
+    });
+}
 
 function actualizarInfoHorario() {
     var info = document.getElementById('infoHorario');
@@ -141,6 +172,13 @@ function actualizarInfoHorario() {
         ? '<span class="text-primary"><i class="bi bi-calendar-check me-1"></i>Reserva</span>'
         : '<span class="text-success"><i class="bi bi-clock me-1"></i>Inmediato</span>';
     info.innerHTML = etiqueta + ' &bull; duración ' + horas + ' h';
+}
+
+function seleccionarFechaPrestamo(btn) {
+    document.querySelectorAll('.btn-fecha-opt').forEach(function (b) { b.classList.remove('activo'); });
+    btn.classList.add('activo');
+    document.getElementById('fechaPrestamo').value = btn.dataset.fecha;
+    actualizarInfoHorario();
 }
 
 function dejarDeSeguirHora() {

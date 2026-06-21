@@ -147,6 +147,18 @@
     align-items: center;
 }
 
+/* Variante compacta (más pequeña) */
+.busqueda-input-wrap.busqueda-compacta {
+    flex: 0 1 320px;
+    max-width: 320px;
+}
+
+.busqueda-compacta .busqueda-input {
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+    font-size: 0.85rem;
+}
+
 .busqueda-icono {
     position: absolute;
     left: 0.9rem;

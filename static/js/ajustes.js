@@ -96,3 +96,38 @@ function getCSRFToken() {
     }
     return '';
 }
+
+// =============================================
+// CONECTAR / DESCONECTAR API DE MATRÍCULAS
+// =============================================
+function toggleApiMatriculas() {
+    var btn = document.getElementById('btnToggleApi');
+    var desconectando = btn.classList.contains('desconectar');
+    var verbo = desconectando ? 'desconectar' : 'conectar';
+    if (!confirm('¿Seguro que deseas ' + verbo + ' la API de matrículas?')) { return; }
+
+    fetch('/prestamos/api/toggle-matriculas/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCSRFToken(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        var estado = document.getElementById('apiConexionEstado');
+        var texto = document.getElementById('btnToggleApiTexto');
+        if (data.activa) {
+            estado.innerHTML = '<span class="badge-conexion conectada"><i class="bi bi-broadcast"></i>Conectada</span>';
+            btn.classList.remove('conectar'); btn.classList.add('desconectar');
+            btn.querySelector('i').className = 'bi bi-plug-fill me-1';
+            texto.textContent = 'Desconectar API';
+            if (typeof mostrarToast === 'function') mostrarToast('API de matrículas conectada.', 'success');
+        } else {
+            estado.innerHTML = '<span class="badge-conexion desconectada"><i class="bi bi-plug"></i>Desconectada</span>';
+            btn.classList.remove('desconectar'); btn.classList.add('conectar');
+            btn.querySelector('i').className = 'bi bi-plug me-1';
+            texto.textContent = 'Conectar API';
+            if (typeof mostrarToast === 'function') mostrarToast('API de matrículas desconectada.', 'warning');
+        }
+        document.getElementById('apiStatus').innerHTML = '';
+    });
+}

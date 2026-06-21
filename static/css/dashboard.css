@@ -982,3 +982,110 @@ tr:hover .badge-estado {
     0%, 50% { opacity: 1; }
     51%, 100% { opacity: 0.45; }
 }
+
+/* Código de verificación en la tabla de reservaciones pendientes */
+.codigo-reserva {
+    display: inline-block;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    font-size: 0.82rem;
+    color: var(--primario);
+    background: var(--primario-claro);
+    padding: 0.2rem 0.6rem;
+    border-radius: 7px;
+}
+
+/* Código de reserva oculto + botón revelar */
+.codigo-oculto {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.codigo-mask {
+    letter-spacing: 0.15em;
+    color: #9aa5b1;
+    background: #eef1f6;
+}
+
+.codigo-revelado {
+    animation: codigoRevelar 0.35s ease;
+}
+
+@keyframes codigoRevelar {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.btn-revelar {
+    border: none;
+    background: transparent;
+    color: var(--primario);
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 0.25rem 0.4rem;
+    border-radius: 7px;
+    line-height: 1;
+    transition: background 0.2s, transform 0.2s, color 0.2s;
+}
+
+.btn-revelar:hover {
+    background: var(--primario-claro);
+    transform: scale(1.12);
+}
+
+/* Revelado inline (en la misma celda de los puntitos) */
+.revelar-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    animation: codigoRevelar 0.25s ease;
+}
+
+.cedula-inline {
+    width: 110px;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.82rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.cedula-inline:focus {
+    border-color: var(--primario);
+    box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.12);
+}
+
+.cedula-inline.cedula-error {
+    border-color: #e53935;
+    box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.15);
+    animation: cedulaShake 0.35s ease;
+}
+
+@keyframes cedulaShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+}
+
+.btn-inline {
+    border: none;
+    border-radius: 7px;
+    width: 27px;
+    height: 27px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    line-height: 1;
+    transition: transform 0.15s, filter 0.15s;
+}
+
+.btn-inline:hover { transform: scale(1.1); filter: brightness(1.05); }
+.btn-inline-ok { background: #e8f5e9; color: #2e7d32; }
+.btn-inline-cancel { background: #fde8e8; color: #c62828; }

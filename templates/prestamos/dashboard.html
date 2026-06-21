@@ -69,8 +69,8 @@
                                 <small class="text-muted">{{ user.email }}</small>
                             </div>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Mi Perfil</a>
-                            <a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Configuración</a>
+                            <a class="dropdown-item" href="{% url 'prestamos:perfil' %}"><i class="bi bi-person me-2"></i>Mi Perfil</a>
+                            <a class="dropdown-item" href="{% url 'prestamos:ajustes' %}"><i class="bi bi-gear me-2"></i>Ajustes</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item text-danger" href="{% url 'autenticacion:cerrar_sesion' %}">
                                 <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
@@ -174,7 +174,38 @@
                         </table>
                     </div>
                 </div>
-                
+
+                <div class="tabla-prestamos mt-4">
+                    <div class="table-header d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Reservaciones Pendientes</h5>
+                        <span class="badge bg-warning text-dark rounded-pill">{{ reservas_pendientes|length }}</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead><tr><th>Código</th><th>Estudiante</th><th>Carrera</th><th>Fecha de uso</th><th>Horario</th><th>Estado</th></tr></thead>
+                            <tbody>
+                                {% for r in reservas_pendientes %}
+                                <tr>
+                                    <td>
+                                        <div class="codigo-oculto" id="codigo-reserva-{{ r.id }}" data-reserva-id="{{ r.id }}">
+                                            <span class="codigo-reserva codigo-mask">••••••</span>
+                                            <button type="button" class="btn-revelar" title="Revelar con cédula" onclick="activarRevelarInline({{ r.id }})"><i class="bi bi-eye"></i></button>
+                                        </div>
+                                    </td>
+                                    <td><strong>{{ r.estudiante.usuario.user.get_full_name }}</strong></td>
+                                    <td><small class="text-muted">{{ r.estudiante.carrera.nombre|default:'—' }}</small></td>
+                                    <td>{{ r.fecha_uso|date:"d/m/Y" }}</td>
+                                    <td>{{ r.hora_inicio|time:"H:i" }} – {{ r.hora_fin|time:"H:i" }}</td>
+                                    <td><span class="badge-estado badge-proximo"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-calendar-x display-6 d-block mb-2"></i>No hay reservaciones pendientes</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </main>
         </div>
     </div>
@@ -442,10 +473,12 @@
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block scripts_extra %}
 <script src="{% static 'js/verificar_reservacion.js' %}"></script>
+<script src="{% static 'js/reservaciones_dashboard.js' %}"></script>
 <script src="{% static 'js/devolucion.js' %}"></script>
 <script src="{% static 'js/realtime.js' %}"></script>
 {% endblock %}

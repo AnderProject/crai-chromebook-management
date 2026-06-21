@@ -235,6 +235,13 @@ def reservar_chromebook(request):
                     'message': 'No puedes reservar en una fecha pasada.'
                 })
 
+            # Máximo un día de anticipación: solo hoy o mañana.
+            if fecha > hoy + timedelta(days=1):
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Solo puedes reservar para hoy o para mañana (máximo un día de anticipación).'
+                })
+
             # Para hoy, el turno no puede haber empezado ya (evita reservas que nacen vencidas).
             if fecha == hoy and hora_inicio_dt <= timezone.localtime().time():
                 return JsonResponse({
@@ -504,7 +511,7 @@ def api_chatbot(request):
                     hora_fin = accion_data.get('hora_fin', '09:00')
                     motivo = accion_data.get('motivo', '')
 
-                    from datetime import time as dtime
+                    from datetime import time as dtime, timedelta
                     fecha_dt = datetime.strptime(fecha_uso, '%Y-%m-%d').date()
                     hora_inicio_dt = datetime.strptime(hora_inicio, '%H:%M').time()
                     hora_fin_dt = datetime.strptime(hora_fin, '%H:%M').time()
@@ -518,6 +525,11 @@ def api_chatbot(request):
                         respuesta = (
                             'El horario de reservas es de 08:00 a 17:00 y la hora de fin '
                             'debe ser mayor que la de inicio. Intenta con otro horario.'
+                        )
+                    elif fecha_dt > timezone.localdate() + timedelta(days=1):
+                        respuesta = (
+                            'Solo puedes reservar para hoy o para mañana '
+                            '(máximo un día de anticipación).'
                         )
                     elif fecha_dt < timezone.localdate() or (
                         fecha_dt == timezone.localdate() and hora_inicio_dt <= timezone.localtime().time()

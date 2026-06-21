@@ -3,14 +3,11 @@
 // =============================================
 document.addEventListener('DOMContentLoaded', function () {
     var input = document.getElementById('buscarMantenimiento');
-    var btn = document.getElementById('btnBuscarMantenimiento');
     var limpiar = document.getElementById('btnLimpiarBusqueda');
     if (!input) { return; }
 
-    if (btn) { btn.addEventListener('click', filtrarMantenimientos); }
-    input.addEventListener('keyup', function (e) {
-        if (e.key === 'Enter') { filtrarMantenimientos(); }
-    });
+    // Búsqueda automática mientras se escribe
+    input.addEventListener('input', filtrarMantenimientos);
     if (limpiar) {
         limpiar.addEventListener('click', function () {
             input.value = '';

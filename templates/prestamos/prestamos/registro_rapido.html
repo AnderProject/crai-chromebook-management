@@ -106,8 +106,12 @@
                                 </div>
                                 <div class="horario-grid">
                                     <div class="horario-campo">
-                                        <label class="horario-label" for="fechaPrestamo">Fecha</label>
-                                        <input type="date" class="input-elegante" id="fechaPrestamo" value="{{ fecha_hoy }}" min="{{ fecha_hoy }}">
+                                        <label class="horario-label">Fecha</label>
+                                        <div class="fecha-botones">
+                                            <button type="button" class="btn-fecha-opt activo" data-fecha="{{ fecha_hoy }}" onclick="seleccionarFechaPrestamo(this)">Hoy</button>
+                                            <button type="button" class="btn-fecha-opt" data-fecha="{{ fecha_manana }}" onclick="seleccionarFechaPrestamo(this)">Mañana</button>
+                                        </div>
+                                        <input type="hidden" id="fechaPrestamo" value="{{ fecha_hoy }}">
                                     </div>
                                     <div class="horario-campo">
                                         <label class="horario-label" for="horaInicio">Hora inicio <span class="horario-vivo" id="horaInicioVivo" title="Se actualiza con la hora actual"><i class="bi bi-broadcast"></i>en vivo</span></label>
@@ -160,6 +164,31 @@
                     
                 </div>
             </main>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: CONFIRMAR PRÉSTAMO / RESERVA -->
+<div class="modal fade" id="modalConfirmarPrestamo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-0" style="background: linear-gradient(135deg, #1a73e8, #1557b0); color: #fff; border-radius: 16px 16px 0 0;">
+                <h5 class="modal-title fw-bold"><i class="bi bi-laptop me-2"></i><span id="confirmTitulo">Confirmar préstamo</span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3" id="confirmSubtitulo">Revisa los datos antes de confirmar.</p>
+                <div class="confirm-resumen">
+                    <div class="confirm-fila"><span><i class="bi bi-laptop"></i>Chromebook</span><strong id="confirmChromebook">—</strong></div>
+                    <div class="confirm-fila"><span><i class="bi bi-person"></i>Estudiante</span><strong id="confirmEstudiante">—</strong></div>
+                    <div class="confirm-fila"><span><i class="bi bi-calendar3"></i>Fecha</span><strong id="confirmFecha">—</strong></div>
+                    <div class="confirm-fila"><span><i class="bi bi-clock"></i>Horario</span><strong id="confirmHorario">—</strong></div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmarPrestamoFinal"><i class="bi bi-check-lg me-1"></i>Confirmar</button>
+            </div>
         </div>
     </div>
 </div>

@@ -98,15 +98,20 @@
                     </div>
                     
                     <div id="tab-directorio" class="tab-contenido">
-                        <div class="input-group mb-3">
-                            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                            <input type="text" class="form-control" placeholder="Buscar por nombre, cédula o carrera..." id="buscarEstudiante" onkeyup="filtrarEstudiantes()">
-                            <select class="form-select" style="max-width: 180px;" id="filtroCarrera" onchange="filtrarEstudiantes()">
-                                <option value="">Todas las carreras</option>
-                                {% for carrera in carreras %}
-                                <option value="{{ carrera.nombre }}">{{ carrera.nombre }}</option>
-                                {% endfor %}
-                            </select>
+                        <div class="filtros-barra">
+                            <div class="filtro-busqueda">
+                                <i class="bi bi-search filtro-icono"></i>
+                                <input type="text" class="filtro-input" placeholder="Buscar por nombre, cédula o carrera..." id="buscarEstudiante" onkeyup="filtrarEstudiantes()" autocomplete="off">
+                            </div>
+                            <div class="filtro-select-wrap">
+                                <i class="bi bi-mortarboard filtro-select-icono"></i>
+                                <select class="filtro-select" id="filtroCarrera" onchange="filtrarEstudiantes()">
+                                    <option value="">Todas las carreras</option>
+                                    {% for carrera in carreras %}
+                                    <option value="{{ carrera.nombre }}">{{ carrera.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
                         
                         <div id="listaEstudiantes">

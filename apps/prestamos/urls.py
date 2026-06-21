@@ -23,6 +23,7 @@ urlpatterns = [
     path('estudiantes/', views.lista_estudiantes, name='lista_estudiantes'),
 
     path('api/verificar-codigo/', views.verificar_codigo_reservacion, name='verificar_codigo_api'),
+    path('api/revelar-codigo-reserva/', views.revelar_codigo_reserva, name='revelar_codigo_reserva'),
     path('api/confirmar-prestamo/', views.confirmar_prestamo, name='confirmar_prestamo_api'),
 
     path('api/buscar-chromebook/', views.api_buscar_chromebook, name='api_buscar_chromebook'),
@@ -45,6 +46,9 @@ urlpatterns = [
     path('api/detalle-mantenimiento/<int:id>/', views.api_detalle_mantenimiento, name='api_detalle_mantenimiento'),
     path('api/editar-mantenimiento/<int:id>/', views.api_editar_mantenimiento, name='api_editar_mantenimiento'),
     path('ajustes/', views.ajustes, name='ajustes'),
+    path('perfil/', views.perfil, name='perfil'),
+    path('perfil/foto/', views.actualizar_foto_perfil, name='actualizar_foto_perfil'),
+    path('perfil/password/', views.cambiar_password_perfil, name='cambiar_password_perfil'),
     path('reportes/', views.reportes, name='reportes'),
 
     # TICs: gestión de personal (crear recepcionistas)
@@ -57,6 +61,7 @@ urlpatterns = [
     # API de integración con matrículas
     path('api/test-conexion/', views.api_test_conexion, name='api_test_conexion'),
     path('api/sincronizar/', views.api_sincronizar_estudiantes, name='api_sincronizar'),
+    path('api/toggle-matriculas/', views.api_toggle_matriculas, name='api_toggle_matriculas'),
 
     # APIs de actualización en vivo (admin)
     path('api/dashboard-stats/', views.api_dashboard_stats, name='api_dashboard_stats'),

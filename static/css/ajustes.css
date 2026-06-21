@@ -158,3 +158,66 @@ body.modo-oscuro .ajustes-container h2 {
 body.modo-oscuro .ajustes-container h6 {
     color: #e0e0e0 !important;
 }
+/* ==========================================
+   CONEXIÓN API MATRÍCULAS
+   ========================================== */
+.badge-conexion {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.95rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-conexion.conectada {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.badge-conexion.conectada i {
+    animation: latidoConexion 1.6s ease-in-out infinite;
+}
+
+.badge-conexion.desconectada {
+    background: #fde8e8;
+    color: #c62828;
+}
+
+@keyframes latidoConexion {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.btn-toggle-api {
+    display: inline-flex;
+    align-items: center;
+    border: none;
+    border-radius: 12px;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.btn-toggle-api.desconectar {
+    background: linear-gradient(135deg, #e53935, #c62828);
+    box-shadow: 0 5px 14px rgba(229, 57, 53, 0.32);
+}
+
+.btn-toggle-api.conectar {
+    background: linear-gradient(135deg, #43a047, #2e7d32);
+    box-shadow: 0 5px 14px rgba(67, 160, 71, 0.32);
+}
+
+.btn-toggle-api:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+
+.btn-toggle-api:active {
+    transform: translateY(0);
+}

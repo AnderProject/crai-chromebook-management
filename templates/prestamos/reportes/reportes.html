@@ -69,8 +69,8 @@
                                 <small class="text-muted">{{ user.email }}</small>
                             </div>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Mi Perfil</a>
-                            <a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Configuración</a>
+                            <a class="dropdown-item" href="{% url 'prestamos:perfil' %}"><i class="bi bi-person me-2"></i>Mi Perfil</a>
+                            <a class="dropdown-item" href="{% url 'prestamos:ajustes' %}"><i class="bi bi-gear me-2"></i>Ajustes</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item text-danger" href="{% url 'autenticacion:cerrar_sesion' %}">
                                 <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión

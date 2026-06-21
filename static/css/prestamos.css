@@ -344,3 +344,77 @@
         padding: 0 0.5rem;
     }
 }
+/* ==========================================
+   MODAL CONFIRMAR PRÉSTAMO / RESERVA
+   ========================================== */
+.confirm-resumen {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    background: #f7f9ff;
+    border: 1px solid #eef0f5;
+    border-radius: 12px;
+    padding: 0.4rem 0.9rem;
+}
+
+.confirm-fila {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid #eef0f5;
+}
+
+.confirm-fila:last-child {
+    border-bottom: none;
+}
+
+.confirm-fila > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.confirm-fila > span i {
+    color: #1a73e8;
+}
+
+.confirm-fila > strong {
+    color: #2d3748;
+    font-size: 0.88rem;
+    text-align: right;
+}
+
+/* Botones de fecha (Hoy / Mañana) en Nuevo Préstamo */
+.fecha-botones {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.btn-fecha-opt {
+    flex: 1;
+    border: 1px solid var(--borde);
+    background: #fafafa;
+    color: #5a6472;
+    border-radius: 8px;
+    padding: 0.5rem 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.btn-fecha-opt:hover {
+    border-color: #1a73e8;
+    color: #1a73e8;
+}
+
+.btn-fecha-opt.activo {
+    background: linear-gradient(135deg, #1a73e8, #1557b0);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+}

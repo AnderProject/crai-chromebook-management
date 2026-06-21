@@ -109,13 +109,17 @@
                 <div class="ajuste-card">
                     <h6 class="fw-bold mb-3"><i class="bi bi-cloud-arrow-up me-2"></i>Integración API Matrículas</h6>
                     <p class="text-muted small mb-3">Estado de la conexión con el sistema de matrículas de la UNEMI</p>
-                    
-                    <div id="apiStatus" class="mb-3">
-                        <span class="badge bg-secondary fs-6 px-3 py-2">
-                            <i class="bi bi-dash-circle me-1"></i>Sin verificar
-                        </span>
+
+                    <div id="apiConexionEstado" class="mb-3">
+                        {% if api_activa %}
+                        <span class="badge-conexion conectada"><i class="bi bi-broadcast"></i>Conectada</span>
+                        {% else %}
+                        <span class="badge-conexion desconectada"><i class="bi bi-plug"></i>Desconectada</span>
+                        {% endif %}
                     </div>
-                    
+
+                    <div id="apiStatus" class="mb-3"></div>
+
                     <div class="d-flex gap-2 flex-wrap">
                         <button class="btn-codigo-reservacion" onclick="testConexionAPI()">
                             <span class="btn-codigo-icono"><i class="bi bi-plug"></i></span>
@@ -124,6 +128,10 @@
                         <button class="btn-codigo-reservacion" id="btnSincronizar" onclick="sincronizarEstudiantes()" style="background: linear-gradient(135deg, #34a853, #2d8f47);">
                             <span class="btn-codigo-icono"><i class="bi bi-arrow-repeat"></i></span>
                             <span class="btn-codigo-texto"><strong>Sincronizar</strong><small>Estudiantes</small></span>
+                        </button>
+                        <button class="btn-toggle-api {% if api_activa %}desconectar{% else %}conectar{% endif %}" id="btnToggleApi" onclick="toggleApiMatriculas()">
+                            <i class="bi {% if api_activa %}bi-plug-fill{% else %}bi-plug{% endif %} me-1"></i>
+                            <span id="btnToggleApiTexto">{% if api_activa %}Desconectar API{% else %}Conectar API{% endif %}</span>
                         </button>
                     </div>
                 </div>
