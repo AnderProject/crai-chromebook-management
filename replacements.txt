@@ -1,2 +1,0 @@
-rcklqxbjqxeckrrs==>***REVOKED-APP-PASSWORD***
-django-insecure-+34481el4e_mmfz4$)1fy(7njw(b6#rc0#x!+(+@0k^3ud_mv_==>***ROTATED-SECRET-KEY***
