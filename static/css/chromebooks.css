@@ -76,6 +76,7 @@
 .bg-naranja { background: #fff3e0; color: #ff9800; }
 .bg-verde { background: #e6f4ea; color: #34a853; }
 .bg-rojo { background: #fdecea; color: #ea4335; }
+.bg-pendiente { background: #ede7f6; color: #5e35b1; }
 
 .stat-info-chromebook {
     display: flex;
@@ -111,6 +112,7 @@
 .stat-card-bar.bg-naranja { background: linear-gradient(90deg, #ff9800, #ffb74d); }
 .stat-card-bar.bg-verde { background: linear-gradient(90deg, #34a853, #66bb6a); }
 .stat-card-bar.bg-rojo { background: linear-gradient(90deg, #ea4335, #ff6b6b); }
+.stat-card-bar.bg-pendiente { background: linear-gradient(90deg, #5e35b1, #7c4dff); }
 
 /* Animación escalonada */
 .chromebook-stat-card:nth-child(1) { animation: fadeInCard 0.5s ease-out; }
@@ -175,6 +177,11 @@
     50% { box-shadow: 0 0 8px 4px rgba(220, 53, 69, 0.2); }
 }
 
+@keyframes brilloMorado {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(94, 53, 177, 0.4); }
+    50% { box-shadow: 0 0 8px 4px rgba(94, 53, 177, 0.2); }
+}
+
 /* ========== ESTADO ========== */
 /* Disponible */
 td .badge.bg-success {
@@ -189,6 +196,13 @@ td .badge.bg-warning {
 /* Mantenimiento */
 td .badge.bg-danger {
     animation: reboteRojo 0.6s ease, brilloRojo 1.5s ease-in-out 0.6s infinite;
+}
+
+/* Pendiente a reserva */
+td .badge.bg-pendiente {
+    background-color: #5e35b1 !important;
+    color: #fff;
+    animation: reboteNaranja 0.6s ease, brilloMorado 2s ease-in-out 0.6s infinite;
 }
 
 /* ========== CONDICIÓN ========== */

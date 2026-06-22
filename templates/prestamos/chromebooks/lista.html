@@ -65,7 +65,7 @@
                 
                 <!-- Cards PREMIUM -->
                 <div class="row g-3 mb-4">
-                    <div class="col-md-3">
+                    <div class="col-6 col-lg">
                         <div class="chromebook-stat-card">
                             <div class="stat-card-glow"></div>
                             <div class="stat-card-content">
@@ -78,7 +78,7 @@
                             <div class="stat-card-bar bg-azul"></div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-6 col-lg">
                         <div class="chromebook-stat-card">
                             <div class="stat-card-glow"></div>
                             <div class="stat-card-content">
@@ -91,7 +91,20 @@
                             <div class="stat-card-bar bg-verde"></div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-6 col-lg">
+                        <div class="chromebook-stat-card">
+                            <div class="stat-card-glow"></div>
+                            <div class="stat-card-content">
+                                <div class="stat-icono-chromebook bg-pendiente"><i class="bi bi-calendar-check"></i></div>
+                                <div class="stat-info-chromebook">
+                                    <span class="stat-numero-chromebook" data-stat="pendiente_reserva">{{ pendiente_reserva }}</span>
+                                    <span class="stat-label-chromebook">Pendiente a reserva</span>
+                                </div>
+                            </div>
+                            <div class="stat-card-bar bg-pendiente"></div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg">
                         <div class="chromebook-stat-card">
                             <div class="stat-card-glow"></div>
                             <div class="stat-card-content">
@@ -104,7 +117,7 @@
                             <div class="stat-card-bar bg-naranja"></div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-6 col-lg">
                         <div class="chromebook-stat-card">
                             <div class="stat-card-glow"></div>
                             <div class="stat-card-content">
@@ -130,6 +143,7 @@
                         <select class="filtro-select" id="filtroEstado" onchange="filtrarChromebooks()">
                             <option value="">Todos los estados</option>
                             <option value="disponible">Disponible</option>
+                            <option value="pendiente_reserva">Pendiente a reserva</option>
                             <option value="prestado">Prestado</option>
                             <option value="mantenimiento">Mantenimiento</option>
                         </select>
@@ -159,14 +173,15 @@
                             <tbody>
                                 {% if chromebooks %}
                                     {% for cb in chromebooks %}
-                                    <tr data-codigo="{{ cb.codigo|lower }}" data-marca="{{ cb.marca|lower }}" data-modelo="{{ cb.modelo|lower }}" data-estado="{{ cb.estado|lower }}">
+                                    <tr data-codigo="{{ cb.codigo|lower }}" data-marca="{{ cb.marca|lower }}" data-modelo="{{ cb.modelo|lower }}" data-estado="{{ cb.estado_efectivo|lower }}">
                                         <td><strong>{{ cb.codigo }}</strong></td>
                                         <td>{{ cb.marca }}</td>
                                         <td>{{ cb.modelo }}</td>
                                         <td><small class="text-muted">{{ cb.serie }}</small></td>
                                         <td data-estado-cell>
-                                            {% if cb.estado == 'disponible' %}<span class="badge bg-success">Disponible</span>
-                                            {% elif cb.estado == 'prestado' %}<span class="badge bg-warning">Prestado</span>
+                                            {% if cb.estado_efectivo == 'disponible' %}<span class="badge bg-success">Disponible</span>
+                                            {% elif cb.estado_efectivo == 'pendiente_reserva' %}<span class="badge bg-pendiente">Pendiente a reserva</span>
+                                            {% elif cb.estado_efectivo == 'prestado' %}<span class="badge bg-warning">Prestado</span>
                                             {% else %}<span class="badge bg-danger">Mantenimiento</span>{% endif %}
                                         </td>
                                         <td>
@@ -181,7 +196,7 @@
                                             <button class="btn btn-sm btn-outline-warning me-1" title="Editar" onclick="editarChromebook('{{ cb.id }}')">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
-                                            {% if cb.estado == 'disponible' %}
+                                            {% if cb.estado_efectivo == 'disponible' %}
                                             <a href="{% url 'prestamos:lista_prestamos' %}" class="btn btn-sm btn-outline-success" title="Prestar equipo">
                                                 <i class="bi bi-journal-plus"></i>
                                             </a>

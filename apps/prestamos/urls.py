@@ -69,6 +69,7 @@ urlpatterns = [
     path('api/dashboard-stats/', views.api_dashboard_stats, name='api_dashboard_stats'),
     path('api/prestamos-hoy/', views.api_prestamos_hoy, name='api_prestamos_hoy'),
     path('api/chromebooks-estado/', views.api_chromebooks_estado, name='api_chromebooks_estado'),
+    path('api/monitoreo/', views.api_monitoreo, name='api_monitoreo'),
     path('api/reportes-temporal/', views.api_reportes_temporal, name='api_reportes_temporal'),
 
 ]

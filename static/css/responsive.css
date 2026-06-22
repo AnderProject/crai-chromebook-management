@@ -1,0 +1,159 @@
+/* =============================================================
+   RESPONSIVE GLOBAL - CRAI UNEMI
+   Capa transversal que se carga en TODAS las páginas (después de
+   base.css). Reglas defensivas + breakpoints comunes para que la
+   interfaz se adapte a cualquier dimensión de pantalla.
+   No reemplaza los breakpoints específicos de cada pantalla; los
+   complementa. Evita tocar overflow del <body> para no romper los
+   elementos position:sticky de la app.
+   ============================================================= */
+
+/* ---- Reglas defensivas (todas las resoluciones) ---- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+img,
+video,
+canvas,
+svg,
+iframe { max-width: 100%; }
+
+img,
+video { height: auto; }
+
+/* Que ningún contenedor empuje un scroll horizontal accidental */
+.container,
+.container-fluid,
+.row { max-width: 100%; }
+
+/* Las tablas siempre deben poder desplazarse en horizontal si no caben */
+.table-responsive { -webkit-overflow-scrolling: touch; }
+
+/* Botón flotante del menú lateral (lo inyecta base.js). Oculto por defecto;
+   solo visible en móvil, donde el sidebar queda colapsado. */
+.btn-sidebar-movil { display: none; }
+
+/* Palabras/códigos muy largos no rompen el layout */
+.text-break-anywhere { overflow-wrap: anywhere; word-break: break-word; }
+
+/* =============================================================
+   TABLET Y MENORES (<= 991.98px)
+   ============================================================= */
+@media (max-width: 991.98px) {
+    .main-content { padding: 1.25rem 1rem; }
+
+    /* El sidebar deja de ser sticky a pantalla completa cuando se
+       despliega como menú colapsado sobre el contenido. */
+    .sidebar-dashboard {
+        position: static;
+        height: auto;
+        min-height: auto;
+    }
+}
+
+/* Botón flotante del menú lateral: visible solo en móvil/tablet pequeña */
+@media (max-width: 767.98px) {
+    .btn-sidebar-movil {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        left: 1rem;
+        bottom: 1rem;
+        z-index: 1050;
+        width: 52px;
+        height: 52px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primario, #1a237e);
+        color: #fff;
+        font-size: 1.5rem;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        cursor: pointer;
+    }
+    .btn-sidebar-movil:active { transform: scale(0.94); }
+}
+
+/* =============================================================
+   MÓVIL GRANDE (<= 767.98px)
+   ============================================================= */
+@media (max-width: 767.98px) {
+    .main-content {
+        padding: 1rem 0.75rem;
+        height: auto;
+    }
+
+    .page-header { padding: 0.85rem 1rem; }
+
+    /* Encabezados de tabla con botones/búsqueda: que envuelvan */
+    .table-header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    /* Tablas más compactas */
+    .table th,
+    .table td {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.82rem;
+    }
+
+    /* Modales cómodos en móvil */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    .modal-body {
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    /* Botones de acciones en grupo: ocupan el ancho y se apilan */
+    .mp-acciones {
+        flex-wrap: wrap;
+    }
+    .mp-acciones .mp-btn {
+        flex: 1 1 auto;
+    }
+}
+
+/* =============================================================
+   MÓVIL PEQUEÑO (<= 575.98px)
+   ============================================================= */
+@media (max-width: 575.98px) {
+    .main-content { padding: 0.75rem 0.6rem; }
+
+    /* Tipografías de stats más contenidas para que no desborden */
+    .stat-numero-dash,
+    .stat-numero-chromebook { font-size: 1.4rem; }
+
+    .stat-label-dash,
+    .stat-label-chromebook { font-size: 0.78rem; }
+
+    /* Títulos de página y secciones */
+    h1, .h1 { font-size: 1.5rem; }
+    h2, .h2 { font-size: 1.3rem; }
+    h3, .h3 { font-size: 1.15rem; }
+
+    /* Tablas aún más compactas */
+    .table th,
+    .table td {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.78rem;
+    }
+
+    /* Filtros y barras de búsqueda se apilan */
+    .filtros-barra,
+    .monitoreo-toolbar,
+    .monitoreo-grid {
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+    .filtro-busqueda,
+    .filtro-select-wrap,
+    .monitoreo-busqueda { width: 100%; }
+
+    /* Botones de Bootstrap en barras superiores: ancho completo */
+    .page-header .btn,
+    .filtros-barra .btn { width: 100%; }
+}

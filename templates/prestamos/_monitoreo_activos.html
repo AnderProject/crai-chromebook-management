@@ -1,0 +1,12 @@
+{% for p in prestamos_activos_lista %}
+<div class="monitoreo-card monitoreo-card-activo" data-buscar="{{ p.estudiante.get_full_name|default:p.estudiante.username|lower }} {{ p.chromebook.codigo|lower }}">
+    <div class="monitoreo-card-avatar"><i class="bi bi-laptop"></i></div>
+    <div class="monitoreo-card-info">
+        <strong>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong>
+        <span class="monitoreo-card-meta">{{ p.chromebook.codigo }} · Desde {{ p.fecha_prestamo|date:"d/m H:i" }} · Devuelve {{ p.fecha_devolucion|date:"H:i" }}</span>
+    </div>
+    <span class="monitoreo-badge monitoreo-badge-activo">Activo</span>
+</div>
+{% empty %}
+<div class="monitoreo-vacio">No hay préstamos activos</div>
+{% endfor %}

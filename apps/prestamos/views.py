@@ -56,9 +56,7 @@ def dashboard(request):
     porcentaje_disponible = round((disponibles / total_chromebooks) * 100) if total_chromebooks > 0 else 0
     
     prestamos_activos = Prestamo.objects.filter(estado='activo').count()
-    ahora = timezone.now()
-    manana = ahora + timedelta(hours=24)
-    por_vencer = Prestamo.objects.filter(estado='activo', fecha_devolucion__lte=manana).count()
+    por_vencer = _reservas_por_vencer()
     vencidos = Prestamo.objects.filter(estado='vencido').count()
     
     total_estudiantes = User.objects.filter(groups__name='Estudiante').count()
@@ -118,13 +116,20 @@ def api_dashboard_stats(request):
     porcentaje_disponible = round((disponibles / total_chromebooks) * 100) if total_chromebooks > 0 else 0
 
     prestamos_activos = Prestamo.objects.filter(estado='activo').count()
-    manana = timezone.now() + timedelta(hours=24)
-    por_vencer = Prestamo.objects.filter(estado='activo', fecha_devolucion__lte=manana).count()
+    por_vencer = _reservas_por_vencer()
     total_estudiantes = User.objects.filter(groups__name='Estudiante').count()
     reservas_hoy = Reserva.objects.filter(fecha_uso=timezone.now().date(), estado='pendiente').count()
 
     ultimos_prestamos = Prestamo.objects.select_related('estudiante', 'chromebook').all().order_by('-fecha_prestamo')[:5]
     filas_html = render_to_string('prestamos/_ultimos_prestamos_rows.html', {'ultimos_prestamos': ultimos_prestamos})
+
+    reservas_pendientes = (
+        Reserva.objects
+        .filter(estado='pendiente')
+        .select_related('estudiante__usuario__user', 'estudiante__carrera')
+        .order_by('fecha_uso', 'hora_inicio')
+    )
+    reservas_html = render_to_string('prestamos/_reservas_pendientes_rows.html', {'reservas_pendientes': reservas_pendientes})
 
     return JsonResponse({
         'contadores': {
@@ -135,8 +140,10 @@ def api_dashboard_stats(request):
             'total_estudiantes': total_estudiantes,
             'reservas_hoy': reservas_hoy,
             'porcentaje_disponible': porcentaje_disponible,
+            'reservas_pendientes': reservas_pendientes.count(),
         },
         'filas_html': filas_html,
+        'reservas_html': reservas_html,
     })
 
 
@@ -158,12 +165,15 @@ def api_chromebooks_estado(request):
     """Contadores e inventario {codigo: estado} (para refresco en vivo de chromebooks)."""
     from .models import Chromebook
 
-    chromebooks = Chromebook.objects.all()
-    total = chromebooks.count()
-    disponibles = chromebooks.filter(estado='disponible').count()
-    prestados = chromebooks.filter(estado='prestado').count()
-    en_mantenimiento = chromebooks.filter(estado='mantenimiento').count()
-    estados = {cb.codigo: cb.estado for cb in chromebooks}
+    chromebooks = list(Chromebook.objects.all())
+    _marcar_pendiente_reserva(chromebooks)
+
+    total = len(chromebooks)
+    disponibles = sum(1 for cb in chromebooks if cb.estado_efectivo == 'disponible')
+    prestados = sum(1 for cb in chromebooks if cb.estado_efectivo == 'prestado')
+    en_mantenimiento = sum(1 for cb in chromebooks if cb.estado_efectivo == 'mantenimiento')
+    pendiente_reserva = sum(1 for cb in chromebooks if cb.estado_efectivo == 'pendiente_reserva')
+    estados = {cb.codigo: cb.estado_efectivo for cb in chromebooks}
 
     return JsonResponse({
         'contadores': {
@@ -171,8 +181,42 @@ def api_chromebooks_estado(request):
             'disponibles': disponibles,
             'prestados': prestados,
             'en_mantenimiento': en_mantenimiento,
+            'pendiente_reserva': pendiente_reserva,
         },
         'estados': estados,
+    })
+
+
+@login_required
+def api_monitoreo(request):
+    """Listas de monitoreo de estudiantes (activos y vencidos) para refresco en vivo."""
+    from .models import Reserva
+
+    _expirar_reservas_vencidas()
+
+    reservas_vencidas_lista = Reserva.objects.filter(estado='vencida').select_related(
+        'estudiante__usuario__user', 'carrera'
+    ).order_by('-fecha_uso', '-hora_inicio')[:10]
+    prestamos_activos_lista = Prestamo.objects.filter(estado='activo').select_related(
+        'estudiante', 'chromebook'
+    ).order_by('fecha_devolucion')[:10]
+    prestamos_vencidos_lista = Prestamo.objects.filter(estado='vencido').select_related(
+        'estudiante', 'chromebook'
+    ).order_by('-fecha_devolucion')[:10]
+
+    activos_html = render_to_string('prestamos/_monitoreo_activos.html', {
+        'prestamos_activos_lista': prestamos_activos_lista,
+    })
+    vencidos_html = render_to_string('prestamos/_monitoreo_vencidos.html', {
+        'prestamos_vencidos_lista': prestamos_vencidos_lista,
+        'reservas_vencidas_lista': reservas_vencidas_lista,
+    })
+
+    return JsonResponse({
+        'activos_html': activos_html,
+        'vencidos_html': vencidos_html,
+        'count_activos': len(prestamos_activos_lista),
+        'count_vencidos': len(prestamos_vencidos_lista) + len(reservas_vencidas_lista),
     })
 
 
@@ -879,19 +923,46 @@ def api_detalle_prestamo(request, id):
 @login_required
 def lista_chromebooks(request):
     """Vista de inventario de Chromebooks con datos reales"""
-    chromebooks = Chromebook.objects.all().order_by('codigo')
-    total = chromebooks.count()
-    disponibles = chromebooks.filter(estado='disponible').count()
-    prestados = chromebooks.filter(estado='prestado').count()
-    en_mantenimiento = chromebooks.filter(estado='mantenimiento').count()
-    
+    chromebooks = list(Chromebook.objects.all().order_by('codigo'))
+    _marcar_pendiente_reserva(chromebooks)
+
+    total = len(chromebooks)
+    disponibles = sum(1 for cb in chromebooks if cb.estado_efectivo == 'disponible')
+    prestados = sum(1 for cb in chromebooks if cb.estado_efectivo == 'prestado')
+    en_mantenimiento = sum(1 for cb in chromebooks if cb.estado_efectivo == 'mantenimiento')
+    pendiente_reserva = sum(1 for cb in chromebooks if cb.estado_efectivo == 'pendiente_reserva')
+
     contexto = {
         'titulo_pagina': 'Chromebooks - CRAI UNEMI',
         'chromebooks': chromebooks, 'total': total,
         'disponibles': disponibles, 'prestados': prestados,
         'en_mantenimiento': en_mantenimiento,
+        'pendiente_reserva': pendiente_reserva,
     }
     return render(request, 'prestamos/chromebooks/lista.html', contexto)
+
+
+def _marcar_pendiente_reserva(chromebooks):
+    """Asigna ``estado_efectivo`` a cada Chromebook de la lista.
+
+    Una reserva pendiente no aparta un equipo concreto, solo consume un cupo del día.
+    Para reflejarlo en el inventario, marcamos como 'pendiente_reserva' tantos equipos
+    'disponible' como reservas pendientes vigentes existan (de cualquier fecha). El resto
+    conserva su estado real. Devuelve el nº de equipos marcados.
+    """
+    from .models import Reserva
+
+    _expirar_reservas_vencidas()
+    n_reservas = Reserva.objects.filter(estado='pendiente').count()
+
+    for cb in chromebooks:
+        cb.estado_efectivo = cb.estado
+
+    libres = [cb for cb in chromebooks if cb.estado == 'disponible']
+    marcar = min(n_reservas, len(libres))
+    for cb in libres[:marcar]:
+        cb.estado_efectivo = 'pendiente_reserva'
+    return marcar
 
 
 @login_required
@@ -1495,6 +1566,26 @@ def _expirar_reservas_vencidas():
             vencidas_ids.append(r.id)
     if vencidas_ids:
         Reserva.objects.filter(id__in=vencidas_ids).update(estado='vencida')
+
+
+def _reservas_por_vencer():
+    """Reservas 'pendiente' que están a punto de vencer (dentro de su ventana de gracia de 15 min).
+
+    Una reserva vence 15 min después de su hora de inicio. Esta función cuenta las
+    reservas cuya hora de inicio ya pasó pero aún no llegan al límite, es decir, las que
+    tienen 15 minutos o menos restantes antes de expirar.
+    """
+    from datetime import datetime, timedelta
+    from .models import Reserva
+
+    ahora = timezone.now()
+    cuenta = 0
+    for r in Reserva.objects.filter(estado='pendiente'):
+        inicio = timezone.make_aware(datetime.combine(r.fecha_uso, r.hora_inicio))
+        limite = inicio + timedelta(minutes=15)
+        if inicio <= ahora < limite:
+            cuenta += 1
+    return cuenta
 
 
 def _disponibles_efectivos(fecha=None):

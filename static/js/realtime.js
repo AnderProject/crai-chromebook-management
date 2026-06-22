@@ -22,8 +22,20 @@ function actualizarContadores(contadores) {
 // Memoria del último HTML pintado: solo se reemplaza el DOM si CAMBIÓ (evita el parpadeo)
 var ultimoDashboardHtml = null;
 var ultimoPrestamosHoyHtml = null;
+var ultimoReservasHtml = null;
 
-// ---- Dashboard: contadores + tabla últimos préstamos ----
+// ¿Hay una interacción en curso en la tabla de reservas que NO debemos pisar?
+// (un código revelado, un input de cédula abierto, o una búsqueda activa)
+function reservasOcupado() {
+    var tbody = document.getElementById('tbodyReservasPendientes');
+    if (!tbody) { return false; }
+    if (tbody.querySelector('.cedula-inline, .codigo-revelado')) { return true; }
+    var buscador = document.getElementById('buscadorReservas');
+    if (buscador && buscador.value.trim() !== '') { return true; }
+    return false;
+}
+
+// ---- Dashboard: contadores + tabla últimos préstamos + reservas pendientes ----
 function pollDashboard() {
     craiObtener('/prestamos/api/dashboard-stats/')
         .then(function (data) {
@@ -34,6 +46,17 @@ function pollDashboard() {
                 ultimoDashboardHtml = data.filas_html;
                 if (typeof actualizarTiemposRestantes === 'function') {
                     actualizarTiemposRestantes();
+                }
+            }
+
+            // Tabla de Reservaciones Pendientes (no pisar interacciones en curso)
+            var tbodyReservas = document.getElementById('tbodyReservasPendientes');
+            if (tbodyReservas && data.reservas_html && data.reservas_html !== ultimoReservasHtml && !reservasOcupado()) {
+                tbodyReservas.innerHTML = data.reservas_html;
+                ultimoReservasHtml = data.reservas_html;
+                var badge = document.getElementById('badgeReservasPendientes');
+                if (badge && data.contadores && typeof data.contadores.reservas_pendientes !== 'undefined') {
+                    badge.textContent = data.contadores.reservas_pendientes;
                 }
             }
         })
@@ -57,6 +80,7 @@ function pollPrestamosHoy() {
 // ---- Chromebooks: contadores + badge de estado por fila (preserva el filtro) ----
 var CB_BADGES = {
     disponible: { clase: 'bg-success', texto: 'Disponible' },
+    pendiente_reserva: { clase: 'bg-pendiente', texto: 'Pendiente a reserva' },
     prestado: { clase: 'bg-warning', texto: 'Prestado' },
     mantenimiento: { clase: 'bg-danger', texto: 'Mantenimiento' }
 };
@@ -83,6 +107,35 @@ function pollChromebooks() {
         .catch(function () { /* silencioso */ });
 }
 
+// ---- Monitoreo de estudiantes: listas de activos y vencidos ----
+var ultimoMonitoreoActivos = null;
+var ultimoMonitoreoVencidos = null;
+
+function pollMonitoreo() {
+    craiObtener('/prestamos/api/monitoreo/')
+        .then(function (data) {
+            // No pisar la vista mientras el usuario está filtrando.
+            var buscador = document.getElementById('buscarMonitoreo');
+            if (buscador && buscador.value.trim() !== '') { return; }
+
+            var activos = document.getElementById('monitoreoActivosLista');
+            if (activos && data.activos_html && data.activos_html !== ultimoMonitoreoActivos) {
+                activos.innerHTML = data.activos_html;
+                ultimoMonitoreoActivos = data.activos_html;
+            }
+            var vencidos = document.getElementById('monitoreoVencidosLista');
+            if (vencidos && data.vencidos_html && data.vencidos_html !== ultimoMonitoreoVencidos) {
+                vencidos.innerHTML = data.vencidos_html;
+                ultimoMonitoreoVencidos = data.vencidos_html;
+            }
+            var cActivos = document.getElementById('monitoreoCountActivos');
+            if (cActivos) { cActivos.textContent = data.count_activos; }
+            var cVencidos = document.getElementById('monitoreoCountVencidos');
+            if (cVencidos) { cVencidos.textContent = data.count_vencidos; }
+        })
+        .catch(function () { /* silencioso */ });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById('tbodyUltimosPrestamos')) {
         setInterval(pollDashboard, REALTIME_INTERVALO);
@@ -92,5 +145,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (document.querySelector('[data-estado-cell]')) {
         setInterval(pollChromebooks, REALTIME_INTERVALO);
+    }
+    if (document.getElementById('monitoreoActivosLista')) {
+        setInterval(pollMonitoreo, REALTIME_INTERVALO);
     }
 });

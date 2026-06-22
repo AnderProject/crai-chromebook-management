@@ -157,21 +157,12 @@
                                         <span class="monitoreo-panel-titulo">Préstamos activos</span>
                                         <span class="monitoreo-panel-sub">Equipos actualmente en uso</span>
                                     </div>
-                                    <span class="monitoreo-contador">{{ prestamos_activos_lista|length }}</span>
+                                    <span class="monitoreo-contador" id="monitoreoCountActivos">{{ prestamos_activos_lista|length }}</span>
                                 </header>
                                 <div class="monitoreo-lista" data-grupo="activos">
-                                    {% for p in prestamos_activos_lista %}
-                                    <div class="monitoreo-card monitoreo-card-activo" data-buscar="{{ p.estudiante.get_full_name|default:p.estudiante.username|lower }} {{ p.chromebook.codigo|lower }}">
-                                        <div class="monitoreo-card-avatar"><i class="bi bi-laptop"></i></div>
-                                        <div class="monitoreo-card-info">
-                                            <strong>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong>
-                                            <span class="monitoreo-card-meta">{{ p.chromebook.codigo }} · Desde {{ p.fecha_prestamo|date:"d/m H:i" }} · Devuelve {{ p.fecha_devolucion|date:"H:i" }}</span>
-                                        </div>
-                                        <span class="monitoreo-badge monitoreo-badge-activo">Activo</span>
+                                    <div id="monitoreoActivosLista">
+                                    {% include 'prestamos/_monitoreo_activos.html' %}
                                     </div>
-                                    {% empty %}
-                                    <div class="monitoreo-vacio">No hay préstamos activos</div>
-                                    {% endfor %}
                                     <div class="monitoreo-sin-coincidencias">Sin coincidencias</div>
                                 </div>
                             </section>
@@ -183,32 +174,12 @@
                                         <span class="monitoreo-panel-titulo">Vencidos</span>
                                         <span class="monitoreo-panel-sub">Préstamos y reservas caducados</span>
                                     </div>
-                                    <span class="monitoreo-contador monitoreo-contador-rojo">{{ monitoreo_vencidos_count }}</span>
+                                    <span class="monitoreo-contador monitoreo-contador-rojo" id="monitoreoCountVencidos">{{ monitoreo_vencidos_count }}</span>
                                 </header>
                                 <div class="monitoreo-lista" data-grupo="vencidos">
-                                    {% for p in prestamos_vencidos_lista %}
-                                    <div class="monitoreo-card monitoreo-card-vencido" data-buscar="{{ p.estudiante.get_full_name|default:p.estudiante.username|lower }} {{ p.chromebook.codigo|lower }}">
-                                        <div class="monitoreo-card-avatar monitoreo-avatar-rojo"><i class="bi bi-laptop"></i></div>
-                                        <div class="monitoreo-card-info">
-                                            <strong>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong>
-                                            <span class="monitoreo-card-meta">Préstamo · {{ p.chromebook.codigo }} · Vencido desde {{ p.fecha_devolucion|date:"d/m/Y" }}</span>
-                                        </div>
-                                        <span class="monitoreo-badge monitoreo-badge-vencido">Vencido</span>
+                                    <div id="monitoreoVencidosLista">
+                                    {% include 'prestamos/_monitoreo_vencidos.html' %}
                                     </div>
-                                    {% endfor %}
-                                    {% for r in reservas_vencidas_lista %}
-                                    <div class="monitoreo-card monitoreo-card-vencido" data-buscar="{{ r.estudiante.usuario.user.get_full_name|default:r.estudiante.usuario.user.username|lower }} {{ r.carrera.nombre|lower }}">
-                                        <div class="monitoreo-card-avatar monitoreo-avatar-rojo"><i class="bi bi-calendar-x"></i></div>
-                                        <div class="monitoreo-card-info">
-                                            <strong>{{ r.estudiante.usuario.user.get_full_name|default:r.estudiante.usuario.user.username }}</strong>
-                                            <span class="monitoreo-card-meta">Reserva · {{ r.carrera.nombre }} · Vencida el {{ r.fecha_uso|date:"d/m/Y" }} {{ r.hora_inicio|time:"H:i" }}</span>
-                                        </div>
-                                        <span class="monitoreo-badge monitoreo-badge-vencido">Vencida</span>
-                                    </div>
-                                    {% endfor %}
-                                    {% if not prestamos_vencidos_lista and not reservas_vencidas_lista %}
-                                    <div class="monitoreo-vacio">No hay vencidos</div>
-                                    {% endif %}
                                     <div class="monitoreo-sin-coincidencias">Sin coincidencias</div>
                                 </div>
                             </section>
@@ -271,4 +242,5 @@
 
 {% block scripts_extra %}
 <script src="{% static 'js/estudiantes.js' %}"></script>
+<script src="{% static 'js/realtime.js' %}"></script>
 {% endblock %}

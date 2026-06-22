@@ -1,0 +1,17 @@
+{% for r in reservas_pendientes %}
+<tr>
+    <td>
+        <div class="codigo-oculto" id="codigo-reserva-{{ r.id }}" data-reserva-id="{{ r.id }}">
+            <span class="codigo-reserva codigo-mask">••••••</span>
+            <button type="button" class="btn-revelar" title="Revelar con cédula" onclick="activarRevelarInline({{ r.id }})"><i class="bi bi-eye"></i></button>
+        </div>
+    </td>
+    <td><strong>{{ r.estudiante.usuario.user.get_full_name }}</strong></td>
+    <td><small class="text-muted">{{ r.estudiante.carrera.nombre|default:'—' }}</small></td>
+    <td>{{ r.fecha_uso|date:"d/m/Y" }}</td>
+    <td>{{ r.hora_inicio|time:"H:i" }} – {{ r.hora_fin|time:"H:i" }}</td>
+    <td><span class="badge-estado badge-proximo"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span></td>
+</tr>
+{% empty %}
+<tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-calendar-x display-6 d-block mb-2"></i>No hay reservaciones pendientes</td></tr>
+{% endfor %}
