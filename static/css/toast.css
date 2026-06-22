@@ -5,7 +5,7 @@
 
 .toast-container-crai {
     position: fixed;
-    top: 1.25rem;
+    top: 5rem; /* debajo del navbar y de la foto/datos del perfil */
     right: 1.25rem;
     z-index: 1100; /* por encima de modales de Bootstrap (1055) */
     display: flex;
@@ -94,7 +94,7 @@
 
 @media (max-width: 576px) {
     .toast-container-crai {
-        top: 0.75rem;
+        top: 4.5rem;
         right: 0.75rem;
         left: 0.75rem;
         max-width: none;

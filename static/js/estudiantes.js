@@ -27,6 +27,26 @@ function filtrarEstudiantes() {
     });
 }
 
+function filtrarMonitoreo() {
+    var busqueda = document.getElementById('buscarMonitoreo').value.toLowerCase().trim();
+
+    document.querySelectorAll('.monitoreo-lista').forEach(function(lista) {
+        var cards = lista.querySelectorAll('.monitoreo-card');
+        var visibles = 0;
+        cards.forEach(function(card) {
+            var texto = card.getAttribute('data-buscar') || '';
+            var mostrar = !busqueda || texto.indexOf(busqueda) !== -1;
+            card.style.display = mostrar ? '' : 'none';
+            if (mostrar) visibles++;
+        });
+        // "Sin coincidencias" solo cuando hay tarjetas pero ninguna coincide con la búsqueda.
+        var sinCoincidencias = lista.querySelector('.monitoreo-sin-coincidencias');
+        if (sinCoincidencias) {
+            sinCoincidencias.style.display = (busqueda && cards.length > 0 && visibles === 0) ? 'block' : 'none';
+        }
+    });
+}
+
 function abrirPerfil(id) {
     console.log('Abriendo perfil del estudiante ID:', id);
     
@@ -38,7 +58,12 @@ function abrirPerfil(id) {
             return response.json();
         })
         .then(function(data) {
-            document.getElementById('perfilAvatar').textContent = data.avatar || '-';
+            var avatarEl = document.getElementById('perfilAvatar');
+            if (data.foto_url) {
+                avatarEl.innerHTML = '<img src="' + encodeURI(data.foto_url) + '" alt="Foto" class="avatar-img">';
+            } else {
+                avatarEl.textContent = data.avatar || '-';
+            }
             document.getElementById('perfilNombre').textContent = data.nombre || '-';
             document.getElementById('perfilCedula').textContent = data.cedula || '-';
             document.getElementById('perfilCarrera').textContent = data.carrera || '-';
@@ -59,10 +84,37 @@ function abrirPerfil(id) {
 
 function renderResumen(r) {
     var html =
-        '<div class="perfil-resumen-card"><div class="perfil-resumen-num text-primary">' + (r.total || 0) + '</div><span class="perfil-resumen-lbl">Préstamos</span></div>' +
-        '<div class="perfil-resumen-card"><div class="perfil-resumen-num text-warning">' + (r.activos || 0) + '</div><span class="perfil-resumen-lbl">Activos</span></div>' +
-        '<div class="perfil-resumen-card"><div class="perfil-resumen-num text-danger">' + (r.vencidos || 0) + '</div><span class="perfil-resumen-lbl">Vencidos</span></div>';
+        '<button type="button" class="perfil-resumen-card filtro-historial activo" data-filtro="total" onclick="filtrarHistorial(\'total\', this)">' +
+            '<div class="perfil-resumen-num text-primary">' + (r.total || 0) + '</div><span class="perfil-resumen-lbl">Registros</span></button>' +
+        '<button type="button" class="perfil-resumen-card filtro-historial" data-filtro="activos" onclick="filtrarHistorial(\'activos\', this)">' +
+            '<div class="perfil-resumen-num text-warning">' + (r.activos || 0) + '</div><span class="perfil-resumen-lbl">Activos</span></button>' +
+        '<button type="button" class="perfil-resumen-card filtro-historial" data-filtro="vencidos" onclick="filtrarHistorial(\'vencidos\', this)">' +
+            '<div class="perfil-resumen-num text-danger">' + (r.vencidos || 0) + '</div><span class="perfil-resumen-lbl">Vencidos</span></button>';
     document.getElementById('perfilResumen').innerHTML = html;
+}
+
+function filtrarHistorial(filtro, btn) {
+    document.querySelectorAll('#perfilResumen .filtro-historial').forEach(function(b) { b.classList.remove('activo'); });
+    if (btn) btn.classList.add('activo');
+
+    var cont = document.getElementById('perfilHistorial');
+    var cards = cont.querySelectorAll('.historial-card');
+    var visibles = 0;
+    cards.forEach(function(c) {
+        var cat = c.getAttribute('data-cat');
+        var mostrar = filtro === 'total' ||
+            (filtro === 'activos' && cat === 'activo') ||
+            (filtro === 'vencidos' && cat === 'vencido');
+        c.style.display = mostrar ? '' : 'none';
+        if (mostrar) visibles++;
+    });
+
+    var vacio = document.getElementById('perfilHistorialVacioFiltro');
+    if (vacio) {
+        var etiquetas = { activos: 'activos', vencidos: 'vencimientos' };
+        vacio.style.display = (cards.length > 0 && visibles === 0) ? 'block' : 'none';
+        vacio.textContent = 'Sin ' + (etiquetas[filtro] || 'registros') + ' para este estudiante';
+    }
 }
 
 function escapeHtml(s) {
@@ -78,14 +130,26 @@ function renderHistorial(historial) {
         return;
     }
 
-    var estadoClase = { 'devuelto': 'estado-devuelto', 'activo': 'estado-activo', 'vencido': 'estado-vencido' };
+    var estadoClase = {
+        'devuelto': 'estado-devuelto', 'activo': 'estado-activo', 'vencido': 'estado-vencido',
+        'vencida': 'estado-vencido', 'pendiente': 'estado-pendiente',
+        'confirmada': 'estado-activo', 'completada': 'estado-devuelto', 'cancelada': 'estado-cancelada'
+    };
     var html = '';
     historial.forEach(function(h) {
         var clase = estadoClase[h.estado] || '';
-        var codigo = escapeHtml(h.codigo);
+        var esReserva = h.tipo === 'reserva';
+        var codigo = escapeHtml(esReserva ? 'Reserva' : h.codigo);
+
+        // Categoría usada por los filtros del resumen (Total / Activos / Vencidos).
+        var cat = 'otros';
+        if (h.estado === 'activo') cat = 'activo';
+        else if (h.estado === 'vencido' || h.estado === 'vencida') cat = 'vencido';
 
         var foto;
-        if (h.foto_url) {
+        if (esReserva) {
+            foto = '<div class="historial-foto-vacia"><i class="bi bi-calendar-check"></i></div>';
+        } else if (h.foto_url) {
             var etiqueta = h.foto_tipo === 'devolucion' ? 'Devolución' : 'Entrega';
             foto = '<img src="' + encodeURI(h.foto_url) + '" class="historial-foto" alt="Evidencia" ' +
                    'onclick="verFotoEvidencia(\'' + encodeURI(h.foto_url) + '\', \'' + etiqueta + ' · ' + codigo + '\')">';
@@ -93,23 +157,28 @@ function renderHistorial(historial) {
             foto = '<div class="historial-foto-vacia"><i class="bi bi-camera"></i></div>';
         }
 
+        var tipoTag = esReserva
+            ? '<span class="historial-tipo-tag"><i class="bi bi-calendar-event"></i> Reserva</span>'
+            : '<span class="historial-tipo-tag historial-tipo-prestamo"><i class="bi bi-laptop"></i> Préstamo</span>';
+
         var meta = '<i class="bi bi-calendar3"></i> ' + escapeHtml(h.fecha) + ' · ' + (h.duracion || 0) + 'h';
         if (h.fecha_devuelto) {
             meta += '<br><i class="bi bi-arrow-return-left"></i> Devuelto: ' + escapeHtml(h.fecha_devuelto);
         }
 
         html +=
-            '<div class="historial-card ' + clase + '">' +
+            '<div class="historial-card ' + clase + '" data-cat="' + cat + '">' +
                 foto +
                 '<div class="historial-info">' +
                     '<div class="d-flex justify-content-between align-items-center mb-1">' +
                         '<span class="historial-codigo">' + codigo + '</span>' +
                         '<span class="historial-badge ' + clase + '">' + escapeHtml(h.estado) + '</span>' +
                     '</div>' +
-                    '<div class="historial-meta">' + meta + '</div>' +
+                    '<div class="historial-meta">' + tipoTag + ' · ' + meta + '</div>' +
                 '</div>' +
             '</div>';
     });
+    html += '<div id="perfilHistorialVacioFiltro" class="historial-vacio" style="display:none;"></div>';
     cont.innerHTML = html;
 }
 

@@ -19,4 +19,5 @@ urlpatterns = [
     path('recuperar-contraseña/', views.recuperar_contraseña, name='recuperar_contraseña'),
     path('cambiar-contraseña/<str:uidb64>/<str:token>/', views.cambiar_contraseña, name='cambiar_contraseña'),
     path('soporte/', views.soporte, name='soporte'),
+    path('desarrolladores/', views.desarrolladores, name='desarrolladores'),
 ]

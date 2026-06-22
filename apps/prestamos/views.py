@@ -12,6 +12,7 @@ import unicodedata
 import json
 import uuid
 import os
+import re
 
 # Variable global temporal para guardar los tokens QR
 qr_tokens = {}
@@ -26,6 +27,9 @@ def portal(request):
 
 CRAI_HORA_APERTURA = time(8, 0)
 CRAI_HORA_CIERRE = time(17, 0)
+
+# Máximo de reservas vigentes (pendiente/confirmada) que un estudiante puede tener.
+MAX_RESERVAS_VIGENTES = 2
 
 
 def _crai_abierto(ahora=None):
@@ -46,7 +50,7 @@ def dashboard(request):
     primer_apellido = request.user.last_name.split()[0] if request.user.last_name else 'CRAI'
     
     total_chromebooks = Chromebook.objects.count()
-    disponibles = Chromebook.objects.filter(estado='disponible').count()
+    disponibles = _disponibles_efectivos()
     prestados = Chromebook.objects.filter(estado='prestado').count()
     en_mantenimiento = Chromebook.objects.filter(estado='mantenimiento').count()
     porcentaje_disponible = round((disponibles / total_chromebooks) * 100) if total_chromebooks > 0 else 0
@@ -108,7 +112,7 @@ def api_dashboard_stats(request):
     _expirar_reservas_vencidas()
 
     total_chromebooks = Chromebook.objects.count()
-    disponibles = Chromebook.objects.filter(estado='disponible').count()
+    disponibles = _disponibles_efectivos()
     prestados = Chromebook.objects.filter(estado='prestado').count()
     en_mantenimiento = Chromebook.objects.filter(estado='mantenimiento').count()
     porcentaje_disponible = round((disponibles / total_chromebooks) * 100) if total_chromebooks > 0 else 0
@@ -380,6 +384,7 @@ def api_subir_evidencia_webcam(request):
 
     reserva_id = data.get('reserva_id')
     prestamo_id = data.get('prestamo_id')
+    temp_key = data.get('temp_key')   # préstamo inmediato: aún no existe el Prestamo
     imagen = data.get('imagen', '')
 
     if not imagen:
@@ -393,7 +398,11 @@ def api_subir_evidencia_webcam(request):
 
     # Mismo nombre de archivo que en pagina_evidencia (flujo QR)
     try:
-        if prestamo_id:
+        if temp_key and not prestamo_id and not reserva_id:
+            # Foto previa al registro: nombre temporal determinista (se reusa al recapturar)
+            clave = re.sub(r'[^A-Za-z0-9_-]', '', str(temp_key))
+            nombre_archivo = f'temp_entrega_{clave}.jpg'
+        elif prestamo_id:
             prestamo = Prestamo.objects.select_related('estudiante', 'chromebook').get(id=prestamo_id)
             nombre_completo = (prestamo.estudiante.get_full_name() or prestamo.estudiante.username).replace(' ', '_')
             nombre_estudiante = unicodedata.normalize('NFKD', nombre_completo).encode('ASCII', 'ignore').decode('ASCII')
@@ -517,6 +526,11 @@ def reportes(request):
     from .models import Chromebook, Prestamo, Mantenimiento, Notificacion
     from django.db.models import Count, Sum, Avg, Q, F, ExpressionWrapper, DurationField
     from django.db.models.functions import TruncMonth, TruncWeek, ExtractHour, ExtractWeekDay
+
+    # Solo administradores/TICs pueden ver los reportes; los recepcionistas no.
+    if not (request.user.is_superuser or
+            request.user.groups.filter(name__in=['Administrador', 'Tics']).exists()):
+        return redirect('prestamos:dashboard')
 
     MESES_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
                 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
@@ -1074,13 +1088,15 @@ def registro_rapido(request):
     _activar_reservas_pendientes()
     ahora = timezone.localtime()
     hoy = ahora.date()
-    disponibles = Chromebook.objects.filter(estado='disponible').count()
+    disponibles = _disponibles_efectivos()
+    disponibles_manana = _disponibles_efectivos(hoy + timedelta(days=1))
     prestamos_hoy = Prestamo.objects.filter(fecha_prestamo__date=hoy).select_related('estudiante', 'chromebook').order_by('-fecha_prestamo')
     total_hoy = prestamos_hoy.count()
 
     return render(request, 'prestamos/prestamos/registro_rapido.html', {
         'titulo_pagina': 'Nuevo Préstamo - CRAI UNEMI',
-        'disponibles': disponibles, 'prestamos_hoy': prestamos_hoy, 'total_hoy': total_hoy,
+        'disponibles': disponibles, 'disponibles_manana': disponibles_manana,
+        'prestamos_hoy': prestamos_hoy, 'total_hoy': total_hoy,
         'fecha_hoy': hoy.strftime('%Y-%m-%d'),
         'fecha_manana': (hoy + timedelta(days=1)).strftime('%Y-%m-%d'),
         'hora_actual': ahora.strftime('%H:%M'),
@@ -1091,26 +1107,43 @@ def registro_rapido(request):
 @login_required
 def lista_estudiantes(request):
     from .models import Reserva, Carrera
-    
+
+    # Marca como 'vencida' las reservas pendientes cuyo retiro ya caducó, para que el
+    # conteo y la lista de vencidos del admin reflejen el estado real.
+    _expirar_reservas_vencidas()
+
     estudiantes_con_prestamos = Prestamo.objects.values_list('estudiante_id', flat=True).distinct()
     estudiantes_con_reservas = Reserva.objects.values_list('estudiante__usuario__user_id', flat=True).distinct()
     usuarios_activos_ids = set(list(estudiantes_con_prestamos) + list(estudiantes_con_reservas))
-    
+
     estudiantes = Estudiante.objects.select_related('usuario__user', 'carrera').filter(
         usuario__user__id__in=usuarios_activos_ids
     ).order_by('-usuario__user__date_joined')
-    
+
     prestamos_activos_ids = list(Prestamo.objects.filter(estado='activo').values_list('estudiante_id', flat=True).distinct())
-    
+
+    # Los vencidos del admin incluyen tanto préstamos vencidos como reservas que caducaron
+    # sin retirarse (una reserva vencida nunca llega a generar un Préstamo).
+    reservas_vencidas_lista = Reserva.objects.filter(estado='vencida').select_related(
+        'estudiante__usuario__user', 'carrera'
+    ).order_by('-fecha_uso', '-hora_inicio')[:10]
+    vencidos = Prestamo.objects.filter(estado='vencido').count() + Reserva.objects.filter(estado='vencida').count()
+
+    prestamos_activos_lista = Prestamo.objects.filter(estado='activo').select_related('estudiante', 'chromebook').order_by('fecha_devolucion')[:10]
+    prestamos_vencidos_lista = Prestamo.objects.filter(estado='vencido').select_related('estudiante', 'chromebook').order_by('-fecha_devolucion')[:10]
+
     contexto = {
         'titulo_pagina': 'Estudiantes - CRAI UNEMI',
         'estudiantes': estudiantes,
         'total_estudiantes': estudiantes.count(),
         'estudiantes_activos': estudiantes.filter(usuario__user__id__in=prestamos_activos_ids).count(),
-        'vencidos': Prestamo.objects.filter(estado='vencido').count(),
+        'vencidos': vencidos,
         'prestamos_activos_ids': prestamos_activos_ids,
-        'prestamos_activos_lista': Prestamo.objects.filter(estado='activo').select_related('estudiante', 'chromebook').order_by('fecha_devolucion')[:10],
-        'prestamos_vencidos_lista': Prestamo.objects.filter(estado='vencido').select_related('estudiante', 'chromebook').order_by('-fecha_devolucion')[:10],
+        'prestamos_activos_lista': prestamos_activos_lista,
+        'prestamos_vencidos_lista': prestamos_vencidos_lista,
+        'reservas_vencidas_lista': reservas_vencidas_lista,
+        # Conteo mostrado en el panel de monitoreo (préstamos + reservas vencidas listadas).
+        'monitoreo_vencidos_count': len(prestamos_vencidos_lista) + len(reservas_vencidas_lista),
         'carreras': Carrera.objects.all(),
     }
     return render(request, 'prestamos/estudiantes/lista.html', contexto)
@@ -1118,7 +1151,11 @@ def lista_estudiantes(request):
 
 @csrf_exempt
 def api_perfil_estudiante(request, id):
-    from .models import Evidencia
+    from .models import Evidencia, Reserva
+    from datetime import datetime
+
+    # Las reservas vencidas deben quedar reflejadas también aquí.
+    _expirar_reservas_vencidas()
 
     try:
         estudiante = Estudiante.objects.select_related('usuario__user', 'carrera').get(id=id)
@@ -1138,10 +1175,18 @@ def api_perfil_estudiante(request, id):
                 if actual is None or ev.tipo == 'devolucion':
                     fotos_por_prestamo[ev.prestamo_id] = {'url': ev.foto.url, 'tipo': ev.tipo}
 
-        historial = []
+        # Reservas que NO se convirtieron en préstamo (vencidas, canceladas, pendientes...).
+        # Si una reserva se confirmó y generó un Préstamo, ya aparece en la sección de préstamos.
+        reservas = Reserva.objects.filter(estudiante=estudiante).exclude(
+            prestamos__isnull=False
+        ).order_by('-fecha_uso', '-hora_inicio')[:15]
+
+        # Cada entrada lleva una clave de orden (datetime) para mezclar préstamos y reservas.
+        entradas = []
         total = 0
         activos = 0
         vencidos = 0
+
         for p in prestamos:
             total += 1
             if p.estado == 'activo':
@@ -1149,7 +1194,8 @@ def api_perfil_estudiante(request, id):
             elif p.estado == 'vencido':
                 vencidos += 1
             foto = fotos_por_prestamo.get(p.id)
-            historial.append({
+            entradas.append((p.fecha_prestamo, {
+                'tipo': 'prestamo',
                 'codigo': p.chromebook.codigo,
                 'fecha': p.fecha_prestamo.strftime('%d/%m/%Y %H:%M') if p.fecha_prestamo else '-',
                 'fecha_devuelto': p.fecha_devuelto.strftime('%d/%m/%Y %H:%M') if p.fecha_devuelto else None,
@@ -1157,10 +1203,30 @@ def api_perfil_estudiante(request, id):
                 'estado': p.estado,
                 'foto_url': foto['url'] if foto else None,
                 'foto_tipo': foto['tipo'] if foto else None,
-            })
+            }))
+
+        for r in reservas:
+            total += 1
+            if r.estado == 'vencida':
+                vencidos += 1
+            clave = timezone.make_aware(datetime.combine(r.fecha_uso, r.hora_inicio))
+            entradas.append((clave, {
+                'tipo': 'reserva',
+                'codigo': 'Reserva',
+                'fecha': clave.strftime('%d/%m/%Y %H:%M'),
+                'fecha_devuelto': None,
+                'duracion': r.calcular_duracion(),
+                'estado': r.estado,
+                'foto_url': None,
+                'foto_tipo': None,
+            }))
+
+        entradas.sort(key=lambda e: e[0], reverse=True)
+        historial = [e[1] for e in entradas]
 
         return JsonResponse({
             'avatar': f'{user.first_name[0].upper()}{user.last_name[0].upper()}',
+            'foto_url': estudiante.usuario.foto.url if estudiante.usuario.foto else None,
             'nombre': user.get_full_name() or user.username,
             'cedula': estudiante.usuario.cedula,
             'carrera': estudiante.carrera.nombre,
@@ -1431,6 +1497,24 @@ def _expirar_reservas_vencidas():
         Reserva.objects.filter(id__in=vencidas_ids).update(estado='vencida')
 
 
+def _disponibles_efectivos(fecha=None):
+    """Chromebooks realmente disponibles para una fecha, según las reservas pendientes de ESE día.
+
+    Una reserva no aparta un equipo concreto, pero sí 'consume' un cupo del día: al
+    contador de equipos libres le restamos las reservas pendientes con esa fecha de uso,
+    para no ofrecer más equipos de los que quedan tras honrar las reservas. Sin fecha,
+    usa hoy.
+    """
+    from .models import Chromebook, Reserva
+    if fecha is None:
+        fecha = timezone.localdate()
+    fisicos = Chromebook.objects.filter(estado='disponible').count()
+    reservas = Reserva.objects.filter(
+        estado='pendiente', fecha_uso=fecha
+    ).count()
+    return max(0, fisicos - reservas)
+
+
 def _activar_reservas_pendientes():
     """Convierte en 'activo' las reservas cuya hora de inicio ya llegó."""
     ahora = timezone.now()
@@ -1499,6 +1583,25 @@ def api_registrar_prestamo(request):
         except Estudiante.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Ese usuario no es un estudiante; no se puede generar la reserva.'})
 
+        # Límite de reservas vigentes por estudiante (mismo criterio que el portal del estudiante).
+        vigentes = Reserva.objects.filter(
+            estudiante=estudiante,
+            estado__in=['pendiente', 'confirmada'],
+        ).count()
+        if vigentes >= MAX_RESERVAS_VIGENTES:
+            return JsonResponse({
+                'success': False,
+                'message': f'El estudiante ya tiene {MAX_RESERVAS_VIGENTES} reservas activas. '
+                           'Debe completar o cancelar alguna antes de reservar otra.',
+            })
+
+        # Cupo del día: no permitir más reservas que Chromebooks disponibles para esa fecha.
+        if _disponibles_efectivos(inicio.date()) <= 0:
+            return JsonResponse({
+                'success': False,
+                'message': 'No quedan Chromebooks disponibles para esa fecha. Elige otro día.',
+            })
+
         while True:
             codigo = ''.join(random.choices(string.digits, k=6))
             if not Reserva.objects.filter(codigo_verificacion=codigo).exists():
@@ -1551,13 +1654,25 @@ def api_registrar_prestamo(request):
     # Guardar foto de evidencia si la recepción la capturó (opcional).
     foto_nombre = data.get('foto_nombre', '')
     if foto_nombre:
+        # Evita rutas fuera de la carpeta de evidencias.
+        foto_nombre = os.path.basename(foto_nombre)
         from .models import Evidencia
         from django.core.files import File
         temp_path = os.path.join(settings.MEDIA_ROOT, 'evidencias', foto_nombre)
         if os.path.exists(temp_path):
+            # Nombre definitivo con la convención de entrega.
+            nombre_completo = (estudiante_user.get_full_name() or estudiante_user.username).replace(' ', '_')
+            nombre_limpio = unicodedata.normalize('NFKD', nombre_completo).encode('ASCII', 'ignore').decode('ASCII')
+            nombre_final = f'{nombre_limpio}_ENT_{chromebook.codigo}_{prestamo.id}.jpg'
             evidencia = Evidencia.objects.create(prestamo=prestamo, tipo='entrega', descripcion='Evidencia de entrega')
             with open(temp_path, 'rb') as f:
-                evidencia.foto.save(foto_nombre, File(f), save=True)
+                evidencia.foto.save(nombre_final, File(f), save=True)
+            # Limpia la foto temporal previa al registro.
+            if foto_nombre.startswith('temp_entrega_'):
+                try:
+                    os.remove(temp_path)
+                except OSError:
+                    pass
 
     return JsonResponse({
         'success': True,
@@ -1668,28 +1783,123 @@ def actualizar_foto_perfil(request):
 
 
 @login_required
-def cambiar_password_perfil(request):
-    """Cambio de contraseña desde el propio perfil (verifica la actual)."""
-    from django.contrib import messages
+def api_actualizar_telefono(request):
+    """Actualiza solo el celular del perfil (cédula y nombres no se tocan)."""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido.'})
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'Solicitud inválida.'})
+
+    telefono = re.sub(r'\D', '', str(data.get('telefono', '')))
+    if telefono and len(telefono) != 10:
+        return JsonResponse({'success': False, 'message': 'El celular debe tener 10 dígitos.'})
+
+    perfil_usuario = getattr(request.user, 'perfil', None)
+    if perfil_usuario is None:
+        return JsonResponse({'success': False, 'message': 'No se encontró el perfil del usuario.'})
+    perfil_usuario.telefono = telefono
+    perfil_usuario.save(update_fields=['telefono'])
+    return JsonResponse({'success': True, 'telefono': telefono or '—', 'message': 'Celular actualizado.'})
+
+
+def _limpiar_pwd_session(request):
+    for k in ('pwd_codigo', 'pwd_nueva', 'pwd_expira'):
+        request.session.pop(k, None)
+
+
+def _enmascarar_correo(correo):
+    """Devuelve el correo parcialmente oculto, p.ej. an***@gmail.com."""
+    try:
+        usuario, dominio = correo.split('@', 1)
+    except ValueError:
+        return correo
+    visible = usuario[:2] if len(usuario) > 2 else usuario[:1]
+    return f'{visible}***@{dominio}'
+
+
+@login_required
+def api_solicitar_codigo_password(request):
+    """Paso 1: valida la contraseña actual y la nueva, y envía un código al correo."""
+    from django.core.mail import send_mail
+    import random
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido.'})
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'Solicitud inválida.'})
+
+    actual = data.get('actual', '')
+    nueva = data.get('nueva', '')
+    confirmar = data.get('confirmar', '')
+
+    if not request.user.check_password(actual):
+        return JsonResponse({'success': False, 'message': 'La contraseña actual no es correcta.'})
+    if len(nueva) < 8:
+        return JsonResponse({'success': False, 'message': 'La nueva contraseña debe tener al menos 8 caracteres.'})
+    if nueva != confirmar:
+        return JsonResponse({'success': False, 'message': 'La confirmación no coincide con la nueva contraseña.'})
+    if not request.user.email:
+        return JsonResponse({'success': False, 'message': 'No tienes un correo registrado para verificar el cambio.'})
+
+    codigo = ''.join(random.choices('0123456789', k=6))
+    request.session['pwd_codigo'] = codigo
+    request.session['pwd_nueva'] = nueva
+    request.session['pwd_expira'] = (timezone.now() + timedelta(minutes=10)).isoformat()
+
+    try:
+        send_mail(
+            'Código de verificación - CRAI UNEMI',
+            f'Tu código para cambiar la contraseña es: {codigo}\n\n'
+            'Este código expira en 10 minutos. Si no solicitaste el cambio, ignora este correo.',
+            settings.DEFAULT_FROM_EMAIL,
+            [request.user.email],
+            fail_silently=False,
+        )
+    except Exception:
+        _limpiar_pwd_session(request)
+        return JsonResponse({'success': False, 'message': 'No se pudo enviar el correo. Intenta más tarde.'})
+
+    return JsonResponse({
+        'success': True,
+        'correo': _enmascarar_correo(request.user.email),
+        'message': 'Código enviado a tu correo.',
+    })
+
+
+@login_required
+def api_confirmar_codigo_password(request):
+    """Paso 2: valida el código del correo y aplica la nueva contraseña."""
     from django.contrib.auth import update_session_auth_hash
 
-    if request.method == 'POST':
-        actual = request.POST.get('actual', '')
-        nueva = request.POST.get('nueva', '')
-        confirmar = request.POST.get('confirmar', '')
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido.'})
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'message': 'Solicitud inválida.'})
 
-        if not request.user.check_password(actual):
-            messages.error(request, 'La contraseña actual no es correcta.')
-        elif len(nueva) < 8:
-            messages.error(request, 'La nueva contraseña debe tener al menos 8 caracteres.')
-        elif nueva != confirmar:
-            messages.error(request, 'La confirmación no coincide con la nueva contraseña.')
-        else:
-            request.user.set_password(nueva)
-            request.user.save()
-            update_session_auth_hash(request, request.user)  # mantener la sesión
-            messages.success(request, 'Contraseña actualizada correctamente.')
-    return redirect('prestamos:perfil')
+    codigo = str(data.get('codigo', '')).strip()
+    guardado = request.session.get('pwd_codigo')
+    nueva = request.session.get('pwd_nueva')
+    expira = request.session.get('pwd_expira')
+
+    if not (guardado and nueva and expira):
+        return JsonResponse({'success': False, 'message': 'No hay una solicitud de cambio activa. Vuelve a empezar.'})
+    if timezone.now() > datetime.fromisoformat(expira):
+        _limpiar_pwd_session(request)
+        return JsonResponse({'success': False, 'message': 'El código expiró. Solicita uno nuevo.'})
+    if codigo != guardado:
+        return JsonResponse({'success': False, 'message': 'El código no es correcto.'})
+
+    request.user.set_password(nueva)
+    request.user.save()
+    update_session_auth_hash(request, request.user)  # mantener la sesión
+    _limpiar_pwd_session(request)
+    return JsonResponse({'success': True, 'message': 'Contraseña actualizada correctamente.'})
 
 
 def _es_tics(user):

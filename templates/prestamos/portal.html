@@ -27,9 +27,7 @@
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center text-white" href="#" data-bs-toggle="dropdown">
-                            <div class="avatar-portal me-2">
-                                {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
-                            </div>
+                            {% include 'prestamos/_avatar.html' with foto=user.perfil.foto nombre=user.first_name apellido=user.last_name clase='avatar-portal me-2' %}
                             <span>{{ user.first_name }} {{ user.last_name }}</span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end shadow">
@@ -51,29 +49,37 @@
     <!-- Contenido principal -->
     <main class="portal-main">
         <div class="container py-4">
-            
+
             <!-- Saludo -->
-            <div class="saludo-container mb-4">
-                <h3 class="fw-bold texto-oscuro mb-1">
-                    ¡Hola {{ user.first_name }} {{ user.last_name }}
-                </h3>
-                <p class="texto-gris mb-0">Selecciona un módulo para continuar</p>
+            <div class="saludo-hero mb-4">
+                <div class="saludo-deco saludo-deco-1"></div>
+                <div class="saludo-deco saludo-deco-2"></div>
+                <div class="saludo-contenido">
+                    {% include 'prestamos/_avatar.html' with foto=user.perfil.foto nombre=user.first_name apellido=user.last_name clase='saludo-avatar' %}
+                    <div class="saludo-texto">
+                        <span class="saludo-bienvenida"><i class="bi bi-hand-wave"></i> Bienvenido de nuevo</span>
+                        <h3 class="saludo-nombre">¡Hola, {{ user.first_name }} {{ user.last_name }}!</h3>
+                        <p class="saludo-sub">Selecciona un módulo para continuar con tu gestión.</p>
+                    </div>
+                </div>
+                <div class="saludo-fecha">
+                    <i class="bi bi-calendar3"></i>
+                    <span>{% now "l, d \d\e F" %}</span>
+                </div>
             </div>
-            
+
             <!-- Sección: Mis Módulos -->
-            <h5 class="fw-bold texto-oscuro mb-3">
-                <i class="bi bi-grid-fill me-2 text-primary"></i>Mis Módulos
+            <h5 class="seccion-titulo">
+                <i class="bi bi-grid-fill"></i>Mis Módulos
             </h5>
-            
-            <div class="row g-3">
-                
-                <!-- Módulo: Mundo CRAI -->
-                <div class="row g-3">
-    
+
+            <div class="row g-4">
+
                 <!-- Módulo: Mundo CRAI -->
                 <div class="col-sm-6 col-lg-4 col-xl-3">
-                    <a href="{% url 'prestamos:dashboard' %}" class="text-decoration-none">
+                    <a href="{% url 'prestamos:dashboard' %}" class="text-decoration-none modulo-link">
                         <div class="modulo-card modulo-crai">
+                            <span class="modulo-brillo"></span>
                             <div class="modulo-icono">
                                 <i class="bi bi-book"></i>
                             </div>
@@ -83,8 +89,9 @@
                                     Gestión de préstamos de Chromebooks, inventario y chatbot inteligente
                                 </p>
                             </div>
-                            <div class="modulo-flecha">
-                                <i class="bi bi-chevron-right"></i>
+                            <div class="modulo-pie">
+                                <span class="modulo-entrar">Entrar</span>
+                                <span class="modulo-flecha"><i class="bi bi-arrow-right"></i></span>
                             </div>
                         </div>
                     </a>
@@ -92,8 +99,9 @@
 
                 <!-- Módulo: Fichas Estudiantiles -->
                 <div class="col-sm-6 col-lg-4 col-xl-3">
-                    <a href="{% url 'prestamos:ficha_estudiantil' %}" class="text-decoration-none">
-                        <div class="modulo-card modulo-crai">
+                    <a href="{% url 'prestamos:ficha_estudiantil' %}" class="text-decoration-none modulo-link">
+                        <div class="modulo-card modulo-fichas">
+                            <span class="modulo-brillo"></span>
                             <div class="modulo-icono">
                                 <i class="bi bi-file-earmark-text"></i>
                             </div>
@@ -103,16 +111,16 @@
                                     Consulta datos de estudiantes del SGA
                                 </p>
                             </div>
-                            <div class="modulo-flecha">
-                                <i class="bi bi-chevron-right"></i>
+                            <div class="modulo-pie">
+                                <span class="modulo-entrar">Entrar</span>
+                                <span class="modulo-flecha"><i class="bi bi-arrow-right"></i></span>
                             </div>
                         </div>
                     </a>
                 </div>
-            </div>
-                
+
             </div><!-- Cierre de row -->
-            
+
         </div><!-- Cierre de container -->
     </main>
 

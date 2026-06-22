@@ -14,7 +14,12 @@
     <nav class="reservas-navbar">
         <a href="{% url 'estudiantes:portal_estudiante' %}" class="btn-volver"><i class="bi bi-arrow-left"></i></a>
         <span class="navbar-titulo">Mis Reservas</span>
-        <div class="navbar-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+        <div class="navbar-derecha">
+            <div class="navbar-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+            <a href="{% url 'autenticacion:cerrar_sesion' %}" class="btn-logout-nav" title="Cerrar sesión">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
     </nav>
     
     <div class="reservas-contenido">

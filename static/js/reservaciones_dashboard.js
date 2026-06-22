@@ -73,3 +73,47 @@ function restaurarOculto(reservaId) {
         '<span class="codigo-reserva codigo-mask">••••••</span>' +
         '<button type="button" class="btn-revelar" title="Revelar con cédula" onclick="activarRevelarInline(' + reservaId + ')"><i class="bi bi-eye"></i></button>';
 }
+
+// =============================================
+// BÚSQUEDA EN VIVO DE RESERVACIONES PENDIENTES
+// Filtra las filas por estudiante, carrera, fecha u horario mientras se escribe.
+// =============================================
+document.addEventListener('DOMContentLoaded', function () {
+    var input = document.getElementById('buscadorReservas');
+    var tbody = document.getElementById('tbodyReservasPendientes');
+    if (!input || !tbody) { return; }
+
+    var badge = document.getElementById('badgeReservasPendientes');
+
+    input.addEventListener('input', function () {
+        var termino = input.value.trim().toLowerCase();
+        // Solo filas reales (las que tienen reserva); ignora filas de aviso (colspan).
+        var filas = tbody.querySelectorAll('tr');
+        var visibles = 0;
+
+        filas.forEach(function (fila) {
+            if (fila.id === 'filaSinResultados' || fila.querySelector('td[colspan]')) { return; }
+            var texto = fila.textContent.toLowerCase();
+            var coincide = texto.indexOf(termino) !== -1;
+            fila.style.display = coincide ? '' : 'none';
+            if (coincide) { visibles++; }
+        });
+
+        if (badge) { badge.textContent = visibles; }
+        mostrarFilaSinResultados(tbody, termino !== '' && visibles === 0);
+    });
+});
+
+// Inserta/quita una fila de "sin coincidencias" cuando la búsqueda no encuentra nada.
+function mostrarFilaSinResultados(tbody, mostrar) {
+    var fila = document.getElementById('filaSinResultados');
+    if (mostrar && !fila) {
+        fila = document.createElement('tr');
+        fila.id = 'filaSinResultados';
+        fila.innerHTML = '<td colspan="6" class="text-center text-muted py-4">' +
+            '<i class="bi bi-search display-6 d-block mb-2"></i>Sin coincidencias para tu búsqueda</td>';
+        tbody.appendChild(fila);
+    } else if (!mostrar && fila) {
+        fila.remove();
+    }
+}

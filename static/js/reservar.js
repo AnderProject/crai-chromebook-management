@@ -5,29 +5,19 @@
 // Slots de 30 min dentro del horario permitido (08:00–17:00)
 var HORA_MIN = 8 * 60;    // 08:00 en minutos
 var HORA_MAX = 17 * 60;   // 17:00 en minutos
-var PASO = 30;            // intervalo de los slots del desplegable
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    construirDropdown('dropInicio', 'horaInicio', 'valInicio');
-    construirDropdown('dropFin', 'horaFin', 'valFin');
-    configurarTriggers();
-
-    // Fecha permitida: hoy o mañana (máximo un día de anticipación)
-    var inputFecha = document.getElementById('fechaManual');
-    if (inputFecha) {
-        inputFecha.min = ahoraEcuador().fecha;
-        inputFecha.max = fechaManana();
+    // Al elegir una hora manualmente, avanza el indicador de pasos.
+    if (window.CraiTP) {
+        CraiTP.onChange('horaInicio', function (e) { if (e.detail.byUser) { activarPaso(2); } });
+        CraiTP.onChange('horaFin', function (e) { if (e.detail.byUser) { activarPaso(2); } });
     }
+
     seleccionarFecha('hoy');
 
     var motivo = document.querySelector('textarea[name="motivo"]');
     if (motivo) motivo.addEventListener('focus', function () { activarPaso(3); });
-
-    // Cerrar los desplegables al hacer clic fuera
-    document.addEventListener('click', function (e) {
-        if (!e.target.closest('.time-select')) cerrarTodos();
-    });
 });
 
 // =============================================
@@ -58,94 +48,6 @@ function ahoraEcuador() {
         hora: parseInt(parts.hour, 10) % 24,
         min: parseInt(parts.minute, 10)
     };
-}
-
-// =============================================
-// SELECTOR DE HORA PERSONALIZADO
-// =============================================
-function construirDropdown(idDrop, idHidden, idVal) {
-    var drop = document.getElementById(idDrop);
-    if (!drop) return;
-    drop.innerHTML = '';
-    for (var min = HORA_MIN; min <= HORA_MAX; min += PASO) {
-        drop.appendChild(crearOpcion(minutosAStr(min), minutosAStr(min), idHidden, idVal, idDrop, false));
-    }
-}
-
-function crearOpcion(valor, etiqueta, idHidden, idVal, idDrop, esAhora) {
-    var li = document.createElement('li');
-    li.className = 'time-option' + (esAhora ? ' time-ahora' : '');
-    li.setAttribute('role', 'option');
-    li.dataset.valor = valor;
-    if (esAhora) {
-        li.innerHTML = '<i class="bi bi-clock-history me-1"></i>' + etiqueta;
-    } else {
-        li.textContent = etiqueta;
-    }
-    li.addEventListener('click', function () {
-        setHora(idHidden, idVal, idDrop, valor);
-        cerrarTodos();
-        activarPaso(2);
-    });
-    return li;
-}
-
-// Opción "Ahora · HH:MM" al tope del desplegable de inicio (solo para hoy)
-function inyectarAhora(idDrop, idHidden, idVal, valorExacto) {
-    quitarAhora(idDrop);
-    var drop = document.getElementById(idDrop);
-    var li = crearOpcion(valorExacto, 'Ahora · ' + valorExacto, idHidden, idVal, idDrop, true);
-    drop.insertBefore(li, drop.firstChild);
-}
-
-function quitarAhora(idDrop) {
-    var drop = document.getElementById(idDrop);
-    if (!drop) return;
-    var ex = drop.querySelector('.time-ahora');
-    if (ex) ex.remove();
-}
-
-function setHora(idHidden, idVal, idDrop, valor) {
-    document.getElementById(idHidden).value = valor;
-    document.getElementById(idVal).textContent = valor;
-    var drop = document.getElementById(idDrop);
-    drop.querySelectorAll('.time-option').forEach(function (o) {
-        o.classList.toggle('seleccionado', o.dataset.valor === valor);
-    });
-}
-
-function configurarTriggers() {
-    [['triggerInicio', 'dropInicio'], ['triggerFin', 'dropFin']].forEach(function (par) {
-        var trigger = document.getElementById(par[0]);
-        if (!trigger) return;
-        trigger.addEventListener('click', function (e) {
-            e.stopPropagation();
-            toggleDropdown(par[1], par[0]);
-        });
-    });
-}
-
-function toggleDropdown(idDrop, idTrigger) {
-    var drop = document.getElementById(idDrop);
-    var abierto = drop.classList.contains('abierto');
-    cerrarTodos();
-    if (!abierto) {
-        drop.classList.add('abierto');
-        document.getElementById(idTrigger).classList.add('activo');
-        var sel = drop.querySelector('.time-option.seleccionado');
-        if (sel) drop.scrollTop = sel.offsetTop - drop.clientHeight / 2 + sel.clientHeight / 2;
-    }
-}
-
-function cerrarTodos() {
-    ['dropInicio', 'dropFin'].forEach(function (id) {
-        var d = document.getElementById(id);
-        if (d) d.classList.remove('abierto');
-    });
-    ['triggerInicio', 'triggerFin'].forEach(function (id) {
-        var t = document.getElementById(id);
-        if (t) t.classList.remove('activo');
-    });
 }
 
 // =============================================
@@ -197,44 +99,63 @@ function seleccionarFecha(tipo) {
     }
 
     actualizarHorasPorFecha();
+    actualizarDisponibilidad();
     activarPaso(1);
 }
 
-function fechaManualSeleccionada() {
-    var fecha = document.getElementById('fechaManual').value;
-    document.getElementById('fechaSeleccionada').value = fecha;
-    document.querySelectorAll('.btn-fecha').forEach(function (b) { b.classList.remove('activo'); });
-    actualizarHorasPorFecha();
-    activarPaso(1);
+// Refleja la disponibilidad de la fecha elegida (hoy/mañana) en la tarjeta y el botón.
+function actualizarDisponibilidad() {
+    var prev = document.getElementById('equipoPreview');
+    if (!prev) { return 0; }
+    var sel = document.getElementById('fechaSeleccionada').value;
+    var n = (sel === ahoraEcuador().fecha)
+        ? parseInt(prev.dataset.dispHoy, 10)
+        : parseInt(prev.dataset.dispManana, 10);
+    if (isNaN(n)) { n = 0; }
+
+    var badge = document.getElementById('equipoBadge');
+    var texto = document.getElementById('equipoDispTexto');
+    var btn = document.getElementById('btnSubmitReserva');
+    if (badge) {
+        badge.textContent = n > 0 ? 'Disponible' : 'No disponible';
+        badge.classList.toggle('no-disponible', n <= 0);
+    }
+    if (texto) {
+        texto.textContent = n > 0
+            ? 'Hay equipos disponibles para reservar'
+            : 'No quedan equipos para esta fecha';
+    }
+    if (btn) {
+        btn.disabled = (n <= 0);
+        btn.classList.toggle('disabled', n <= 0);
+    }
+    return n;
 }
 
 // Ajusta las horas por defecto según la fecha elegida:
-//  - HOY  -> hora inicio = hora actual EXACTA (con minutos) + opción "Ahora"
+//  - HOY  -> hora inicio = hora actual EXACTA (opción "Ahora") y se ocultan las pasadas
 //  - OTRO -> horario libre (08:00 / 10:00)
 function actualizarHorasPorFecha() {
+    if (!window.CraiTP) { return; }
     var sel = document.getElementById('fechaSeleccionada').value;
     var ec = ahoraEcuador();
+    var nowMin = ec.hora * 60 + ec.min;
 
-    if (sel === ec.fecha) {
-        var nowMin = ec.hora * 60 + ec.min;
-        if (nowMin >= HORA_MAX) {
-            // Ya cerró por hoy: deja el horario libre (elegirá otro día)
-            quitarAhora('dropInicio');
-            setHora('horaInicio', 'valInicio', 'dropInicio', '08:00');
-            setHora('horaFin', 'valFin', 'dropFin', '10:00');
-            return;
-        }
-        var inicioMin = Math.max(nowMin, HORA_MIN);          // exacto, con minutos
-        var finMin = Math.min(inicioMin + 120, HORA_MAX);    // +2h, tope 17:00
-        if (finMin <= inicioMin) finMin = HORA_MAX;
+    if (sel === ec.fecha && nowMin < HORA_MAX) {
+        // HOY (dentro del horario): permitir desde la hora actual exacta.
+        var inicioMin = Math.max(nowMin, HORA_MIN);
         var inicioStr = minutosAStr(inicioMin);
-        inyectarAhora('dropInicio', 'horaInicio', 'valInicio', inicioStr);
-        setHora('horaInicio', 'valInicio', 'dropInicio', inicioStr);
-        setHora('horaFin', 'valFin', 'dropFin', minutosAStr(finMin));
+        var finMin = Math.min(inicioMin + 120, HORA_MAX);    // +2h, tope 17:00
+        CraiTP.setAhora('horaInicio', inicioStr);
+        CraiTP.setMin('horaInicio', inicioStr);
+        CraiTP.set('horaInicio', inicioStr, false);
+        CraiTP.set('horaFin', minutosAStr(finMin), false);
     } else {
-        quitarAhora('dropInicio');
-        setHora('horaInicio', 'valInicio', 'dropInicio', '08:00');
-        setHora('horaFin', 'valFin', 'dropFin', '10:00');
+        // Mañana (o ya cerró por hoy): horario libre 08:00–17:00.
+        CraiTP.clearAhora('horaInicio');
+        CraiTP.setMin('horaInicio', '08:00');
+        CraiTP.set('horaInicio', '08:00', false);
+        CraiTP.set('horaFin', '10:00', false);
     }
 }
 
@@ -254,6 +175,7 @@ function enviarReserva(event) {
     if (!inicio || !fin) { mostrarAlerta('Selecciona la hora de inicio y la hora de fin.'); return; }
     if (fin <= inicio) { mostrarAlerta('La hora de fin debe ser mayor que la hora de inicio.'); return; }
     if (inicio < '08:00' || fin > '17:00') { mostrarAlerta('El horario de reservas es de 08:00 a 17:00.'); return; }
+    if (actualizarDisponibilidad() <= 0) { mostrarAlerta('No quedan Chromebooks disponibles para esa fecha. Elige otro día.'); return; }
 
     activarPaso(3);
 

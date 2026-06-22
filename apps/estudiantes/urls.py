@@ -5,6 +5,8 @@ app_name = 'estudiantes'
 
 urlpatterns = [
     path('portal/', views.portal_estudiante, name='portal_estudiante'),
+    path('perfil/', views.perfil_estudiante, name='perfil'),
+    path('perfil/foto/', views.actualizar_foto_perfil_estudiante, name='actualizar_foto_perfil'),
     path('reservar/', views.reservar_chromebook, name='reservar'),
     path('mis-reservas/', views.mis_reservas, name='mis_reservas'),
     path('api/cancelar-reserva/', views.api_cancelar_reserva, name='api_cancelar_reserva'),

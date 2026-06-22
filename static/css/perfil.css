@@ -115,3 +115,82 @@
     text-align: right;
     word-break: break-word;
 }
+
+/* Editar celular (inline, junto al dato) */
+.perfil-dato-editable {
+    align-items: center;
+    min-height: 48px;
+}
+
+.perfil-dato-edit {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.perfil-dato-vista {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.perfil-dato-vista[hidden],
+.perfil-dato-form[hidden] {
+    display: none;
+}
+
+.perfil-edit-btn {
+    border: none;
+    background: transparent;
+    color: #1a73e8;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.perfil-edit-btn:hover {
+    background: #eaf1ff;
+}
+
+.perfil-dato-form {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.perfil-dato-form .form-control {
+    width: 130px;
+}
+
+/* Verificación por código (cambio de contraseña) */
+.perfil-codigo-aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: #eef4ff;
+    border: 1px solid #d6e4ff;
+    border-radius: 12px;
+    padding: 0.75rem 0.9rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: #34507a;
+}
+
+.perfil-codigo-aviso i {
+    color: #1a73e8;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.perfil-codigo-input {
+    letter-spacing: 0.5rem;
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    max-width: 220px;
+}

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Mi Perfil - CRAI UNEMI{% endblock %}
+
+{% block estilos_extra %}
+<link href="{% static 'css/base.css' %}" rel="stylesheet">
+<link href="{% static 'css/portal_estudiante.css' %}" rel="stylesheet">
+<link href="{% static 'css/perfil.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block toast_messages %}{% endblock %}
+
+{% block contenido %}
+<div class="estudiante-portal">
+
+    <nav class="portal-navbar">
+        <a href="{% url 'estudiantes:portal_estudiante' %}" class="btn-salir-icon" title="Volver al portal">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div class="navbar-logo">
+            <i class="bi bi-person-circle"></i>
+            <span>Mi Perfil</span>
+        </div>
+        <div class="navbar-usuario">
+            {% if user.perfil.foto %}<div class="usuario-avatar"><img src="{{ user.perfil.foto.url }}" alt="Foto de perfil" class="avatar-img"></div>{% else %}<div class="usuario-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>{% endif %}
+            <span class="usuario-nombre">{{ user.first_name }}</span>
+            <a href="{% url 'autenticacion:cerrar_sesion' %}" class="btn-salir-icon" title="Cerrar sesión">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
+    </nav>
+
+    <main class="portal-contenido">
+        <div class="perfil-container">
+
+            <div class="row g-4">
+                <!-- Identidad -->
+                <div class="col-lg-5">
+                    <div class="perfil-card perfil-identidad">
+                        <div class="perfil-foto-wrap">
+                            {% if perfil_usuario.foto %}
+                                <img src="{{ perfil_usuario.foto.url }}" alt="Foto de perfil" class="perfil-foto" id="perfilFotoPreview">
+                            {% else %}
+                                <div class="perfil-foto perfil-foto-iniciales" id="perfilFotoPreview">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                            {% endif %}
+                        </div>
+                        <h4 class="fw-bold mb-0 mt-3">{{ user.get_full_name }}</h4>
+                        <span class="perfil-rol-badge"><i class="bi bi-mortarboard me-1"></i>Estudiante</span>
+
+                        <form method="post" enctype="multipart/form-data" action="{% url 'estudiantes:actualizar_foto_perfil' %}" class="perfil-foto-form" id="formFotoPerfil">
+                            {% csrf_token %}
+                            <label class="perfil-foto-btn" for="inputFotoPerfil">
+                                <i class="bi bi-camera me-1"></i>Cambiar foto
+                            </label>
+                            <input type="file" id="inputFotoPerfil" name="foto" accept="image/*" hidden onchange="document.getElementById('formFotoPerfil').submit()">
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Datos + edición -->
+                <div class="col-lg-7">
+                    <div class="perfil-card">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-person-vcard me-2 text-primary"></i>Datos personales</h6>
+                        <div class="perfil-dato"><span><i class="bi bi-card-text"></i>Cédula</span><strong>{{ perfil_usuario.cedula|default:'—' }}</strong></div>
+                        <div class="perfil-dato"><span><i class="bi bi-envelope"></i>Correo</span><strong>{{ user.email|default:'—' }}</strong></div>
+                        <div class="perfil-dato"><span><i class="bi bi-mortarboard"></i>Carrera</span><strong>{{ estudiante.carrera.nombre|default:'—' }}</strong></div>
+                        <div class="perfil-dato perfil-dato-editable">
+                            <span><i class="bi bi-telephone"></i>Celular</span>
+                            <div class="perfil-dato-edit">
+                                <div class="perfil-dato-vista" id="telefonoVista">
+                                    <strong id="telefonoActual">{{ perfil_usuario.telefono|default:'—' }}</strong>
+                                    <button type="button" class="perfil-edit-btn" id="btnEditarTelefono" title="Editar celular"><i class="bi bi-pencil"></i></button>
+                                </div>
+                                <div class="perfil-dato-form" id="telefonoForm" hidden>
+                                    <input type="tel" id="inputTelefono" class="form-control form-control-sm" maxlength="10" inputmode="numeric" placeholder="10 dígitos" value="{{ perfil_usuario.telefono|default:'' }}">
+                                    <button type="button" class="btn btn-primary btn-sm" id="btnGuardarTelefono" title="Guardar"><i class="bi bi-check-lg"></i></button>
+                                    <button type="button" class="btn btn-light border btn-sm" id="btnCancelarTelefono" title="Cancelar"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cambiar contraseña (con código por correo) -->
+                    <div class="perfil-card mt-4">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-shield-lock me-2 text-primary"></i>Cambiar contraseña</h6>
+
+                        <div id="pasoPwd1">
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold">Contraseña actual</label>
+                                <input type="password" id="inputPwdActual" class="form-control" autocomplete="current-password">
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label small fw-semibold">Nueva contraseña</label>
+                                    <input type="password" id="inputPwdNueva" class="form-control" minlength="8" autocomplete="new-password">
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label small fw-semibold">Confirmar nueva</label>
+                                    <input type="password" id="inputPwdConfirmar" class="form-control" minlength="8" autocomplete="new-password">
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm mt-2" id="btnEnviarCodigoPwd">
+                                <i class="bi bi-envelope-check me-1"></i>Enviar código al correo
+                            </button>
+                        </div>
+
+                        <div id="pasoPwd2" style="display: none;">
+                            <div class="perfil-codigo-aviso">
+                                <i class="bi bi-envelope-paper"></i>
+                                <span>Enviamos un código de 6 dígitos a <strong id="pwdCorreoDestino">tu correo</strong>. Ingrésalo para confirmar el cambio.</span>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold">Código de verificación</label>
+                                <input type="text" id="inputPwdCodigo" class="form-control perfil-codigo-input" maxlength="6" inputmode="numeric" placeholder="------">
+                            </div>
+                            <div class="d-flex gap-2 mt-2 flex-wrap">
+                                <button type="button" class="btn btn-primary btn-sm" id="btnConfirmarCodigoPwd"><i class="bi bi-check-lg me-1"></i>Confirmar cambio</button>
+                                <button type="button" class="btn btn-light border btn-sm" id="btnReenviarCodigoPwd"><i class="bi bi-arrow-repeat me-1"></i>Reenviar</button>
+                                <button type="button" class="btn btn-light border btn-sm" id="btnVolverPwd1"><i class="bi bi-arrow-left me-1"></i>Volver</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/perfil.js' %}"></script>
+{% endblock %}

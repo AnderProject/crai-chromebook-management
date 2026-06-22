@@ -17,9 +17,10 @@ def construir_actividad(user):
     from apps.prestamos.models import Chromebook, Reserva, Prestamo, Estudiante, Usuario as PerfilUsuario
     from django.utils import timezone
 
-    # Disponibilidad real
+    # Disponibilidad real (descuenta reservas pendientes de hoy)
+    from apps.prestamos.views import _disponibles_efectivos
     total_chromebooks = Chromebook.objects.count()
-    disponibles = Chromebook.objects.filter(estado='disponible').count()
+    disponibles = _disponibles_efectivos()
 
     # Actividad reciente del estudiante
     actividad = []
@@ -120,6 +121,43 @@ def api_actividad(request):
     html = render_to_string('estudiantes/_actividad_lista.html', {'actividad': actividad})
     return JsonResponse({'html': html, 'disponibles': disponibles})
 
+
+@login_required
+def perfil_estudiante(request):
+    """Perfil del estudiante: datos, edición de celular y cambio de contraseña."""
+    from apps.prestamos.models import Estudiante, Usuario as PerfilUsuario
+
+    perfil_usuario = getattr(request.user, 'perfil', None)
+    estudiante = None
+    if perfil_usuario is not None:
+        estudiante = (
+            Estudiante.objects
+            .select_related('carrera')
+            .filter(usuario=perfil_usuario)
+            .first()
+        )
+
+    contexto = {
+        'titulo_pagina': 'Mi Perfil - CRAI UNEMI',
+        'perfil_usuario': perfil_usuario,
+        'estudiante': estudiante,
+    }
+    return render(request, 'estudiantes/perfil.html', contexto)
+
+
+@login_required
+def actualizar_foto_perfil_estudiante(request):
+    """Sube/actualiza la foto de perfil del estudiante."""
+    if request.method == 'POST' and request.FILES.get('foto'):
+        perfil_usuario = getattr(request.user, 'perfil', None)
+        if perfil_usuario is None:
+            messages.error(request, 'No se encontró el perfil del usuario.')
+        else:
+            perfil_usuario.foto = request.FILES['foto']
+            perfil_usuario.save(update_fields=['foto'])
+            messages.success(request, 'Foto de perfil actualizada.')
+    return redirect('estudiantes:perfil')
+
 @login_required
 def reservar_chromebook(request):
     """Vista para reservar un Chromebook"""
@@ -136,21 +174,25 @@ def reservar_chromebook(request):
     # Horario permitido para reservas (08:00 a 17:00)
     HORA_APERTURA = dtime(8, 0)
     HORA_CIERRE = dtime(17, 0)
-    MAX_RESERVAS_VIGENTES = 2
+    from apps.prestamos.views import MAX_RESERVAS_VIGENTES
     
     # Si es GET, mostrar el formulario con datos reales
     if request.method == 'GET':
         from apps.prestamos.views import _expirar_reservas_vencidas
         _expirar_reservas_vencidas()
-        # Obtener disponibilidad real
+        # Obtener disponibilidad real (por fecha: hoy y mañana)
+        from apps.prestamos.views import _disponibles_efectivos
+        from django.utils import timezone
         total = Chromebook.objects.count()
-        disponibles = Chromebook.objects.filter(estado='disponible').count()
+        disponibles = _disponibles_efectivos()
+        disponibles_manana = _disponibles_efectivos(timezone.localdate() + timedelta(days=1))
         prestados = Chromebook.objects.filter(estado='prestado').count()
-        
+
         contexto = {
             'titulo_pagina': 'Reservar Chromebook - CRAI UNEMI',
             'total_chromebooks': total,
             'disponibles': disponibles,
+            'disponibles_manana': disponibles_manana,
             'prestados': prestados,
         }
         return render(request, 'estudiantes/reservar.html', contexto)
@@ -247,6 +289,14 @@ def reservar_chromebook(request):
                 return JsonResponse({
                     'success': False,
                     'message': 'Ese horario ya pasó por hoy. Elige una hora más tarde o reserva para otro día.'
+                })
+
+            # Cupo del día: no permitir más reservas que Chromebooks disponibles para esa fecha.
+            from apps.prestamos.views import _disponibles_efectivos
+            if _disponibles_efectivos(fecha) <= 0:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'No quedan Chromebooks disponibles para esa fecha. Elige otro día u horario.'
                 })
 
             reserva = Reserva.objects.create(
@@ -416,8 +466,9 @@ def api_chatbot(request):
 
     # --- Disponibilidad ---
     if any(p in mensaje for p in ['disponibilidad', 'disponible', 'cupo', 'hay chromebook']):
+        from apps.prestamos.views import _disponibles_efectivos
         total = Chromebook.objects.count()
-        disponibles = Chromebook.objects.filter(estado='disponible').count()
+        disponibles = _disponibles_efectivos()
         en_prestamo = Chromebook.objects.filter(estado='prestado').count()
         en_mantenimiento = Chromebook.objects.filter(estado='mantenimiento').count()
 
@@ -516,6 +567,7 @@ def api_chatbot(request):
                     hora_inicio_dt = datetime.strptime(hora_inicio, '%H:%M').time()
                     hora_fin_dt = datetime.strptime(hora_fin, '%H:%M').time()
 
+                    from apps.prestamos.views import MAX_RESERVAS_VIGENTES, _disponibles_efectivos
                     vigentes = Reserva.objects.filter(
                         estudiante=estudiante,
                         estado__in=['pendiente', 'confirmada']
@@ -538,10 +590,15 @@ def api_chatbot(request):
                             'Esa fecha u horario ya pasó. Reserva para hoy a una hora más tarde '
                             'o para otro día.'
                         )
-                    elif vigentes >= 2:
+                    elif vigentes >= MAX_RESERVAS_VIGENTES:
                         respuesta = (
-                            'Ya tienes 2 reservas activas. Espera a que se completen '
+                            f'Ya tienes {MAX_RESERVAS_VIGENTES} reservas activas. Espera a que se completen '
                             'o cancela alguna antes de reservar otra.'
+                        )
+                    elif _disponibles_efectivos(fecha_dt) <= 0:
+                        respuesta = (
+                            'No quedan Chromebooks disponibles para esa fecha. '
+                            'Prueba con otro día.'
                         )
                     else:
                         while True:
@@ -707,14 +764,19 @@ def api_crear_reserva(request):
     if hora_inicio_dt < dtime(8, 0) or hora_fin_dt > dtime(17, 0):
         return JsonResponse({'error': 'El horario de reservas es de 08:00 a 17:00'}, status=400)
 
+    from apps.prestamos.views import MAX_RESERVAS_VIGENTES
     vigentes = Reserva.objects.filter(
         estudiante=estudiante,
         estado__in=['pendiente', 'confirmada']
     ).count()
-    if vigentes >= 2:
-        return JsonResponse({'error': 'El estudiante ya tiene 2 reservas activas'}, status=400)
+    if vigentes >= MAX_RESERVAS_VIGENTES:
+        return JsonResponse({'error': f'El estudiante ya tiene {MAX_RESERVAS_VIGENTES} reservas activas'}, status=400)
 
     fecha = datetime.strptime(fecha_uso, '%Y-%m-%d').date()
+
+    from apps.prestamos.views import _disponibles_efectivos
+    if _disponibles_efectivos(fecha) <= 0:
+        return JsonResponse({'error': 'No quedan Chromebooks disponibles para esa fecha'}, status=400)
 
     reserva = Reserva.objects.create(
         estudiante=estudiante,
@@ -753,8 +815,9 @@ def api_disponibilidad(request):
     if api_key != settings.N8N_API_KEY:
         return JsonResponse({'error': 'No autorizado'}, status=403)
 
+    from apps.prestamos.views import _disponibles_efectivos
     total = Chromebook.objects.count()
-    disponibles = Chromebook.objects.filter(estado='disponible').count()
+    disponibles = _disponibles_efectivos()
     prestados = Chromebook.objects.filter(estado='prestado').count()
 
     return JsonResponse({

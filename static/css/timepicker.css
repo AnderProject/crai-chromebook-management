@@ -1,0 +1,151 @@
+/* =============================================
+   TIME PICKER (menú desplegable) - CRAI UNEMI
+   Componente reutilizable: campo con reloj que abre una lista
+   de horas (08:00–17:00 cada 30 min). Sin parpadeos ni scroll-snap.
+   Color de acento configurable con la variable --tp-accent.
+   ============================================= */
+
+.timepicker {
+    --tp-accent: #1a73e8;
+    position: relative;
+    width: 100%;
+    user-select: none;
+}
+
+/* Campo visible (botón) */
+.timepicker-field {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    background: #fff;
+    border: 2px solid #e6e9f2;
+    border-radius: 12px;
+    color: #1f2a44;
+    font-size: 1.15rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.timepicker-field:hover {
+    border-color: #c5cde8;
+}
+
+.timepicker-field:focus-visible {
+    outline: none;
+    border-color: var(--tp-accent);
+}
+
+.timepicker-field .bi-clock {
+    color: var(--tp-accent);
+    font-size: 1rem;
+}
+
+.timepicker-valor {
+    flex: 1 1 auto;
+    text-align: left;
+}
+
+.timepicker-caret {
+    color: #9aa0b5;
+    font-size: 0.8rem;
+    transition: transform 0.2s ease;
+}
+
+.timepicker.abierto .timepicker-field {
+    border-color: var(--tp-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-accent) 18%, transparent);
+}
+
+.timepicker.abierto .timepicker-caret {
+    transform: rotate(180deg);
+}
+
+/* Panel desplegable */
+.timepicker-panel {
+    display: none;
+    position: absolute;
+    z-index: 60;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    max-height: 232px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: #fff;
+    border: 1px solid #e6e9f2;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(20, 30, 70, 0.14);
+    padding: 0.3rem;
+    animation: tp-aparece 0.14s ease;
+}
+
+.timepicker.abierto .timepicker-panel {
+    display: block;
+}
+
+@keyframes tp-aparece {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.timepicker-panel::-webkit-scrollbar {
+    width: 8px;
+}
+.timepicker-panel::-webkit-scrollbar-thumb {
+    background: #d7dcec;
+    border-radius: 8px;
+}
+
+/* Opciones */
+.timepicker-opcion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 0.8rem;
+    border-radius: 9px;
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: #44506b;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+
+.timepicker-opcion:hover {
+    background: #f1f5ff;
+}
+
+.timepicker-opcion.activo {
+    background: color-mix(in srgb, var(--tp-accent) 12%, #fff);
+    color: var(--tp-accent);
+}
+
+.timepicker-opcion.activo::after {
+    content: "\2713";
+    font-weight: 800;
+    color: var(--tp-accent);
+}
+
+.timepicker-opcion.deshabilitada {
+    color: #b9bfd0;
+    cursor: not-allowed;
+    background: transparent;
+}
+
+/* Opción "Ahora · HH:MM" (hora exacta actual) */
+.timepicker-opcion.tp-ahora {
+    color: var(--tp-accent);
+}
+
+.timepicker-opcion.tp-ahora::before {
+    content: "\F293"; /* bi-clock-history */
+    font-family: "bootstrap-icons";
+    font-size: 0.85rem;
+    margin-right: 0.4rem;
+}
+
+.timepicker-opcion.tp-ahora.deshabilitada {
+    color: #b9bfd0;
+}

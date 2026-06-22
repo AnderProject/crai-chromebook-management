@@ -19,7 +19,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown dropdown-perfil">
                         <a class="nav-link dropdown-toggle d-flex align-items-center pe-3" href="#" data-bs-toggle="dropdown" style="gap: 0.6rem;">
-                            <div class="avatar-dashboard">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                            {% include 'prestamos/_avatar.html' with foto=user.perfil.foto nombre=user.first_name apellido=user.last_name clase='avatar-dashboard' %}
                             <div class="d-none d-md-block text-start" style="line-height: 1.2;">
                                 <span style="font-weight: 600; font-size: 0.85rem; color: white;">{{ user.first_name }}</span><br>
                                 <small style="font-size: 0.65rem; opacity: 0.7; color: white;">{{ rol }}</small>
@@ -84,31 +84,64 @@
                             <div class="perfil-dato"><span><i class="bi bi-person"></i>Usuario</span><strong>{{ user.username }}</strong></div>
                             <div class="perfil-dato"><span><i class="bi bi-card-text"></i>Cédula</span><strong>{{ perfil_usuario.cedula|default:'—' }}</strong></div>
                             <div class="perfil-dato"><span><i class="bi bi-envelope"></i>Correo</span><strong>{{ user.email|default:'—' }}</strong></div>
-                            <div class="perfil-dato"><span><i class="bi bi-telephone"></i>Teléfono</span><strong>{{ perfil_usuario.telefono|default:'—' }}</strong></div>
+                            <div class="perfil-dato perfil-dato-editable">
+                                <span><i class="bi bi-telephone"></i>Celular</span>
+                                <div class="perfil-dato-edit">
+                                    <div class="perfil-dato-vista" id="telefonoVista">
+                                        <strong id="telefonoActual">{{ perfil_usuario.telefono|default:'—' }}</strong>
+                                        <button type="button" class="perfil-edit-btn" id="btnEditarTelefono" title="Editar celular"><i class="bi bi-pencil"></i></button>
+                                    </div>
+                                    <div class="perfil-dato-form" id="telefonoForm" hidden>
+                                        <input type="tel" id="inputTelefono" class="form-control form-control-sm" maxlength="10" inputmode="numeric" placeholder="10 dígitos" value="{{ perfil_usuario.telefono|default:'' }}">
+                                        <button type="button" class="btn btn-primary btn-sm" id="btnGuardarTelefono" title="Guardar"><i class="bi bi-check-lg"></i></button>
+                                        <button type="button" class="btn btn-light border btn-sm" id="btnCancelarTelefono" title="Cancelar"><i class="bi bi-x-lg"></i></button>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="perfil-dato"><span><i class="bi bi-shield-check"></i>Rol</span><strong>{{ rol }}</strong></div>
                         </div>
 
-                        <!-- Cambiar contraseña -->
+                        <!-- Cambiar contraseña (con código por correo) -->
                         <div class="perfil-card mt-4">
                             <h6 class="fw-bold mb-3"><i class="bi bi-shield-lock me-2 text-primary"></i>Cambiar contraseña</h6>
-                            <form method="post" action="{% url 'prestamos:cambiar_password_perfil' %}" id="formPassword">
-                                {% csrf_token %}
+
+                            <!-- Paso 1: datos -->
+                            <div id="pasoPwd1">
                                 <div class="mb-2">
                                     <label class="form-label small fw-semibold">Contraseña actual</label>
-                                    <input type="password" name="actual" class="form-control" required>
+                                    <input type="password" id="inputPwdActual" class="form-control" autocomplete="current-password">
                                 </div>
                                 <div class="row g-2">
                                     <div class="col-md-6 mb-2">
                                         <label class="form-label small fw-semibold">Nueva contraseña</label>
-                                        <input type="password" name="nueva" class="form-control" minlength="8" required>
+                                        <input type="password" id="inputPwdNueva" class="form-control" minlength="8" autocomplete="new-password">
                                     </div>
                                     <div class="col-md-6 mb-2">
                                         <label class="form-label small fw-semibold">Confirmar nueva</label>
-                                        <input type="password" name="confirmar" class="form-control" minlength="8" required>
+                                        <input type="password" id="inputPwdConfirmar" class="form-control" minlength="8" autocomplete="new-password">
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-primary btn-sm mt-2"><i class="bi bi-check-lg me-1"></i>Actualizar contraseña</button>
-                            </form>
+                                <button type="button" class="btn btn-primary btn-sm mt-2" id="btnEnviarCodigoPwd">
+                                    <i class="bi bi-envelope-check me-1"></i>Enviar código al correo
+                                </button>
+                            </div>
+
+                            <!-- Paso 2: verificación por código -->
+                            <div id="pasoPwd2" style="display: none;">
+                                <div class="perfil-codigo-aviso">
+                                    <i class="bi bi-envelope-paper"></i>
+                                    <span>Enviamos un código de 6 dígitos a <strong id="pwdCorreoDestino">tu correo</strong>. Ingrésalo para confirmar el cambio.</span>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small fw-semibold">Código de verificación</label>
+                                    <input type="text" id="inputPwdCodigo" class="form-control perfil-codigo-input" maxlength="6" inputmode="numeric" placeholder="------">
+                                </div>
+                                <div class="d-flex gap-2 mt-2 flex-wrap">
+                                    <button type="button" class="btn btn-primary btn-sm" id="btnConfirmarCodigoPwd"><i class="bi bi-check-lg me-1"></i>Confirmar cambio</button>
+                                    <button type="button" class="btn btn-light border btn-sm" id="btnReenviarCodigoPwd"><i class="bi bi-arrow-repeat me-1"></i>Reenviar</button>
+                                    <button type="button" class="btn btn-light border btn-sm" id="btnVolverPwd1"><i class="bi bi-arrow-left me-1"></i>Volver</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -117,4 +150,8 @@
         </main>
     </div></div>
 </div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/perfil.js' %}"></script>
 {% endblock %}

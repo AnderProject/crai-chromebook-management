@@ -6,6 +6,7 @@
 {% block estilos_extra %}
 <link href="{% static 'css/base.css' %}" rel="stylesheet">
 <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+<link href="{% static 'css/timepicker.css' %}" rel="stylesheet">
 <link href="{% static 'css/prestamos.css' %}" rel="stylesheet">
 {% endblock %}
 
@@ -21,7 +22,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown dropdown-perfil">
                         <a class="nav-link dropdown-toggle d-flex align-items-center pe-3" href="#" data-bs-toggle="dropdown" style="gap: 0.6rem;">
-                            <div class="avatar-dashboard">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                            {% include 'prestamos/_avatar.html' with foto=user.perfil.foto nombre=user.first_name apellido=user.last_name clase='avatar-dashboard' %}
                             <div class="d-none d-md-block text-start" style="line-height: 1.2;">
                                 <span style="font-weight: 600; font-size: 0.85rem; color: white;">{{ primer_nombre }} {{ primer_apellido }}</span>
                                 <br>
@@ -60,8 +61,8 @@
                                 <small class="text-muted">Registra la entrega de un Chromebook a un estudiante</small>
                             </div>
                         </div>
-                        <span class="badge-disponibles">
-                            <i class="bi bi-circle-fill"></i>{{ disponibles }} disponibles
+                        <span class="badge-disponibles" id="badgeDisponibles" data-disp-hoy="{{ disponibles }}" data-disp-manana="{{ disponibles_manana }}">
+                            <i class="bi bi-circle-fill"></i><span id="badgeDisponiblesNum">{{ disponibles }}</span> disponibles
                         </span>
                     </div>
                     
@@ -114,12 +115,28 @@
                                         <input type="hidden" id="fechaPrestamo" value="{{ fecha_hoy }}">
                                     </div>
                                     <div class="horario-campo">
-                                        <label class="horario-label" for="horaInicio">Hora inicio <span class="horario-vivo" id="horaInicioVivo" title="Se actualiza con la hora actual"><i class="bi bi-broadcast"></i>en vivo</span></label>
-                                        <input type="time" class="input-elegante" id="horaInicio" value="{{ hora_actual }}" min="08:00" max="17:00">
+                                        <label class="horario-label">Hora inicio <span class="horario-vivo" id="horaInicioVivo" title="Se actualiza con la hora actual"><i class="bi bi-broadcast"></i>en vivo</span></label>
+                                        <div class="timepicker" data-tp-min="08:00" data-tp-max="17:00" data-tp-step="30">
+                                            <button type="button" class="timepicker-field" aria-haspopup="listbox" aria-expanded="false">
+                                                <i class="bi bi-clock"></i>
+                                                <span class="timepicker-valor">{{ hora_actual }}</span>
+                                                <i class="bi bi-chevron-down timepicker-caret"></i>
+                                            </button>
+                                            <div class="timepicker-panel" role="listbox"></div>
+                                            <input type="hidden" id="horaInicio" value="{{ hora_actual }}">
+                                        </div>
                                     </div>
                                     <div class="horario-campo">
-                                        <label class="horario-label" for="horaFin">Hora fin</label>
-                                        <input type="time" class="input-elegante" id="horaFin" value="{{ hora_mas_dos }}" min="08:00" max="17:00">
+                                        <label class="horario-label">Hora fin</label>
+                                        <div class="timepicker" data-tp-after="horaInicio" data-tp-min="08:00" data-tp-max="17:00" data-tp-step="30">
+                                            <button type="button" class="timepicker-field" aria-haspopup="listbox" aria-expanded="false">
+                                                <i class="bi bi-clock"></i>
+                                                <span class="timepicker-valor">{{ hora_mas_dos }}</span>
+                                                <i class="bi bi-chevron-down timepicker-caret"></i>
+                                            </button>
+                                            <div class="timepicker-panel" role="listbox"></div>
+                                            <input type="hidden" id="horaFin" value="{{ hora_mas_dos }}">
+                                        </div>
                                     </div>
                                 </div>
                                 <div id="infoHorario" class="mt-2 small text-muted"></div>
@@ -184,6 +201,26 @@
                     <div class="confirm-fila"><span><i class="bi bi-calendar3"></i>Fecha</span><strong id="confirmFecha">—</strong></div>
                     <div class="confirm-fila"><span><i class="bi bi-clock"></i>Horario</span><strong id="confirmHorario">—</strong></div>
                 </div>
+
+                <!-- Captura de foto de entrega (solo préstamo inmediato) -->
+                <div class="entrega-foto" id="entregaFoto" style="display: none;">
+                    <div class="entrega-foto-head">
+                        <span><i class="bi bi-camera me-1"></i>Foto de entrega <small class="text-muted">(opcional)</small></span>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btnTomarFotoEntrega">
+                            <i class="bi bi-camera-fill me-1"></i>Tomar foto
+                        </button>
+                    </div>
+                    <video id="videoEntrega" autoplay playsinline class="entrega-foto-video" style="display: none;"></video>
+                    <canvas id="canvasEntrega" style="display: none;"></canvas>
+                    <img id="previewEntrega" class="entrega-foto-preview" style="display: none;" alt="Foto de entrega">
+                    <div class="entrega-foto-acciones" id="accionesCamaraEntrega" style="display: none;">
+                        <button type="button" class="btn btn-sm btn-light border" id="btnCancelarCamaraEntrega">Cancelar</button>
+                        <button type="button" class="btn btn-sm btn-primary" id="btnCapturarEntrega"><i class="bi bi-camera-fill me-1"></i>Capturar</button>
+                    </div>
+                    <div class="entrega-foto-acciones" id="accionesPreviewEntrega" style="display: none;">
+                        <button type="button" class="btn btn-sm btn-light border" id="btnRepetirFotoEntrega"><i class="bi bi-arrow-repeat me-1"></i>Repetir</button>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -195,6 +232,7 @@
 {% endblock %}
 
 {% block scripts_extra %}
+<script src="{% static 'js/timepicker.js' %}"></script>
 <script src="{% static 'js/prestamos.js' %}"></script>
 <script src="{% static 'js/realtime.js' %}"></script>
 {% endblock %}

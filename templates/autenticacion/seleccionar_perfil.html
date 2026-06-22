@@ -6,11 +6,19 @@
 {% block estilos_extra %}
 <link href="{% static 'css/base.css' %}" rel="stylesheet">
 <link href="{% static 'css/selector_perfil.css' %}" rel="stylesheet">
+<link href="{% static 'css/desarrolladores.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block toast_messages %}{% endblock %}
 
 {% block contenido %}
+
+<!-- Botón flotante: equipo de desarrollo (círculo que se expande en hover) -->
+<a href="{% url 'autenticacion:desarrolladores' %}" class="dev-fab" title="Desarrolladores" aria-label="Desarrolladores">
+    <i class="bi bi-code-slash"></i>
+    <span>Desarrolladores</span>
+</a>
+
 <div class="container-fluid vh-100">
     <div class="row h-100">
         

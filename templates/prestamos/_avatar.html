@@ -1,0 +1,8 @@
+{% comment %}
+Avatar reutilizable: muestra la foto si existe; si no, las iniciales.
+Parámetros (vía {% include ... with %}):
+  foto      -> ImageField (p.ej. user.perfil.foto). Opcional.
+  nombre    -> nombre para la inicial. Opcional.
+  apellido  -> apellido para la inicial. Opcional.
+  clase     -> clases CSS del contenedor (p.ej. 'avatar-dashboard').
+{% endcomment %}{% if foto %}<div class="{{ clase }}"><img src="{{ foto.url }}" alt="Foto de perfil" class="avatar-img"></div>{% else %}<div class="{{ clase }}">{{ nombre|first|upper }}{{ apellido|first|upper }}</div>{% endif %}

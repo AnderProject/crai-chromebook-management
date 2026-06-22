@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Desarrolladores - CRAI UNEMI{% endblock %}
+
+{% block estilos_extra %}
+<link href="{% static 'css/base.css' %}" rel="stylesheet">
+<link href="{% static 'css/desarrolladores.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block toast_messages %}{% endblock %}
+
+{% block contenido %}
+<div class="dev-page">
+    <div class="dev-panel">
+
+        <a href="{% url 'autenticacion:seleccionar_perfil' %}" class="dev-volver">
+            <i class="bi bi-arrow-left"></i> Volver al inicio
+        </a>
+
+        <div class="dev-hero">
+            <div class="dev-hero-icon"><i class="bi bi-code-slash"></i></div>
+            <h1>Equipo de Desarrollo</h1>
+            <p>Quienes construyeron el sistema CRAI UNEMI</p>
+        </div>
+
+        <div class="dev-grid">
+
+            <button type="button" class="dev-card" data-dev="anderson">
+                <div class="dev-foto-cont">
+                    <img src="{% static 'img/desarrolladores/anderson.jpg' %}" alt="Anderson Merchan" class="dev-foto dev-foto-img">
+                    <div class="dev-foto dev-foto-fallback"><i class="bi bi-person"></i></div>
+                </div>
+                <strong class="dev-nombre">Anderson Alexander Merchán Balcázar</strong>
+                <span class="dev-rol">Developer</span>
+                <span class="dev-ver"><i class="bi bi-eye"></i> Ver portafolio</span>
+            </button>
+
+            <button type="button" class="dev-card" data-dev="lady">
+                <div class="dev-foto-cont">
+                    <img src="{% static 'img/desarrolladores/lady.jpg' %}" alt="Lady Loaiza" class="dev-foto dev-foto-img">
+                    <div class="dev-foto dev-foto-fallback"><i class="bi bi-person"></i></div>
+                </div>
+                <strong class="dev-nombre">Lady Paulet Loaiza Lozano</strong>
+                <span class="dev-rol">Developer</span>
+                <span class="dev-ver"><i class="bi bi-eye"></i> Ver portafolio</span>
+            </button>
+
+        </div>
+
+        <div class="dev-foot">
+            <i class="bi bi-mortarboard me-1"></i>Universidad Estatal de Milagro · CRAI
+        </div>
+
+    </div>
+</div>
+
+<!-- ===================== MODALES TIPO PORTAFOLIO ===================== -->
+<!-- NOTA: reemplaza el contenido de ejemplo por los datos reales de cada uno. -->
+
+<!-- ---------- Modal: Anderson ---------- -->
+<div class="dev-modal-overlay" id="modal-anderson" aria-hidden="true">
+    <div class="dev-modal" role="dialog" aria-modal="true" aria-labelledby="modal-anderson-nombre">
+        <button type="button" class="dev-modal-close" data-dev-close aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+
+        <header class="dev-modal-hero">
+            <div class="dev-modal-hero-deco"></div>
+            <div class="dev-modal-foto">
+                <img src="{% static 'img/desarrolladores/anderson.jpg' %}" alt="Anderson Merchan" class="dev-modal-foto-img">
+                <div class="dev-modal-foto-fallback"><i class="bi bi-person"></i></div>
+            </div>
+            <div class="dev-modal-hero-info">
+                <span class="dev-modal-rol">Developer · Full Stack</span>
+                <h2 id="modal-anderson-nombre">Anderson Alexander Merchán Balcázar</h2>
+                <p class="dev-modal-lema">Ingeniería de Software · Sistema CRAI UNEMI</p>
+                <div class="dev-modal-chips">
+                    <span class="dev-chip"><i class="bi bi-geo-alt"></i> Milagro, Ecuador</span>
+                    <a class="dev-chip" href="mailto:amerchanb@unemi.edu.ec"><i class="bi bi-envelope"></i> amerchanb@unemi.edu.ec</a>
+                    <a class="dev-chip" href="https://github.com/AnderProject" target="_blank" rel="noopener"><i class="bi bi-github"></i> AnderProject</a>
+                    <a class="dev-chip" href="https://www.linkedin.com/in/anderson-merch%C3%A1n-balc%C3%A1zar/" target="_blank" rel="noopener"><i class="bi bi-linkedin"></i> LinkedIn</a>
+                </div>
+            </div>
+        </header>
+
+        <div class="dev-modal-body">
+            <section class="dev-bloque">
+                <h3 class="dev-bloque-titulo"><span class="dev-bloque-ico" style="--c:#3949ab"><i class="bi bi-person-vcard"></i></span>Datos personales</h3>
+                <div class="dev-datos-grid">
+                    <div class="dev-dato"><span class="dev-dato-k">Edad</span><span class="dev-dato-v">25 años</span></div>
+                    <div class="dev-dato"><span class="dev-dato-k">Cédula</span><span class="dev-dato-v">0957794324</span></div>
+                    <div class="dev-dato"><span class="dev-dato-k">Ciudad</span><span class="dev-dato-v">Milagro, Ecuador</span></div>
+                    <div class="dev-dato"><span class="dev-dato-k">Teléfono</span><span class="dev-dato-v">0957794324</span></div>
+                    <div class="dev-dato"><span class="dev-dato-k">Idiomas</span><span class="dev-dato-v">Español · Inglés A1</span></div>
+                    <div class="dev-dato"><span class="dev-dato-k">Disponibilidad</span><span class="dev-dato-v">Tiempo completo</span></div>
+                </div>
+            </section>
+
+            <section class="dev-bloque">
+                <h3 class="dev-bloque-titulo"><span class="dev-bloque-ico" style="--c:#00897b"><i class="bi bi-mortarboard"></i></span>Estudios</h3>
+                <ul class="dev-timeline">
+                    <li>
+                        <span class="dev-tl-fecha">Actual</span>
+                        <strong>Ingeniería de Software</strong>
+                        <span class="dev-tl-sub">Universidad Estatal de Milagro (UNEMI)</span>
+                    </li>
+                    <li>
+                        <span class="dev-tl-fecha">2019</span>
+                        <strong>Bachillerato</strong>
+                        <span class="dev-tl-sub">Unidad Educativa San Francisco de Milagro · Naval</span>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="dev-bloque">
+                <h3 class="dev-bloque-titulo"><span class="dev-bloque-ico" style="--c:#ff6f00"><i class="bi bi-briefcase"></i></span>Experiencia</h3>
+                <ul class="dev-timeline">
+                    <li>
+                        <span class="dev-tl-fecha">2026</span>
+                        <strong>Desarrollador del Sistema CRAI</strong>
+                        <span class="dev-tl-sub">Proyecto de titulación · Django, PostgreSQL, n8n</span>
+                    </li>
+                    <li>
+                        <span class="dev-tl-fecha">UNEMI</span>
+                        <strong>Gestión de Laboratorios Móviles</strong>
+                        <span class="dev-tl-sub">Departamento de Informática de la UNEMI</span>
+                    </li>
+                    <li>
+                        <span class="dev-tl-fecha">UNEMI</span>
+                        <strong>Pasante en Gestión de Laboratorios</strong>
+                        <span class="dev-tl-sub">Apoyo en la administración y mantenimiento de laboratorios</span>
+                    </li>
+                    <li>
+                        <span class="dev-tl-fecha">CRAI</span>
+                        <strong>Digitalización de libros del CRAI</strong>
+                        <span class="dev-tl-sub">Digitalización y organización del acervo bibliográfico</span>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="dev-bloque">
+                <h3 class="dev-bloque-titulo"><span class="dev-bloque-ico" style="--c:#7b1fa2"><i class="bi bi-patch-check"></i></span>Certificaciones</h3>
+                <div class="dev-certs">
+                    <span class="dev-cert"><i class="bi bi-award"></i> Ciberseguridad</span>
+                    <span class="dev-cert"><i class="bi bi-award"></i> Python nivel avanzado</span>
+                    <span class="dev-cert"><i class="bi bi-award"></i> Redes de datos y cloud</span>
+                    <span class="dev-cert"><i class="bi bi-award"></i> Gestión de proyectos</span>
+                    <span class="dev-cert"><i class="bi bi-award"></i> Aplicaciones de bioprocesos en diferentes industrias</span>
+                    <span class="dev-cert"><i class="bi bi-award"></i> Diseño de sitios web con WordPress</span>
+                </div>
+            </section>
+
+            <section class="dev-bloque dev-bloque-full">
+                <h3 class="dev-bloque-titulo"><span class="dev-bloque-ico" style="--c:#0066cc"><i class="bi bi-bullseye"></i></span>Objetivos</h3>
+                <p class="dev-objetivo">
+                    Consolidarme como ingeniero de software especializado en el desarrollo de
+                    soluciones web seguras y escalables, integrando ciberseguridad, automatización
+                    e inteligencia artificial. A mediano plazo, aspiro a liderar proyectos
+                    tecnológicos que generen impacto real en el ámbito educativo e institucional,
+                    aportando con calidad, innovación y mejora continua.
+                </p>
+            </section>
+        </div>
+    </div>
+</div>
+
+<!-- ---------- Modal: Lady ---------- -->
+<div class="dev-modal-overlay" id="modal-lady" aria-hidden="true">
+    <div class="dev-modal" role="dialog" aria-modal="true" aria-labelledby="modal-lady-nombre">
+        <button type="button" class="dev-modal-close" data-dev-close aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+
+        <header class="dev-modal-hero">
+            <div class="dev-modal-hero-deco"></div>
+            <div class="dev-modal-foto">
+                <img src="{% static 'img/desarrolladores/lady.jpg' %}" alt="Lady Loaiza" class="dev-modal-foto-img">
+                <div class="dev-modal-foto-fallback"><i class="bi bi-person"></i></div>
+            </div>
+            <div class="dev-modal-hero-info">
+                <span class="dev-modal-rol">Developer · Full Stack</span>
+                <h2 id="modal-lady-nombre">Lady Paulet Loaiza Lozano</h2>
+                <p class="dev-modal-lema">Ingeniería en Software · Sistema CRAI UNEMI</p>
+                <div class="dev-modal-chips">
+                    <span class="dev-chip"><i class="bi bi-geo-alt"></i> Guayaquil, Ecuador</span>
+                    <a class="dev-chip" href="mailto:lloaizal@unemi.edu.ec"><i class="bi bi-envelope"></i> lloaizal@unemi.edu.ec</a>
+                    <a class="dev-chip" href="https://github.com/Paulet17" target="_blank" rel="noopener"><i class="bi bi-github"></i> Paulet17</a>
+                    <a class="dev-chip" href="https://www.linkedin.com/in/paulet-loaiza-14913020a" target="_blank" rel="noopener"><i class="bi bi-linkedin"></i> LinkedIn</a>
+                </div>
+            </div>
+        </header>
+
+        <div class="dev-modal-body">
+            <section class="dev-bloque">
+                <h3 class="dev-bloque-titulo"><span class="dev-bloque-ico" style="--c:#3949ab"><i class="bi bi-person-vcard"></i></span>Datos personales</h3>
+                <div class="dev-datos-grid">
+                    <div class="dev-dato"><span class="dev-dato-k">Ciudad</span><span class="dev-dato-v">Guayaquil, Ecuador</span></div>
+                    <div class="dev-dato"><span class="dev-dato-k">Teléfono</span><span class="dev-dato-v">0995942684</span></div>
+                    <div class="dev-dato"><span class="dev-dato-k">Idiomas</span><span class="dev-dato-v">Español · Inglés B1</span></div>
+                    <div class="dev-dato"><span class="dev-dato-k">Disponibilidad</span><span class="dev-dato-v">Tiempo completo</span></div>
+                </div>
+            </section>
+
+            <section class="dev-bloque">
+                <h3 class="dev-bloque-titulo"><span class="dev-bloque-ico" style="--c:#00897b"><i class="bi bi-mortarboard"></i></span>Estudios</h3>
+                <ul class="dev-timeline">
+                    <li>
+                        <span class="dev-tl-fecha">2026</span>
+                        <strong>Ingeniería en Software</strong>
+                        <span class="dev-tl-sub">Universidad Estatal de Milagro (UNEMI)</span>
+                    </li>
+                    <li>
+                        <span class="dev-tl-fecha">2019</span>
+                        <strong>Bachiller en Aplicaciones Informáticas</strong>
+                        <span class="dev-tl-sub">Colegio Particular Instituto Coello</span>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="dev-bloque">
+                <h3 class="dev-bloque-titulo"><span class="dev-bloque-ico" style="--c:#ff6f00"><i class="bi bi-briefcase"></i></span>Experiencia académica</h3>
+                <ul class="dev-timeline">
+                    <li>
+                        <span class="dev-tl-fecha">2026</span>
+                        <strong>Desarrolladora del Sistema CRAI</strong>
+                        <span class="dev-tl-sub">Proyecto de titulación · Django, PostgreSQL, n8n</span>
+                    </li>
+                    <li>
+                        <span class="dev-tl-fecha">Académica</span>
+                        <strong>Desarrollo de interfaces web</strong>
+                        <span class="dev-tl-sub">HTML, CSS y JavaScript</span>
+                    </li>
+                    <li>
+                        <span class="dev-tl-fecha">Académica</span>
+                        <strong>Control de versiones</strong>
+                        <span class="dev-tl-sub">Git y GitHub</span>
+                    </li>
+                    <li>
+                        <span class="dev-tl-fecha">UNEMI</span>
+                        <strong>Pasante en laboratorios</strong>
+                        <span class="dev-tl-sub">Gestión y mantenimiento de computadoras</span>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="dev-bloque">
+                <h3 class="dev-bloque-titulo"><span class="dev-bloque-ico" style="--c:#7b1fa2"><i class="bi bi-patch-check"></i></span>Certificaciones</h3>
+                <div class="dev-certs">
+                    <span class="dev-cert"><i class="bi bi-hourglass-split"></i> En proceso de formación profesional, fortaleciendo competencias técnicas mediante proyectos académicos y prácticas de desarrollo de software.</span>
+                </div>
+            </section>
+
+            <section class="dev-bloque dev-bloque-full">
+                <h3 class="dev-bloque-titulo"><span class="dev-bloque-ico" style="--c:#0066cc"><i class="bi bi-bullseye"></i></span>Objetivos</h3>
+                <p class="dev-objetivo">
+                    Convertirme en una profesional íntegra y capacitada en el desarrollo de software,
+                    adquiriendo experiencia y conocimientos que me permitan enfrentar nuevos desafíos,
+                    aportar soluciones tecnológicas innovadoras y contribuir al crecimiento de las
+                    organizaciones donde me desempeñe.
+                </p>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/desarrolladores.js' %}"></script>
+{% endblock %}

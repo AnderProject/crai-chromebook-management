@@ -12,15 +12,24 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Carga variables de entorno desde un archivo .env en la raíz del proyecto.
+# El .env NO se versiona (ver .gitignore); usar .env.example como plantilla.
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+34481el4e_mmfz4$)1fy(7njw(b6#rc0#x!+(+@0k^3ud_mv_'
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-+34481el4e_mmfz4$)1fy(7njw(b6#rc0#x!+(+@0k^3ud_mv_',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -159,9 +168,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'merchanbalcazaranderson@gmail.com'  # ← Tu correo de Gmail
-EMAIL_HOST_PASSWORD = 'rcklqxbjqxeckrrs'  # ← La contraseña de aplicación
-DEFAULT_FROM_EMAIL = 'CRAI UNEMI <crai.unemi.test@gmail.com>'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')  # ← definir en .env
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')  # ← App Password de Gmail en .env
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'CRAI UNEMI <crai.unemi.test@gmail.com>')
 
 
 # ==================== API EXTERNA DE MATRÍCULAS ====================

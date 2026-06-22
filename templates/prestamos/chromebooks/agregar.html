@@ -19,7 +19,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown dropdown-perfil">
                         <a class="nav-link dropdown-toggle d-flex align-items-center pe-3" href="#" data-bs-toggle="dropdown" style="gap: 0.6rem;">
-                            <div class="avatar-dashboard">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                            {% include 'prestamos/_avatar.html' with foto=user.perfil.foto nombre=user.first_name apellido=user.last_name clase='avatar-dashboard' %}
                             <div class="d-none d-md-block text-start" style="line-height: 1.2;">
                                 <span style="font-weight: 600; font-size: 0.85rem; color: white;">{{ primer_nombre }} {{ primer_apellido }}</span>
                                 <br>

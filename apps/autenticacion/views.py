@@ -297,3 +297,8 @@ def cerrar_sesion(request):
 def soporte(request):
     """Página de soporte técnico"""
     return render(request, 'autenticacion/soporte.html', {'titulo_pagina': 'Soporte Técnico - CRAI UNEMI'})
+
+
+def desarrolladores(request):
+    """Página dedicada al equipo de desarrollo del sistema."""
+    return render(request, 'autenticacion/desarrolladores.html', {'titulo_pagina': 'Desarrolladores - CRAI UNEMI'})

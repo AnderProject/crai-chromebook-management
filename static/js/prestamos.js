@@ -3,21 +3,25 @@ var estudianteSeleccionado = null;
 
 var horaInicioEditada = false;
 
+// Captura de foto de entrega (préstamo inmediato)
+var entregaFotoNombre = null;   // nombre del archivo subido al servidor
+var entregaTempKey = null;      // clave temporal para nombrar la foto antes de tener Prestamo
+var entregaStream = null;       // stream activo de la webcam
+
 document.addEventListener('DOMContentLoaded', function() {
 
-    // Resumen de horario en vivo
-    ['fechaPrestamo', 'horaInicio', 'horaFin'].forEach(function(idCampo) {
-        var el = document.getElementById(idCampo);
-        if (el) { el.addEventListener('change', actualizarInfoHorario); }
-    });
+    // Resumen de horario en vivo: reacciona a los cambios de los selectores de hora.
+    if (window.CraiTP) {
+        CraiTP.onChange('horaInicio', function (e) {
+            if (e.detail.byUser) { dejarDeSeguirHora(); }
+            actualizarInfoHorario();
+        });
+        CraiTP.onChange('horaFin', actualizarInfoHorario);
+    }
 
     // Hora de inicio = hora actual, en vivo (hasta que el usuario la edite manualmente)
-    var campoHoraInicio = document.getElementById('horaInicio');
-    if (campoHoraInicio) {
-        campoHoraInicio.addEventListener('input', dejarDeSeguirHora);
-        sincronizarHoraInicio();
-        setInterval(sincronizarHoraInicio, 15000);
-    }
+    sincronizarHoraInicio();
+    setInterval(sincronizarHoraInicio, 15000);
 
     actualizarInfoHorario();
 
@@ -104,6 +108,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('confirmFecha').textContent = fecha;
         document.getElementById('confirmHorario').textContent = horaInicio + ' – ' + horaFin;
 
+        // La foto de entrega solo aplica al préstamo inmediato.
+        prepararFotoEntrega(esReserva);
+
         var modal = new bootstrap.Modal(document.getElementById('modalConfirmarPrestamo'));
         modal.show();
 
@@ -113,7 +120,130 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     });
 
+    configurarFotoEntrega();
+
+    // Detener la cámara si se cierra el modal de confirmación.
+    var modalConfirm = document.getElementById('modalConfirmarPrestamo');
+    if (modalConfirm) {
+        modalConfirm.addEventListener('hidden.bs.modal', detenerCamaraEntrega);
+    }
+
 });
+
+// =============================================
+// FOTO DE ENTREGA (préstamo inmediato, opcional)
+// =============================================
+// Reinicia la sección de foto cada vez que se abre el modal.
+function prepararFotoEntrega(esReserva) {
+    entregaFotoNombre = null;
+    entregaTempKey = null;
+    detenerCamaraEntrega();
+
+    var cont = document.getElementById('entregaFoto');
+    if (!cont) { return; }
+    cont.style.display = esReserva ? 'none' : 'block';
+
+    document.getElementById('videoEntrega').style.display = 'none';
+    document.getElementById('previewEntrega').style.display = 'none';
+    document.getElementById('accionesCamaraEntrega').style.display = 'none';
+    document.getElementById('accionesPreviewEntrega').style.display = 'none';
+    document.getElementById('btnTomarFotoEntrega').style.display = 'inline-block';
+}
+
+function configurarFotoEntrega() {
+    var btnTomar = document.getElementById('btnTomarFotoEntrega');
+    if (!btnTomar) { return; }
+    btnTomar.addEventListener('click', iniciarCamaraEntrega);
+    document.getElementById('btnCapturarEntrega').addEventListener('click', capturarFotoEntrega);
+    document.getElementById('btnCancelarCamaraEntrega').addEventListener('click', function () {
+        detenerCamaraEntrega();
+        document.getElementById('videoEntrega').style.display = 'none';
+        document.getElementById('accionesCamaraEntrega').style.display = 'none';
+        document.getElementById('btnTomarFotoEntrega').style.display = 'inline-block';
+    });
+    document.getElementById('btnRepetirFotoEntrega').addEventListener('click', function () {
+        entregaFotoNombre = null;
+        document.getElementById('previewEntrega').style.display = 'none';
+        document.getElementById('accionesPreviewEntrega').style.display = 'none';
+        iniciarCamaraEntrega();
+    });
+}
+
+function iniciarCamaraEntrega() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        mostrarToast('Este dispositivo no permite acceder a la cámara.', 'warning');
+        return;
+    }
+    var video = document.getElementById('videoEntrega');
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(function (stream) {
+            entregaStream = stream;
+            video.srcObject = stream;
+            video.play();
+            video.style.display = 'block';
+            document.getElementById('previewEntrega').style.display = 'none';
+            document.getElementById('accionesPreviewEntrega').style.display = 'none';
+            document.getElementById('accionesCamaraEntrega').style.display = 'flex';
+            document.getElementById('btnTomarFotoEntrega').style.display = 'none';
+        })
+        .catch(function () {
+            mostrarToast('No se pudo acceder a la cámara.', 'error');
+        });
+}
+
+function detenerCamaraEntrega() {
+    if (entregaStream) {
+        entregaStream.getTracks().forEach(function (t) { t.stop(); });
+        entregaStream = null;
+    }
+}
+
+function capturarFotoEntrega() {
+    var video = document.getElementById('videoEntrega');
+    var canvas = document.getElementById('canvasEntrega');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    var dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+    detenerCamaraEntrega();
+    video.style.display = 'none';
+    document.getElementById('accionesCamaraEntrega').style.display = 'none';
+
+    var preview = document.getElementById('previewEntrega');
+    preview.src = dataUrl;
+    preview.style.display = 'block';
+    document.getElementById('accionesPreviewEntrega').style.display = 'flex';
+
+    subirFotoEntrega(dataUrl);
+}
+
+// Sube la foto al servidor; queda como archivo temporal hasta confirmar el préstamo.
+function subirFotoEntrega(dataUrl) {
+    if (!entregaTempKey) {
+        entregaTempKey = 'ent' + (chromebookSeleccionado ? chromebookSeleccionado.id : '0') +
+            '_' + (estudianteSeleccionado ? estudianteSeleccionado.user_id : '0') +
+            '_' + (Date.now ? Date.now() : '');
+    }
+    fetch('/prestamos/api/subir-evidencia-webcam/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+        body: JSON.stringify({ temp_key: entregaTempKey, imagen: dataUrl })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        if (data.success) {
+            entregaFotoNombre = data.nombre_archivo;
+        } else {
+            entregaFotoNombre = null;
+            mostrarToast(data.message || 'No se pudo guardar la foto.', 'warning');
+        }
+    })
+    .catch(function () {
+        entregaFotoNombre = null;
+        mostrarToast('Error al subir la foto.', 'error');
+    });
+}
 
 function ejecutarRegistroPrestamo(modal, btnFinal, fecha, horaInicio, horaFin) {
     // Estado de carga en el botón del modal
@@ -129,7 +259,8 @@ function ejecutarRegistroPrestamo(modal, btnFinal, fecha, horaInicio, horaFin) {
             user_id: estudianteSeleccionado.user_id,
             fecha: fecha,
             hora_inicio: horaInicio,
-            hora_fin: horaFin
+            hora_fin: horaFin,
+            foto_nombre: entregaFotoNombre || ''
         })
     })
     .then(function (r) { return r.json(); })
@@ -178,26 +309,45 @@ function seleccionarFechaPrestamo(btn) {
     document.querySelectorAll('.btn-fecha-opt').forEach(function (b) { b.classList.remove('activo'); });
     btn.classList.add('activo');
     document.getElementById('fechaPrestamo').value = btn.dataset.fecha;
+    actualizarBadgeDisponibles(btn.dataset.fecha);
     actualizarInfoHorario();
+}
+
+// Muestra en el badge la disponibilidad de la fecha elegida (hoy/mañana).
+function actualizarBadgeDisponibles(fecha) {
+    var badge = document.getElementById('badgeDisponibles');
+    var num = document.getElementById('badgeDisponiblesNum');
+    if (!badge || !num) { return; }
+    var btnHoy = document.querySelector('.btn-fecha-opt');
+    var esHoy = btnHoy && fecha === btnHoy.dataset.fecha;
+    var n = esHoy ? parseInt(badge.dataset.dispHoy, 10) : parseInt(badge.dataset.dispManana, 10);
+    if (isNaN(n)) { n = 0; }
+    num.textContent = n;
 }
 
 function dejarDeSeguirHora() {
     horaInicioEditada = true;
     var chip = document.getElementById('horaInicioVivo');
     if (chip) { chip.style.display = 'none'; }
+    // El usuario toma el control: ya no mostramos la opción "Ahora".
+    if (window.CraiTP) { CraiTP.clearAhora('horaInicio'); }
 }
 
 function sincronizarHoraInicio() {
-    if (horaInicioEditada) { return; }
-    var campo = document.getElementById('horaInicio');
-    if (!campo) { return; }
+    if (horaInicioEditada || !window.CraiTP) { return; }
     var ahora = new Date();
+    var nowMin = ahora.getHours() * 60 + ahora.getMinutes();
+    if (nowMin < 8 * 60 || nowMin >= 17 * 60) {
+        // Fuera del horario de atención (08:00–17:00): no seguir la hora actual.
+        CraiTP.clearAhora('horaInicio');
+        return;
+    }
     var hh = String(ahora.getHours()).padStart(2, '0');
     var mm = String(ahora.getMinutes()).padStart(2, '0');
     var nueva = hh + ':' + mm;
-    if (campo.value !== nueva) {
-        campo.value = nueva;
-        actualizarInfoHorario();
+    if (CraiTP.get('horaInicio') !== nueva) {
+        CraiTP.setAhora('horaInicio', nueva);
+        CraiTP.set('horaInicio', nueva, false);
     }
 }
 

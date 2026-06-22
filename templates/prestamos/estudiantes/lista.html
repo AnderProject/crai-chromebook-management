@@ -21,7 +21,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown dropdown-perfil">
                         <a class="nav-link dropdown-toggle d-flex align-items-center pe-3" href="#" data-bs-toggle="dropdown" style="gap: 0.6rem;">
-                            <div class="avatar-dashboard">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                            {% include 'prestamos/_avatar.html' with foto=user.perfil.foto nombre=user.first_name apellido=user.last_name clase='avatar-dashboard' %}
                             <div class="d-none d-md-block text-start" style="line-height: 1.2;">
                                 <span style="font-weight: 600; font-size: 0.85rem; color: white;">{{ primer_nombre }} {{ primer_apellido }}</span>
                                 <br>
@@ -49,54 +49,56 @@
             <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
                 <div class="estudiantes-container">
                     
-                    <div class="estudiantes-header">
-                        <div>
-                            <h5 class="fw-bold mb-0"><i class="bi bi-people-fill me-2 text-primary"></i>Historial de Préstamos</h5>
-                            <small class="text-muted">Por estudiante y monitoreo en tiempo real</small>
+                    <div class="estudiantes-topbar">
+                        <div class="estudiantes-header">
+                            <div>
+                                <h5 class="fw-bold mb-0"><i class="bi bi-people-fill me-2 text-primary"></i>Historial de Préstamos</h5>
+                                <small class="text-muted">Por estudiante y monitoreo en tiempo real</small>
+                            </div>
+                        </div>
+
+                        <div class="estudiantes-tabs">
+                            <button class="tab-btn active" onclick="cambiarTab('directorio')"><i class="bi bi-list-ul"></i> Directorio</button>
+                            <button class="tab-btn" onclick="cambiarTab('monitoreo')"><i class="bi bi-bar-chart"></i> Monitoreo</button>
+                        </div>
+
+                        <div class="estudiantes-stats">
+                            <div class="dashboard-stat-card">
+                                <div class="stat-card-glow"></div>
+                                <div class="stat-card-content">
+                                    <div class="stat-icono-dash bg-azul"><i class="bi bi-people"></i></div>
+                                    <div class="stat-info-dash">
+                                        <span class="stat-numero-dash">{{ total_estudiantes }}</span>
+                                        <span class="stat-label-dash">Total</span>
+                                    </div>
+                                </div>
+                                <div class="stat-card-bar bg-azul"></div>
+                            </div>
+                            <div class="dashboard-stat-card">
+                                <div class="stat-card-glow"></div>
+                                <div class="stat-card-content">
+                                    <div class="stat-icono-dash bg-verde"><i class="bi bi-laptop"></i></div>
+                                    <div class="stat-info-dash">
+                                        <span class="stat-numero-dash">{{ estudiantes_activos }}</span>
+                                        <span class="stat-label-dash">Con préstamo</span>
+                                    </div>
+                                </div>
+                                <div class="stat-card-bar bg-verde"></div>
+                            </div>
+                            <div class="dashboard-stat-card">
+                                <div class="stat-card-glow"></div>
+                                <div class="stat-card-content">
+                                    <div class="stat-icono-dash bg-rojo"><i class="bi bi-exclamation-triangle"></i></div>
+                                    <div class="stat-info-dash">
+                                        <span class="stat-numero-dash">{{ vencidos }}</span>
+                                        <span class="stat-label-dash">Vencidos</span>
+                                    </div>
+                                </div>
+                                <div class="stat-card-bar bg-rojo"></div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="estudiantes-tabs">
-                        <button class="tab-btn active" onclick="cambiarTab('directorio')"><i class="bi bi-list-ul"></i> Directorio</button>
-                        <button class="tab-btn" onclick="cambiarTab('monitoreo')"><i class="bi bi-bar-chart"></i> Monitoreo</button>
-                    </div>
-                    
-                    <div class="estudiantes-stats">
-                        <div class="dashboard-stat-card">
-                            <div class="stat-card-glow"></div>
-                            <div class="stat-card-content">
-                                <div class="stat-icono-dash bg-azul"><i class="bi bi-people"></i></div>
-                                <div class="stat-info-dash">
-                                    <span class="stat-numero-dash">{{ total_estudiantes }}</span>
-                                    <span class="stat-label-dash">Total</span>
-                                </div>
-                            </div>
-                            <div class="stat-card-bar bg-azul"></div>
-                        </div>
-                        <div class="dashboard-stat-card">
-                            <div class="stat-card-glow"></div>
-                            <div class="stat-card-content">
-                                <div class="stat-icono-dash bg-verde"><i class="bi bi-laptop"></i></div>
-                                <div class="stat-info-dash">
-                                    <span class="stat-numero-dash">{{ estudiantes_activos }}</span>
-                                    <span class="stat-label-dash">Con préstamo</span>
-                                </div>
-                            </div>
-                            <div class="stat-card-bar bg-verde"></div>
-                        </div>
-                        <div class="dashboard-stat-card">
-                            <div class="stat-card-glow"></div>
-                            <div class="stat-card-content">
-                                <div class="stat-icono-dash bg-rojo"><i class="bi bi-exclamation-triangle"></i></div>
-                                <div class="stat-info-dash">
-                                    <span class="stat-numero-dash">{{ vencidos }}</span>
-                                    <span class="stat-label-dash">Vencidos</span>
-                                </div>
-                            </div>
-                            <div class="stat-card-bar bg-rojo"></div>
-                        </div>
-                    </div>
-                    
+
                     <div id="tab-directorio" class="tab-contenido">
                         <div class="filtros-barra">
                             <div class="filtro-busqueda">
@@ -118,7 +120,7 @@
                             {% for estudiante in estudiantes %}
                             <div class="estudiante-row" data-nombre="{{ estudiante.usuario.user.get_full_name|lower }}" data-cedula="{{ estudiante.usuario.cedula }}" data-carrera="{{ estudiante.carrera.nombre|lower }}" onclick="abrirPerfil('{{ estudiante.id }}')">
                                 <div class="estudiante-info">
-                                    <div class="avatar-sm bg-primary">{{ estudiante.usuario.user.first_name|first|upper }}{{ estudiante.usuario.user.last_name|first|upper }}</div>
+                                    {% include 'prestamos/_avatar.html' with foto=estudiante.usuario.foto nombre=estudiante.usuario.user.first_name apellido=estudiante.usuario.user.last_name clase='avatar-sm bg-primary' %}
                                     <div>
                                         <strong class="small">{{ estudiante.usuario.user.get_full_name }}</strong>
                                         <div class="small text-muted">{{ estudiante.usuario.cedula }} • {{ estudiante.carrera.nombre }} • {{ estudiante.semestre }}to Semestre</div>
@@ -136,29 +138,81 @@
                     </div>
                     
                     <div id="tab-monitoreo" class="tab-contenido" style="display:none;">
-                        <h6 class="fw-bold mb-2"><i class="bi bi-broadcast me-2 text-success"></i>Préstamos Activos</h6>
-                        {% if prestamos_activos_lista %}
-                            {% for p in prestamos_activos_lista %}
-                            <div class="estudiante-row border-start border-success border-3">
-                                <div><strong>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong><br><small class="text-muted">{{ p.chromebook.codigo }} • Desde {{ p.fecha_prestamo|date:"d/m/Y H:i" }} • Dev: {{ p.fecha_devolucion|date:"H:i" }}</small></div>
-                                <span class="badge bg-success">Activo</span>
+                        <div class="monitoreo-toolbar">
+                            <div class="monitoreo-titulo">
+                                <span class="monitoreo-live"><span class="monitoreo-live-dot"></span> En vivo</span>
+                                <h6 class="fw-bold mb-0">Monitoreo de préstamos</h6>
                             </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="text-center text-muted small py-2">No hay préstamos activos</div>
-                        {% endif %}
-                        
-                        <h6 class="fw-bold mb-2 mt-3"><i class="bi bi-exclamation-triangle me-2 text-danger"></i>Vencidos</h6>
-                        {% if prestamos_vencidos_lista %}
-                            {% for p in prestamos_vencidos_lista %}
-                            <div class="estudiante-row border-start border-danger border-3">
-                                <div><strong>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong><br><small class="text-muted">{{ p.chromebook.codigo }} • Vencido desde {{ p.fecha_devolucion|date:"d/m/Y" }}</small></div>
-                                <span class="badge bg-danger">Vencido</span>
+                            <div class="filtro-busqueda monitoreo-busqueda">
+                                <i class="bi bi-search filtro-icono"></i>
+                                <input type="text" class="filtro-input" placeholder="Buscar por estudiante, equipo o carrera..." id="buscarMonitoreo" onkeyup="filtrarMonitoreo()" autocomplete="off">
                             </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="text-center text-muted small py-2">No hay préstamos vencidos</div>
-                        {% endif %}
+                        </div>
+
+                        <div class="monitoreo-grid">
+                            <section class="monitoreo-panel monitoreo-panel-activos">
+                                <header class="monitoreo-panel-head">
+                                    <span class="monitoreo-panel-icono"><i class="bi bi-broadcast"></i></span>
+                                    <div>
+                                        <span class="monitoreo-panel-titulo">Préstamos activos</span>
+                                        <span class="monitoreo-panel-sub">Equipos actualmente en uso</span>
+                                    </div>
+                                    <span class="monitoreo-contador">{{ prestamos_activos_lista|length }}</span>
+                                </header>
+                                <div class="monitoreo-lista" data-grupo="activos">
+                                    {% for p in prestamos_activos_lista %}
+                                    <div class="monitoreo-card monitoreo-card-activo" data-buscar="{{ p.estudiante.get_full_name|default:p.estudiante.username|lower }} {{ p.chromebook.codigo|lower }}">
+                                        <div class="monitoreo-card-avatar"><i class="bi bi-laptop"></i></div>
+                                        <div class="monitoreo-card-info">
+                                            <strong>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong>
+                                            <span class="monitoreo-card-meta">{{ p.chromebook.codigo }} · Desde {{ p.fecha_prestamo|date:"d/m H:i" }} · Devuelve {{ p.fecha_devolucion|date:"H:i" }}</span>
+                                        </div>
+                                        <span class="monitoreo-badge monitoreo-badge-activo">Activo</span>
+                                    </div>
+                                    {% empty %}
+                                    <div class="monitoreo-vacio">No hay préstamos activos</div>
+                                    {% endfor %}
+                                    <div class="monitoreo-sin-coincidencias">Sin coincidencias</div>
+                                </div>
+                            </section>
+
+                            <section class="monitoreo-panel monitoreo-panel-vencidos">
+                                <header class="monitoreo-panel-head">
+                                    <span class="monitoreo-panel-icono"><i class="bi bi-exclamation-triangle"></i></span>
+                                    <div>
+                                        <span class="monitoreo-panel-titulo">Vencidos</span>
+                                        <span class="monitoreo-panel-sub">Préstamos y reservas caducados</span>
+                                    </div>
+                                    <span class="monitoreo-contador monitoreo-contador-rojo">{{ monitoreo_vencidos_count }}</span>
+                                </header>
+                                <div class="monitoreo-lista" data-grupo="vencidos">
+                                    {% for p in prestamos_vencidos_lista %}
+                                    <div class="monitoreo-card monitoreo-card-vencido" data-buscar="{{ p.estudiante.get_full_name|default:p.estudiante.username|lower }} {{ p.chromebook.codigo|lower }}">
+                                        <div class="monitoreo-card-avatar monitoreo-avatar-rojo"><i class="bi bi-laptop"></i></div>
+                                        <div class="monitoreo-card-info">
+                                            <strong>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong>
+                                            <span class="monitoreo-card-meta">Préstamo · {{ p.chromebook.codigo }} · Vencido desde {{ p.fecha_devolucion|date:"d/m/Y" }}</span>
+                                        </div>
+                                        <span class="monitoreo-badge monitoreo-badge-vencido">Vencido</span>
+                                    </div>
+                                    {% endfor %}
+                                    {% for r in reservas_vencidas_lista %}
+                                    <div class="monitoreo-card monitoreo-card-vencido" data-buscar="{{ r.estudiante.usuario.user.get_full_name|default:r.estudiante.usuario.user.username|lower }} {{ r.carrera.nombre|lower }}">
+                                        <div class="monitoreo-card-avatar monitoreo-avatar-rojo"><i class="bi bi-calendar-x"></i></div>
+                                        <div class="monitoreo-card-info">
+                                            <strong>{{ r.estudiante.usuario.user.get_full_name|default:r.estudiante.usuario.user.username }}</strong>
+                                            <span class="monitoreo-card-meta">Reserva · {{ r.carrera.nombre }} · Vencida el {{ r.fecha_uso|date:"d/m/Y" }} {{ r.hora_inicio|time:"H:i" }}</span>
+                                        </div>
+                                        <span class="monitoreo-badge monitoreo-badge-vencido">Vencida</span>
+                                    </div>
+                                    {% endfor %}
+                                    {% if not prestamos_vencidos_lista and not reservas_vencidas_lista %}
+                                    <div class="monitoreo-vacio">No hay vencidos</div>
+                                    {% endif %}
+                                    <div class="monitoreo-sin-coincidencias">Sin coincidencias</div>
+                                </div>
+                            </section>
+                        </div>
                     </div>
                     
                 </div>

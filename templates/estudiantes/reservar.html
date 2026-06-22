@@ -5,6 +5,7 @@
 
 {% block estilos_extra %}
 <link href="{% static 'css/base.css' %}" rel="stylesheet">
+<link href="{% static 'css/timepicker.css' %}" rel="stylesheet">
 <link href="{% static 'css/reservar.css' %}" rel="stylesheet">
 {% endblock %}
 
@@ -18,7 +19,12 @@
             <i class="bi bi-arrow-left"></i>
         </a>
         <span class="navbar-titulo">Reservar Chromebook</span>
-        <div class="navbar-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+        <div class="navbar-derecha">
+            <div class="navbar-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+            <a href="{% url 'autenticacion:cerrar_sesion' %}" class="btn-logout-nav" title="Cerrar sesión">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
     </nav>
     
     <div class="reservar-contenido">
@@ -35,19 +41,13 @@
             
             <div class="formulario-card">
                 
-                <div class="equipo-preview">
+                <div class="equipo-preview" id="equipoPreview" data-disp-hoy="{{ disponibles }}" data-disp-manana="{{ disponibles_manana }}">
                     <div class="equipo-icono"><i class="bi bi-laptop"></i></div>
                     <div class="equipo-info">
                         <strong>Se te asignará un Chromebook disponible</strong>
-                        <small>
-                            {% if disponibles > 0 %}Hay equipos disponibles para reservar{% else %}Por ahora no hay equipos disponibles{% endif %}
-                        </small>
+                        <small id="equipoDispTexto">{% if disponibles > 0 %}Hay equipos disponibles para reservar{% else %}Por ahora no hay equipos disponibles{% endif %}</small>
                     </div>
-                    {% if disponibles > 0 %}
-                        <span class="equipo-badge">Disponible</span>
-                    {% else %}
-                        <span class="equipo-badge no-disponible">No disponible</span>
-                    {% endif %}
+                    <span class="equipo-badge{% if disponibles <= 0 %} no-disponible{% endif %}" id="equipoBadge">{% if disponibles > 0 %}Disponible{% else %}No disponible{% endif %}</span>
                 </div>
                 
                 {% if messages %}
@@ -79,25 +79,27 @@
                         <div class="horario-grid">
                             <div class="horario-card">
                                 <span class="horario-label">Hora inicio</span>
-                                <div class="time-select" id="selInicio">
-                                    <button type="button" class="time-trigger" id="triggerInicio" aria-haspopup="listbox">
-                                        <span class="time-value" id="valInicio">08:00</span>
-                                        <i class="bi bi-chevron-down time-chevron"></i>
+                                <div class="timepicker" data-tp-min="08:00" data-tp-max="17:00" data-tp-step="30">
+                                    <button type="button" class="timepicker-field" aria-haspopup="listbox" aria-expanded="false">
+                                        <i class="bi bi-clock"></i>
+                                        <span class="timepicker-valor">08:00</span>
+                                        <i class="bi bi-chevron-down timepicker-caret"></i>
                                     </button>
-                                    <ul class="time-dropdown" id="dropInicio" role="listbox"></ul>
+                                    <div class="timepicker-panel" role="listbox"></div>
+                                    <input type="hidden" id="horaInicio" name="hora_inicio" value="08:00">
                                 </div>
-                                <input type="hidden" id="horaInicio" name="hora_inicio" value="08:00">
                             </div>
                             <div class="horario-card">
                                 <span class="horario-label">Hora fin</span>
-                                <div class="time-select" id="selFin">
-                                    <button type="button" class="time-trigger" id="triggerFin" aria-haspopup="listbox">
-                                        <span class="time-value" id="valFin">10:00</span>
-                                        <i class="bi bi-chevron-down time-chevron"></i>
+                                <div class="timepicker" data-tp-after="horaInicio" data-tp-min="08:00" data-tp-max="17:00" data-tp-step="30">
+                                    <button type="button" class="timepicker-field" aria-haspopup="listbox" aria-expanded="false">
+                                        <i class="bi bi-clock"></i>
+                                        <span class="timepicker-valor">10:00</span>
+                                        <i class="bi bi-chevron-down timepicker-caret"></i>
                                     </button>
-                                    <ul class="time-dropdown" id="dropFin" role="listbox"></ul>
+                                    <div class="timepicker-panel" role="listbox"></div>
+                                    <input type="hidden" id="horaFin" name="hora_fin" value="10:00">
                                 </div>
-                                <input type="hidden" id="horaFin" name="hora_fin" value="10:00">
                             </div>
                         </div>
                         <small class="text-muted d-block mt-1"><i class="bi bi-info-circle me-1"></i>Horario disponible: 08:00 a 17:00</small>
@@ -172,5 +174,6 @@
 {% endblock %}
 
 {% block scripts_extra %}
+<script src="{% static 'js/timepicker.js' %}"></script>
 <script src="{% static 'js/reservar.js' %}"></script>
 {% endblock %}

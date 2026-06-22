@@ -48,7 +48,9 @@ urlpatterns = [
     path('ajustes/', views.ajustes, name='ajustes'),
     path('perfil/', views.perfil, name='perfil'),
     path('perfil/foto/', views.actualizar_foto_perfil, name='actualizar_foto_perfil'),
-    path('perfil/password/', views.cambiar_password_perfil, name='cambiar_password_perfil'),
+    path('api/perfil/telefono/', views.api_actualizar_telefono, name='api_actualizar_telefono'),
+    path('api/perfil/password/solicitar/', views.api_solicitar_codigo_password, name='api_solicitar_codigo_password'),
+    path('api/perfil/password/confirmar/', views.api_confirmar_codigo_password, name='api_confirmar_codigo_password'),
     path('reportes/', views.reportes, name='reportes'),
 
     # TICs: gestión de personal (crear recepcionistas)

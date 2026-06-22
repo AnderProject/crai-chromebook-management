@@ -1,0 +1,11 @@
+Coloca aquí las fotos de los desarrolladores con estos nombres EXACTOS:
+
+  anderson.jpg   -> Anderson Alexander Merchan Balcazar
+  lady.jpg       -> Lady Paulet Loaiza Lozano
+
+Recomendado: imagen cuadrada (p.ej. 400x400 px), formato .jpg.
+Si el archivo no existe, la página muestra un ícono de persona como respaldo.
+
+Las rutas se referencian en templates/autenticacion/desarrolladores.html con:
+  {% static 'img/desarrolladores/anderson.jpg' %}
+  {% static 'img/desarrolladores/lady.jpg' %}
