@@ -150,3 +150,32 @@ Navegador (JS) → POST /estudiantes/api/chatbot/
 - `GET /estudiantes/api/disponibilidad/`
 - `GET /estudiantes/api/mis-reservas/?cedula=X`
 - `POST /estudiantes/api/crear-reserva/`
+
+## Últimos cambios — sesión 2026-06-22
+
+### Bug 1: "Ese horario ya pasó por hoy" — falso positivo por race condition
+**Archivos:** `apps/estudiantes/views.py:288-290` y `apps/estudiantes/views.py:588-590`
+
+**Problema:** La validación `hora_inicio_dt <= timezone.localtime().time()` comparaba un `time` con precisión de minutos contra un `time` con segundos/microsegundos. Si el servidor avanzaba 1ms después de la hora seleccionada, la reserva se rechazaba aunque el usuario hubiera elegido una hora futura.
+
+**Fix:** Cambiar a comparación de datetimes aware con 2 minutos de gracia:
+```python
+# Antes
+if fecha == hoy and hora_inicio_dt <= timezone.localtime().time():
+
+# Después
+inicio_dt = timezone.make_aware(datetime.combine(hoy, hora_inicio_dt))
+if fecha == hoy and inicio_dt < timezone.localtime() - timedelta(minutes=2):
+```
+
+### Bug 2: Reserva nunca se marcaba como 'completada' al devolver
+**Archivo:** `apps/prestamos/views.py:301-304`
+
+**Problema:** Al devolver un chromebook, el `Prestamo` pasaba a `devuelto` y el `Chromebook` a `disponible`, pero la `Reserva` asociada quedaba atorada en `confirmada` para siempre.
+
+**Fix:** Agregar transición a `completada` en la devolución:
+```python
+if prestamo.reserva:
+    prestamo.reserva.estado = 'completada'
+    prestamo.reserva.save()
+```

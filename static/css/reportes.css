@@ -16,6 +16,30 @@
     --rep-texto-claro: #6c757d;
 }
 
+/* ---------- Botón exportar ---------- */
+.btn-exportar-reportes {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.15rem;
+    border-radius: 11px;
+    border: none;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    background: linear-gradient(135deg, #1a73e8, #1557b0);
+    box-shadow: 0 5px 14px rgba(26, 115, 232, 0.28);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+.btn-exportar-reportes:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(26, 115, 232, 0.4);
+    filter: brightness(1.05);
+    color: #fff;
+}
+.btn-exportar-reportes:active { transform: translateY(0); }
+
 /* ---------- Tarjetas resumen (mini-KPI) ---------- */
 .reporte-resumen {
     display: grid;

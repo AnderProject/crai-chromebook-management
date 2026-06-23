@@ -151,6 +151,36 @@ function cargarHistorial() {
     if (hayUsuario) ocultarChips();
 }
 
+// ---- Aviso: faltan 15 min para devolver el Chromebook ----
+var AVISOS_KEY = 'crai_avisos_devolucion';
+function leerAvisosMostrados() {
+    try { return JSON.parse(sessionStorage.getItem(AVISOS_KEY)) || {}; }
+    catch (e) { return {}; }
+}
+function procesarAvisosDevolucion(avisos) {
+    if (!avisos || !avisos.length) return;
+    var mostrados = leerAvisosMostrados();
+    var nuevos = false;
+    avisos.forEach(function (a) {
+        if (mostrados[a.id]) return;          // ya avisado en esta sesión
+        mostrados[a.id] = true;
+        nuevos = true;
+        var equipo = a.chromebook ? ' ' + a.chromebook : '';
+        var texto = '⏰ Te quedan ' + a.minutos + ' min para devolver tu Chromebook' +
+            equipo + ' (hasta las ' + a.hora + '). ¡No olvides entregarlo a tiempo!';
+        if (typeof mostrarToast === 'function') {
+            mostrarToast(texto, 'warning');
+        }
+        // También lo dejamos como mensaje del asistente en el chat.
+        if (document.getElementById('chatbotMensajes')) {
+            agregarMensaje('bot', texto, horaActual(), true);
+        }
+    });
+    if (nuevos) {
+        sessionStorage.setItem(AVISOS_KEY, JSON.stringify(mostrados));
+    }
+}
+
 // ---- Actualización en tiempo real de "Actividad reciente" ----
 var ultimaActividadHtml = null;
 function refrescarActividad() {
@@ -168,6 +198,7 @@ function refrescarActividad() {
             if (disp && typeof data.disponibles !== 'undefined') {
                 disp.textContent = data.disponibles;
             }
+            procesarAvisosDevolucion(data.avisos_devolucion);
         })
         .catch(function () { /* silencioso */ });
 }
@@ -175,7 +206,9 @@ function refrescarActividad() {
 document.addEventListener('DOMContentLoaded', function () {
     cargarHistorial();
     // Refresco periódico por si hay cambios desde otros canales (admin, etc.)
+    // y para detectar préstamos próximos a vencer (aviso de 15 min).
     if (document.querySelector('.actividad-lista')) {
+        refrescarActividad();
         setInterval(refrescarActividad, 30000);
     }
 });

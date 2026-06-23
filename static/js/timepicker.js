@@ -129,7 +129,7 @@
         }
 
         st.hidden.value = valor;
-        st.valor.textContent = (st.ahora != null && vMin === st.ahora) ? ('Ahora · ' + valor) : valor;
+        st.valor.textContent = valor;
         marcar(st);
         aplicarEnlaces(id);
 

@@ -163,7 +163,7 @@
                     </div>
                 </div>
                 
-                <div class="tabla-prestamos">
+                <div class="tabla-prestamos tabla-ultimos">
                     <div class="table-header"><h5><i class="bi bi-list-ul me-2"></i>Últimos Préstamos</h5></div>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
@@ -395,9 +395,9 @@
 <!-- MODAL: DETALLE DE PRÉSTAMO -->
 <!-- MODAL: DETALLE DE PRÉSTAMO -->
 <div class="modal fade" id="modalDetallePrestamo" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow" style="border-radius: 20px; overflow: hidden;">
-            
+    <div class="modal-dialog modal-dialog-centered detalle-modal-dialog">
+        <div class="modal-content border-0 shadow detalle-modal-content">
+
             <!-- Header con gradiente -->
             <div class="detalle-modal-header">
                 <div class="d-flex align-items-center gap-2">
@@ -405,39 +405,39 @@
                         <i class="bi bi-clipboard-check"></i>
                     </div>
                     <div>
-                        <h5 class="modal-title fw-bold text-white mb-0">Detalle del Préstamo</h5>
+                        <h6 class="modal-title fw-bold text-white mb-0">Detalle del Préstamo</h6>
                         <small class="text-white-50" id="detallePrestamoIdHeader">#---</small>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            
+
             <div class="modal-body p-0">
-                
-                <!-- Tabla de información -->
-                <div class="detalle-tabla-container">
-                    <table class="detalle-tabla">
-                        <tbody>
-                            <tr>
-                                <td class="detalle-label"><i class="bi bi-person-badge"></i> Estudiante</td>
-                                <td class="detalle-valor" id="detallePrestamoEstudiante">-</td>
-                                <td class="detalle-label"><i class="bi bi-laptop"></i> Chromebook</td>
-                                <td class="detalle-valor" id="detallePrestamoChromebook">-</td>
-                            </tr>
-                            <tr>
-                                <td class="detalle-label"><i class="bi bi-calendar-check"></i> Fecha Préstamo</td>
-                                <td class="detalle-valor" id="detallePrestamoFecha">-</td>
-                                <td class="detalle-label"><i class="bi bi-calendar-x"></i> Devolución</td>
-                                <td class="detalle-valor" id="detallePrestamoDevolucion">-</td>
-                            </tr>
-                            <tr>
-                                <td class="detalle-label"><i class="bi bi-flag"></i> Estado</td>
-                                <td class="detalle-valor" id="detallePrestamoEstado" colspan="3">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
+
+                <!-- Datos del préstamo -->
+                <div class="detalle-datos">
+                    <div class="detalle-item">
+                        <span class="detalle-item-label"><i class="bi bi-person-badge"></i> Estudiante</span>
+                        <span class="detalle-item-valor" id="detallePrestamoEstudiante">-</span>
+                    </div>
+                    <div class="detalle-item">
+                        <span class="detalle-item-label"><i class="bi bi-laptop"></i> Chromebook</span>
+                        <span class="detalle-item-valor" id="detallePrestamoChromebook">-</span>
+                    </div>
+                    <div class="detalle-item">
+                        <span class="detalle-item-label"><i class="bi bi-calendar-check"></i> Fecha Préstamo</span>
+                        <span class="detalle-item-valor" id="detallePrestamoFecha">-</span>
+                    </div>
+                    <div class="detalle-item">
+                        <span class="detalle-item-label"><i class="bi bi-calendar-x"></i> Devolución</span>
+                        <span class="detalle-item-valor" id="detallePrestamoDevolucion">-</span>
+                    </div>
+                    <div class="detalle-item detalle-item-full">
+                        <span class="detalle-item-label"><i class="bi bi-flag"></i> Estado</span>
+                        <span class="detalle-item-valor" id="detallePrestamoEstado">-</span>
+                    </div>
                 </div>
-                
+
                 <!-- Evidencia Fotográfica -->
                 <div class="detalle-evidencia">
                     <div class="detalle-evidencia-header">
@@ -448,16 +448,16 @@
                         <img id="detalleFotoEvidencia" src="" alt="Evidencia" class="detalle-foto">
                         <div id="detalleSinFoto" class="detalle-sin-foto">
                             <i class="bi bi-image"></i>
-                            <p>No hay evidencia fotográfica disponible</p>
+                            <p>Sin evidencia fotográfica</p>
                         </div>
                     </div>
                 </div>
-                
+
             </div>
-            
+
             <!-- Footer -->
             <div class="detalle-modal-footer">
-                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
                     <i class="bi bi-x-lg me-1"></i>Cerrar
                 </button>
             </div>

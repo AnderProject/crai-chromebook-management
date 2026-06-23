@@ -52,6 +52,7 @@ urlpatterns = [
     path('api/perfil/password/solicitar/', views.api_solicitar_codigo_password, name='api_solicitar_codigo_password'),
     path('api/perfil/password/confirmar/', views.api_confirmar_codigo_password, name='api_confirmar_codigo_password'),
     path('reportes/', views.reportes, name='reportes'),
+    path('reportes/exportar/', views.exportar_reportes, name='exportar_reportes'),
 
     # TICs: gestión de personal (crear recepcionistas)
     path('personal/', views.gestion_personal, name='gestion_personal'),

@@ -254,6 +254,15 @@
     border: 1px solid #eef0f5;
 }
 
+/* La lista hace scroll dentro de su propio espacio: el título queda fijo
+   y la página no crece aunque haya mucha actividad. Altura ≈ 4 ítems. */
+.actividad-lista {
+    max-height: 256px;
+    overflow-y: auto;
+    margin: 0 -0.5rem;
+    padding: 0 0.5rem;
+}
+
 .actividad-item {
     display: flex;
     align-items: center;

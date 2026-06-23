@@ -90,9 +90,10 @@ def construir_actividad(user):
                 'dot': 'devuelto'
             })
         
-        # Ordenar por fecha y limitar a 5
+        # Ordenar por fecha. Se muestran ~4 a la vez (scroll interno); dejamos
+        # algo más de historial para que el scroll tenga contenido.
         actividad.sort(key=lambda x: x['fecha'] if x['fecha'] else timezone.now(), reverse=True)
-        actividad = actividad[:5]
+        actividad = actividad[:8]
         
     except (PerfilUsuario.DoesNotExist, Estudiante.DoesNotExist):
         pass
@@ -114,12 +115,45 @@ def portal_estudiante(request):
     return render(request, 'estudiantes/portal.html', contexto)
 
 
+def _avisos_devolucion(user):
+    """Préstamos activos del estudiante que vencen dentro de los próximos 15 min.
+
+    Sirve para avisarle al estudiante (vía el polling del portal) que se acerca
+    la hora de devolver su Chromebook. Devuelve una lista de dicts ligeros.
+    """
+    from apps.prestamos.models import Prestamo
+    from django.utils import timezone
+    from datetime import timedelta
+
+    ahora = timezone.now()
+    limite = ahora + timedelta(minutes=15)
+    avisos = []
+    prestamos = (Prestamo.objects
+                 .filter(estudiante=user, estado='activo',
+                         fecha_devolucion__gt=ahora, fecha_devolucion__lte=limite)
+                 .select_related('chromebook'))
+    for p in prestamos:
+        restante = p.fecha_devolucion - ahora
+        minutos = max(1, int(restante.total_seconds() // 60))
+        avisos.append({
+            'id': p.id,
+            'chromebook': p.chromebook.codigo if p.chromebook_id else '',
+            'minutos': minutos,
+            'hora': timezone.localtime(p.fecha_devolucion).strftime('%H:%M'),
+        })
+    return avisos
+
+
 @login_required
 def api_actividad(request):
     """Devuelve la actividad reciente y la disponibilidad (para refresco en vivo del portal)."""
     actividad, disponibles, _ = construir_actividad(request.user)
     html = render_to_string('estudiantes/_actividad_lista.html', {'actividad': actividad})
-    return JsonResponse({'html': html, 'disponibles': disponibles})
+    return JsonResponse({
+        'html': html,
+        'disponibles': disponibles,
+        'avisos_devolucion': _avisos_devolucion(request.user),
+    })
 
 
 @login_required
@@ -285,7 +319,9 @@ def reservar_chromebook(request):
                 })
 
             # Para hoy, el turno no puede haber empezado ya (evita reservas que nacen vencidas).
-            if fecha == hoy and hora_inicio_dt <= timezone.localtime().time():
+            # Se permite una gracia de 2 min para evitar race conditions por segundos/microsegundos.
+            inicio_dt = timezone.make_aware(datetime.combine(hoy, hora_inicio_dt))
+            if fecha == hoy and inicio_dt < timezone.localtime() - timedelta(minutes=2):
                 return JsonResponse({
                     'success': False,
                     'message': 'Ese horario ya pasó por hoy. Elige una hora más tarde o reserva para otro día.'
@@ -414,13 +450,34 @@ def api_cancelar_reserva(request):
 # CHATBOT CON N8N
 # ==========================================
 
-@csrf_exempt
-def api_chatbot(request):
+def _formatear_reservas_chat(reservas, nombre=''):
+    """Da formato legible y bien estructurado a una lista de reservas para el chat.
+
+    Cada reserva se muestra en su propio bloque (estado, código y fecha/horario),
+    separados por una línea en blanco para que no quede todo pegado.
     """
-    Chatbot híbrido:
-    - Keywords comunes se responden directo desde Django.
-    - Crear reserva requiere conversación → va a n8n.
-    - El AI de n8n puede devolver JSON con acciones.
+    emojis = {'pendiente': '⏳', 'confirmada': '✅', 'cancelada': '❌',
+              'completada': '✔️', 'vencida': '⌛'}
+    titulo = f'📋 *Tus reservas{(", " + nombre) if nombre else ""}*'
+    bloques = [titulo]
+    for r in reservas:
+        e = emojis.get(r.estado, '📌')
+        fecha = r.fecha_uso.strftime('%d/%m/%Y')
+        horario = f'{r.hora_inicio.strftime("%H:%M")}–{r.hora_fin.strftime("%H:%M")}'
+        bloques.append(
+            f'{e} *{r.get_estado_display()}*\n'
+            f'🔑 Código: {r.codigo_verificacion}\n'
+            f'📅 {fecha}  ·  ⏰ {horario}'
+        )
+    return '\n\n'.join(bloques)
+
+
+def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
+    """Lógica central del chatbot, compartida por el portal web y por WhatsApp.
+
+    Recibe el estudiante/perfil ya identificados (por sesión en el portal, por
+    teléfono en WhatsApp) y devuelve ``(respuesta, accion_realizada)``. No depende
+    de ``request`` ni de la sesión, para poder reutilizarse desde cualquier canal.
     """
     import json
     import re
@@ -429,36 +486,17 @@ def api_chatbot(request):
     import string
     from django.utils import timezone
     from datetime import datetime
-    from apps.prestamos.models import ChatbotConversacion, Chromebook, Reserva, Estudiante, Usuario as PerfilUsuario
+    from apps.prestamos.models import Chromebook, Reserva
 
-    if request.method != 'POST':
-        return JsonResponse({'success': False, 'respuesta': 'Método no permitido'}, status=405)
+    mensaje = (mensaje_raw or '').strip().lower()
 
-    if not request.user.is_authenticated:
-        return JsonResponse({'success': False, 'respuesta': 'Debes iniciar sesión'}, status=401)
-
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({'success': False, 'respuesta': 'JSON inválido'}, status=400)
-
-    mensaje = data.get('mensaje', '').strip().lower()
-    if not mensaje:
-        return JsonResponse({'success': False, 'respuesta': 'Escribe un mensaje'})
-
-    # ========== Identificar estudiante autenticado ==========
-    perfil = None
-    estudiante = None
     nombre_completo = ''
     cedula = ''
-    try:
-        perfil = PerfilUsuario.objects.get(user=request.user)
-        estudiante = Estudiante.objects.get(usuario=perfil)
+    if perfil is not None:
         nombre_completo = (f'{perfil.user.first_name} {perfil.user.last_name}'.strip()
                            or perfil.user.username)
-        cedula = perfil.cedula
-    except (PerfilUsuario.DoesNotExist, Estudiante.DoesNotExist):
-        pass
+        cedula = perfil.cedula or ''
+    primer_nombre = nombre_completo.split(' ')[0] if nombre_completo else ''
 
     # ========== PALABRAS CLAVE — respuesta directa (sin n8n) ==========
     accion_realizada = None
@@ -467,21 +505,15 @@ def api_chatbot(request):
     # --- Disponibilidad ---
     if any(p in mensaje for p in ['disponibilidad', 'disponible', 'cupo', 'hay chromebook']):
         from apps.prestamos.views import _disponibles_efectivos
-        total = Chromebook.objects.count()
         disponibles = _disponibles_efectivos()
-        en_prestamo = Chromebook.objects.filter(estado='prestado').count()
-        en_mantenimiento = Chromebook.objects.filter(estado='mantenimiento').count()
-
-        respuesta = (
-            f'📊 *Disponibilidad de Chromebooks*\n\n'
-            f'✅ Disponibles: {disponibles}\n'
-            f'📤 En préstamo: {en_prestamo}\n'
-            f'🔧 En mantenimiento: {en_mantenimiento}\n'
-            f'📦 Total: {total}\n\n'
-            f'{"Hay equipos disponibles para reservar 🎉" if disponibles > 0 else "No hay equipos disponibles en este momento 😕"}'
-        )
-        if nombre_completo:
-            respuesta = f'Hola {nombre_completo},\n\n' + respuesta
+        if disponibles > 0:
+            cuerpo = '¡sí hay Chromebooks disponibles! 🎉 ¿Te ayudo a reservar uno?'
+        else:
+            cuerpo = 'por ahora no hay Chromebooks disponibles 😕 Vuelve a consultarme en un ratito.'
+        if primer_nombre:
+            respuesta = f'{primer_nombre}, {cuerpo}'
+        else:
+            respuesta = cuerpo[0].upper() + cuerpo[1:]
         accion_realizada = 'disponibilidad'
 
     # --- Mis reservas ---
@@ -489,18 +521,10 @@ def api_chatbot(request):
         if estudiante:
             reservas = Reserva.objects.filter(estudiante=estudiante).order_by('-fecha_uso')[:5]
             if reservas:
-                lines = [f'📋 *Tus últimas reservas ({nombre_completo})*']
-                for r in reservas:
-                    estado_emoji = {'pendiente': '⏳', 'confirmada': '✅', 'cancelada': '❌', 'completada': '✔️'}
-                    emoji = estado_emoji.get(r.estado, '❓')
-                    lines.append(
-                        f'\n{emoji} *{r.codigo_verificacion}* — {r.fecha_uso} '
-                        f'{r.hora_inicio.strftime("%H:%M")}-{r.hora_fin.strftime("%H:%M")} '
-                        f'({r.get_estado_display()})'
-                    )
-                respuesta = '\n'.join(lines)
+                respuesta = _formatear_reservas_chat(reservas, primer_nombre)
             else:
-                respuesta = f'No tienes reservas registradas, {nombre_completo}. ¿Quieres hacer una?'
+                saludo = f', {primer_nombre}' if primer_nombre else ''
+                respuesta = f'Aún no tienes reservas{saludo}. ¿Te ayudo a crear una?'
         else:
             respuesta = 'No pudimos identificar tu perfil de estudiante.'
         accion_realizada = 'mis_reservas'
@@ -528,10 +552,11 @@ def api_chatbot(request):
 
     # ========== Si no es keyword → va a n8n ==========
     if not respuesta:
-        contexto_usuario = f'[Usuario: {nombre_completo} (Cédula: {cedula})] ' if cedula else f'[Usuario: {request.user.username}] '
+        contexto_usuario = (f'[Usuario: {nombre_completo} (Cédula: {cedula})] '
+                            if cedula else '[Usuario no identificado] ')
         payload = {
-            'chatInput': f'{contexto_usuario}{data.get("mensaje", "").strip()}',
-            'sessionId': str(request.user.id),
+            'chatInput': f'{contexto_usuario}{(mensaje_raw or "").strip()}',
+            'sessionId': str(session_id or 'anon'),
         }
 
         try:
@@ -550,10 +575,17 @@ def api_chatbot(request):
         # ========== Parsear JSON de acción desde la respuesta del AI ==========
         json_match = re.search(r'\{\s*"action"\s*:\s*"(reservar|cancelar|mis_reservas)"', respuesta)
         if json_match:
+            # Quitamos SIEMPRE el bloque JSON del texto visible al usuario: si la
+            # acción luego se procesa, se sobreescribe `respuesta`; si no aplica
+            # (p. ej. perfil sin registro de Estudiante), igual no se filtra el JSON.
+            block_start = respuesta.index('{', json_match.start())
+            block_end = respuesta.index('}', block_start) + 1
+            json_str = respuesta[block_start:block_end]
+            respuesta = (respuesta[:block_start] + respuesta[block_end:]).strip()
+            if not respuesta:
+                respuesta = '¿Necesitas algo más? Puedo ayudarte con tus reservas.'
             try:
-                block_start = respuesta.index('{', json_match.start())
-                block_end = respuesta.index('}', block_start) + 1
-                accion_data = json.loads(respuesta[block_start:block_end])
+                accion_data = json.loads(json_str)
                 accion = accion_data.get('action')
 
                 if accion == 'reservar' and estudiante:
@@ -584,7 +616,8 @@ def api_chatbot(request):
                             '(máximo un día de anticipación).'
                         )
                     elif fecha_dt < timezone.localdate() or (
-                        fecha_dt == timezone.localdate() and hora_inicio_dt <= timezone.localtime().time()
+                        fecha_dt == timezone.localdate()
+                        and timezone.make_aware(datetime.combine(fecha_dt, hora_inicio_dt)) < timezone.localtime() - timedelta(minutes=2)
                     ):
                         respuesta = (
                             'Esa fecha u horario ya pasó. Reserva para hoy a una hora más tarde '
@@ -644,62 +677,165 @@ def api_chatbot(request):
                 elif accion == 'mis_reservas' and estudiante:
                     reservas = Reserva.objects.filter(estudiante=estudiante).order_by('-fecha_uso')[:5]
                     if reservas:
-                        lines = [f'📋 *Tus reservas ({nombre_completo})*']
-                        emojis = {'pendiente': '⏳', 'confirmada': '✅', 'cancelada': '❌', 'completada': '✔️'}
-                        for r in reservas:
-                            e = emojis.get(r.estado, '❓')
-                            lines.append(f'{e} *{r.codigo_verificacion}* — {r.fecha_uso} ({r.get_estado_display()})')
-                        respuesta = '\n'.join(lines)
+                        respuesta = _formatear_reservas_chat(reservas, primer_nombre)
                     else:
-                        respuesta = f'No tienes reservas, {nombre_completo}. ¿Quieres hacer una?'
+                        saludo = f', {primer_nombre}' if primer_nombre else ''
+                        respuesta = f'Aún no tienes reservas{saludo}. ¿Te ayudo a crear una?'
                     accion_realizada = 'mis_reservas'
 
             except (ValueError, json.JSONDecodeError):
                 pass
 
-    # ========== Guardar conversación ==========
+    return respuesta, accion_realizada
+
+
+@csrf_exempt
+def api_chatbot(request):
+    """Chatbot del portal del estudiante (identifica por la sesión iniciada)."""
+    import json
+    from apps.prestamos.models import ChatbotConversacion, Estudiante, Usuario as PerfilUsuario
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'respuesta': 'Método no permitido'}, status=405)
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'respuesta': 'Debes iniciar sesión'}, status=401)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'respuesta': 'JSON inválido'}, status=400)
+
+    mensaje_raw = data.get('mensaje', '')
+    if not mensaje_raw.strip():
+        return JsonResponse({'success': False, 'respuesta': 'Escribe un mensaje'})
+
+    perfil = PerfilUsuario.objects.filter(user=request.user).first()
+    estudiante = Estudiante.objects.filter(usuario=perfil).first() if perfil else None
+
+    respuesta, accion = _procesar_chatbot(mensaje_raw, estudiante, perfil, str(request.user.id))
+
     ChatbotConversacion.objects.create(
         usuario=request.user,
-        mensaje_usuario=data.get('mensaje', '').strip(),
+        mensaje_usuario=mensaje_raw.strip(),
         respuesta_bot=respuesta,
         canal='web',
-        intencion_detectada=accion_realizada or 'conversacion',
+        intencion_detectada=accion or 'conversacion',
     )
+    return JsonResponse({'success': True, 'respuesta': respuesta, 'accion': accion})
 
-    return JsonResponse({
-        'success': True,
-        'respuesta': respuesta,
-        'accion': accion_realizada,
-    })
+
+@csrf_exempt
+def api_chatbot_whatsapp(request):
+    """Chatbot vía WhatsApp (lo invoca n8n). Identifica al estudiante por su teléfono.
+
+    n8n envía ``{telefono, mensaje}`` y aquí se reutiliza EXACTAMENTE la misma lógica
+    del portal (``_procesar_chatbot``), de modo que WhatsApp hace lo mismo que la web.
+    Autenticado con ``X-N8N-KEY``.
+    """
+    import json
+    import re
+    from apps.prestamos.models import ChatbotConversacion
+
+    api_key = request.META.get('HTTP_X_N8N_KEY', '')
+    if api_key != settings.N8N_API_KEY:
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    try:
+        data = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+
+    telefono = str(data.get('telefono', '')).strip()
+    mensaje_raw = str(data.get('mensaje', '')).strip()
+    if not mensaje_raw:
+        return JsonResponse({'respuesta': 'Escribe un mensaje.'})
+
+    # Identificación por teléfono; si el número no está registrado, intentamos con una
+    # cédula de 10 dígitos que el estudiante haya escrito en el mensaje.
+    estudiante, perfil = _buscar_estudiante_n8n(telefono=telefono)
+    if estudiante is None:
+        m = re.search(r'\b(\d{10})\b', mensaje_raw)
+        if m:
+            estudiante, perfil = _buscar_estudiante_n8n(cedula=m.group(1))
+
+    respuesta, accion = _procesar_chatbot(mensaje_raw, estudiante, perfil, telefono or 'wa-anon')
+
+    ChatbotConversacion.objects.create(
+        usuario=perfil.user if perfil else None,
+        mensaje_usuario=mensaje_raw,
+        respuesta_bot=respuesta,
+        canal='whatsapp',
+        intencion_detectada=accion or 'conversacion',
+    )
+    return JsonResponse({'respuesta': respuesta, 'accion': accion})
 
 
 # ==========================================
 # APIs DE CONSULTA PARA N8N
 # ==========================================
 
-def api_info_estudiante(request):
-    """Devuelve datos del estudiante por cédula (para n8n)."""
+def _buscar_estudiante_n8n(cedula='', telefono=''):
+    """Localiza un Estudiante por cédula o por teléfono (para n8n / WhatsApp).
+
+    El número que envía WhatsApp llega en formato internacional (ej. 5939XXXXXXXX),
+    mientras que en la BD el teléfono se guarda como 10 dígitos (09XXXXXXXX). Para
+    casarlos comparamos los últimos 9 dígitos (el número nacional sin el 0 ni el 593).
+    Devuelve (estudiante, perfil) o (None, None).
+    """
+    import re
     from apps.prestamos.models import Estudiante, Usuario as PerfilUsuario
 
+    cedula = (cedula or '').strip()
+    telefono = (telefono or '').strip()
+
+    perfil = None
+    if cedula:
+        perfil = PerfilUsuario.objects.filter(cedula=cedula).first()
+
+    if perfil is None and telefono:
+        digitos = re.sub(r'\D', '', telefono)
+        ultimos9 = digitos[-9:] if len(digitos) >= 9 else ''
+        if ultimos9:
+            perfil = (
+                PerfilUsuario.objects
+                .filter(telefono__endswith=ultimos9)
+                .exclude(telefono__isnull=True)
+                .exclude(telefono='')
+                .first()
+            )
+
+    if perfil is None:
+        return None, None
+
+    estudiante = Estudiante.objects.filter(usuario=perfil).first()
+    return estudiante, perfil
+
+
+def api_info_estudiante(request):
+    """Devuelve datos del estudiante por cédula o por teléfono (para n8n)."""
     api_key = request.META.get('HTTP_X_N8N_KEY', '')
     if api_key != settings.N8N_API_KEY:
         return JsonResponse({'error': 'No autorizado'}, status=403)
 
     cedula = request.GET.get('cedula', '').strip()
-    if not cedula:
-        return JsonResponse({'error': 'Parámetro cedula requerido'}, status=400)
+    telefono = request.GET.get('telefono', '').strip()
+    if not cedula and not telefono:
+        return JsonResponse({'error': 'Indica cedula o telefono'}, status=400)
 
-    try:
-        perfil = PerfilUsuario.objects.get(cedula=cedula)
-        estudiante = Estudiante.objects.get(usuario=perfil)
-    except (PerfilUsuario.DoesNotExist, Estudiante.DoesNotExist):
+    estudiante, perfil = _buscar_estudiante_n8n(cedula=cedula, telefono=telefono)
+    if estudiante is None:
         return JsonResponse({'error': 'Estudiante no encontrado'}, status=404)
 
     return JsonResponse({
+        'encontrado': True,
         'cedula': perfil.cedula,
         'nombres': perfil.user.first_name,
         'apellidos': perfil.user.last_name,
-        'carrera': estudiante.carrera.nombre,
+        'nombre_completo': (f'{perfil.user.first_name} {perfil.user.last_name}'.strip()
+                            or perfil.user.username),
+        'carrera': estudiante.carrera.nombre if estudiante.carrera else 'No registrada',
         'semestre': estudiante.semestre,
     })
 
@@ -727,20 +863,19 @@ def api_crear_reserva(request):
         return JsonResponse({'error': 'JSON inválido'}, status=400)
 
     cedula = data.get('cedula', '').strip()
+    telefono = data.get('telefono', '').strip()
     fecha_uso = data.get('fecha_uso', '').strip()
     hora_inicio = data.get('hora_inicio', '08:00').strip()
     hora_fin = data.get('hora_fin', '').strip()
     motivo = data.get('motivo', '').strip()
 
-    if not cedula:
-        return JsonResponse({'error': 'Parámetro cedula requerido'}, status=400)
+    if not cedula and not telefono:
+        return JsonResponse({'error': 'Indica cedula o telefono'}, status=400)
     if not fecha_uso:
         return JsonResponse({'error': 'Parámetro fecha_uso requerido'}, status=400)
 
-    try:
-        perfil = PerfilUsuario.objects.get(cedula=cedula)
-        estudiante = Estudiante.objects.get(usuario=perfil)
-    except (PerfilUsuario.DoesNotExist, Estudiante.DoesNotExist):
+    estudiante, perfil = _buscar_estudiante_n8n(cedula=cedula, telefono=telefono)
+    if estudiante is None:
         return JsonResponse({'error': 'Estudiante no encontrado'}, status=404)
 
     carrera = estudiante.carrera
@@ -807,6 +942,49 @@ def api_crear_reserva(request):
         'estado': 'pendiente',
     })
 
+@csrf_exempt
+def api_cancelar_reserva_n8n(request):
+    """Cancela una reserva desde n8n (autenticado con X-N8N-KEY) por cédula + código."""
+    import json
+    from apps.prestamos.models import Reserva
+
+    api_key = request.META.get('HTTP_X_N8N_KEY', '')
+    if api_key != settings.N8N_API_KEY:
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    try:
+        data = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+
+    cedula = data.get('cedula', '').strip()
+    codigo = data.get('codigo', '').strip()
+    telefono = data.get('telefono', '').strip()
+    if not codigo:
+        return JsonResponse({'error': 'Parámetro codigo requerido'}, status=400)
+
+    estudiante, _perfil = _buscar_estudiante_n8n(cedula=cedula, telefono=telefono)
+    if estudiante is None:
+        return JsonResponse({'error': 'Estudiante no encontrado'}, status=404)
+
+    try:
+        reserva = Reserva.objects.get(codigo_verificacion=codigo, estudiante=estudiante)
+    except Reserva.DoesNotExist:
+        return JsonResponse({'error': 'No encontramos una reserva con ese código en tu cuenta'}, status=404)
+
+    if reserva.estado not in ('pendiente', 'confirmada'):
+        return JsonResponse({
+            'error': f'La reserva {codigo} ya está {reserva.get_estado_display().lower()} y no se puede cancelar',
+        }, status=400)
+
+    reserva.estado = 'cancelada'
+    reserva.save(update_fields=['estado'])
+    return JsonResponse({'success': True, 'codigo': codigo, 'estado': 'cancelada'})
+
+
 def api_disponibilidad(request):
     """Devuelve disponibilidad actual de Chromebooks (para n8n)."""
     from apps.prestamos.models import Chromebook
@@ -835,14 +1013,13 @@ def api_mis_reservas(request):
     if api_key != settings.N8N_API_KEY:
         return JsonResponse({'error': 'No autorizado'}, status=403)
 
-    cedula = request.GET.get('cedula', '')
-    if not cedula:
-        return JsonResponse({'error': 'Parámetro cedula requerido'}, status=400)
+    cedula = request.GET.get('cedula', '').strip()
+    telefono = request.GET.get('telefono', '').strip()
+    if not cedula and not telefono:
+        return JsonResponse({'error': 'Indica cedula o telefono'}, status=400)
 
-    try:
-        perfil = PerfilUsuario.objects.get(cedula=cedula)
-        estudiante = Estudiante.objects.get(usuario=perfil)
-    except (PerfilUsuario.DoesNotExist, Estudiante.DoesNotExist):
+    estudiante, perfil = _buscar_estudiante_n8n(cedula=cedula, telefono=telefono)
+    if estudiante is None:
         return JsonResponse({'reservas': [], 'prestamos': []})
 
     # Últimas reservas

@@ -103,7 +103,7 @@
                             <div class="paso-card">
                                 <div class="paso-header">
                                     <span class="paso-numero">3</span>
-                                    <span class="fw-semibold small text-muted">FECHA Y HORARIO</span>
+                                    <span class="fw-semibold small text-muted">HORARIO DE RESERVACIÓN</span>
                                 </div>
                                 <div class="horario-grid">
                                     <div class="horario-campo">
@@ -115,7 +115,7 @@
                                         <input type="hidden" id="fechaPrestamo" value="{{ fecha_hoy }}">
                                     </div>
                                     <div class="horario-campo">
-                                        <label class="horario-label">Hora inicio <span class="horario-vivo" id="horaInicioVivo" title="Se actualiza con la hora actual"><i class="bi bi-broadcast"></i>en vivo</span></label>
+                                        <label class="horario-label">Hora inicio</label>
                                         <div class="timepicker" data-tp-min="08:00" data-tp-max="17:00" data-tp-step="30">
                                             <button type="button" class="timepicker-field" aria-haspopup="listbox" aria-expanded="false">
                                                 <i class="bi bi-clock"></i>
@@ -153,7 +153,7 @@
                             
                             <div class="prestamos-activos-header">
                                 <h6 class="fw-bold mb-0">
-                                    <i class="bi bi-circle-fill text-success me-2" style="font-size: 0.5rem;"></i>Préstamos Activos Hoy
+                                    <i class="bi bi-circle-fill text-success me-2" style="font-size: 0.5rem;"></i>Préstamos de Hoy
                                 </h6>
                                 <span class="badge bg-success rounded-pill" data-stat="total_hoy">{{ total_hoy }}</span>
                             </div>

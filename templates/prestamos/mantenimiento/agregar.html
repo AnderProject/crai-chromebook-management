@@ -46,69 +46,103 @@
             {% include "prestamos/_sidebar.html" with activo="mantenimiento" %}
 
             <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
-                
-                <div class="mb-4">
-                    <a href="{% url 'prestamos:lista_mantenimientos' %}" class="btn btn-outline-secondary btn-sm mb-3">
-                        <i class="bi bi-arrow-left me-1"></i>Volver a Mantenimiento
-                    </a>
-                    <h2 class="fw-bold"><i class="bi bi-tools me-2 text-primary"></i>Registrar Mantenimiento</h2>
-                </div>
-                
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body p-4">
 
-                        <form method="POST">
-                            {% csrf_token %}
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-semibold">Chromebook</label>
-                                    <select name="chromebook_id" class="form-select" required>
-                                        <option value="">Selecciona un equipo...</option>
-                                        {% for cb in chromebooks %}
-                                        <option value="{{ cb.id }}">{{ cb.codigo }} - {{ cb.marca }} {{ cb.modelo }} ({{ cb.estado|title }})</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-semibold">Tipo de Mantenimiento</label>
-                                    <select name="tipo" class="form-select" required>
-                                        <option value="preventivo">Preventivo</option>
-                                        <option value="correctivo">Correctivo</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-semibold">Técnico</label>
-                                    <input type="text" name="tecnico" class="form-control" placeholder="Nombre del técnico">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label small fw-semibold">Costo ($)</label>
-                                    <input type="number" name="costo" class="form-control" placeholder="0.00" step="0.01" value="0">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label small fw-semibold">¿En garantía?</label>
-                                    <select name="en_garantia" class="form-select">
-                                        <option value="0" selected>No</option>
-                                        <option value="1">Sí</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label small fw-semibold">Fecha de Inicio</label>
-                                    <input type="date" name="fecha_inicio" class="form-control" required value="{% now 'Y-m-d' %}">
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label small fw-semibold">Descripción del Problema</label>
-                                    <textarea name="descripcion_problema" class="form-control" rows="3" placeholder="Describe el problema del equipo..."></textarea>
-                                </div>
-                                <div class="col-12">
-                                    <button type="submit" class="btn btn-warning">
-                                        <i class="bi bi-send me-1"></i>Enviar a Mantenimiento
-                                    </button>
+                <div class="mant-form-card">
+                    <!-- Encabezado del formulario (con volver integrado) -->
+                    <div class="mant-form-head">
+                        <a href="{% url 'prestamos:lista_mantenimientos' %}" class="mant-form-volver" title="Volver">
+                            <i class="bi bi-arrow-left"></i>
+                        </a>
+                        <span class="mant-form-icono"><i class="bi bi-tools"></i></span>
+                        <div>
+                            <h5 class="mant-form-titulo">Registrar Mantenimiento</h5>
+                            <p class="mant-form-sub">Envía un Chromebook a reparación o revisión técnica</p>
+                        </div>
+                    </div>
+
+                    <form method="POST" class="mant-form">
+                        {% csrf_token %}
+
+                        <!-- Equipo -->
+                        <div class="mant-campo">
+                            <label class="mant-label"><i class="bi bi-laptop"></i> Chromebook</label>
+                            <div class="mant-select-wrap">
+                                <select name="chromebook_id" class="mant-select" required>
+                                    <option value="">Selecciona un equipo…</option>
+                                    {% for cb in chromebooks %}
+                                    <option value="{{ cb.id }}">{{ cb.codigo }} — {{ cb.marca }} {{ cb.modelo }} ({{ cb.estado|title }})</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="bi bi-chevron-down mant-select-caret"></i>
+                            </div>
+                        </div>
+
+                        <div class="mant-grid-2">
+                            <!-- Tipo de mantenimiento (segmentado) -->
+                            <div class="mant-campo">
+                                <label class="mant-label"><i class="bi bi-clipboard-pulse"></i> Tipo de mantenimiento</label>
+                                <div class="mant-seg" role="radiogroup" aria-label="Tipo de mantenimiento">
+                                    <input type="radio" name="tipo" id="tipoPreventivo" value="preventivo" checked>
+                                    <label for="tipoPreventivo" class="mant-seg-opt"><i class="bi bi-shield-check"></i>Preventivo</label>
+                                    <input type="radio" name="tipo" id="tipoCorrectivo" value="correctivo">
+                                    <label for="tipoCorrectivo" class="mant-seg-opt"><i class="bi bi-wrench-adjustable"></i>Correctivo</label>
                                 </div>
                             </div>
-                        </form>
-                    </div>
+
+                            <!-- ¿En garantía? (segmentado) -->
+                            <div class="mant-campo">
+                                <label class="mant-label"><i class="bi bi-patch-check"></i> ¿En garantía?</label>
+                                <div class="mant-seg" role="radiogroup" aria-label="¿En garantía?">
+                                    <input type="radio" name="en_garantia" id="garantiaNo" value="0" checked>
+                                    <label for="garantiaNo" class="mant-seg-opt"><i class="bi bi-x-circle"></i>No</label>
+                                    <input type="radio" name="en_garantia" id="garantiaSi" value="1">
+                                    <label for="garantiaSi" class="mant-seg-opt mant-seg-ok"><i class="bi bi-check-circle"></i>Sí</label>
+                                </div>
+                            </div>
+
+                            <!-- Técnico -->
+                            <div class="mant-campo">
+                                <label class="mant-label"><i class="bi bi-person-gear"></i> Técnico</label>
+                                <div class="mant-input-wrap">
+                                    <i class="bi bi-person mant-input-icono"></i>
+                                    <input type="text" name="tecnico" class="mant-input mant-input-con-icono" placeholder="Nombre del técnico">
+                                </div>
+                            </div>
+
+                            <!-- Costo -->
+                            <div class="mant-campo">
+                                <label class="mant-label"><i class="bi bi-cash-coin"></i> Costo</label>
+                                <div class="mant-input-wrap">
+                                    <span class="mant-input-prefijo">$</span>
+                                    <input type="number" name="costo" class="mant-input mant-input-con-prefijo" placeholder="0.00" step="0.01" min="0" value="0">
+                                </div>
+                            </div>
+
+                            <!-- Fecha de inicio -->
+                            <div class="mant-campo">
+                                <label class="mant-label"><i class="bi bi-calendar-event"></i> Fecha de inicio</label>
+                                <div class="mant-input-wrap">
+                                    <i class="bi bi-calendar3 mant-input-icono"></i>
+                                    <input type="date" name="fecha_inicio" class="mant-input mant-input-con-icono" required value="{% now 'Y-m-d' %}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="mant-campo">
+                            <label class="mant-label"><i class="bi bi-card-text"></i> Descripción del problema</label>
+                            <textarea name="descripcion_problema" class="mant-textarea" rows="4" placeholder="Describe el problema o el motivo de la revisión del equipo…"></textarea>
+                        </div>
+
+                        <div class="mant-form-acciones">
+                            <a href="{% url 'prestamos:lista_mantenimientos' %}" class="mant-btn-cancelar">Cancelar</a>
+                            <button type="submit" class="mant-btn-enviar">
+                                <i class="bi bi-send-check me-1"></i>Enviar a Mantenimiento
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                
+
             </main>
         </div>
     </div>

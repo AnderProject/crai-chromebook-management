@@ -162,13 +162,21 @@ class Reserva(models.Model):
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
 
-    def calcular_duracion(self):
-        """Calcula la duración en horas entre hora_inicio y hora_fin"""
-        from datetime import datetime, timedelta
+    def duracion_timedelta(self):
+        """Duración exacta (timedelta) entre hora_inicio y hora_fin."""
+        from datetime import datetime
         inicio = datetime.combine(self.fecha_uso, self.hora_inicio)
         fin = datetime.combine(self.fecha_uso, self.hora_fin)
-        duracion = fin - inicio
-        return int(duracion.total_seconds() / 3600)
+        return fin - inicio
+
+    def calcular_duracion(self):
+        """Duración en horas entre hora_inicio y hora_fin.
+
+        Devuelve un entero cuando es exacta (2) o un decimal cuando hay
+        fracciones (0.5, 1.5). NO se trunca: media hora debe valer 0.5, no 0.
+        """
+        horas = self.duracion_timedelta().total_seconds() / 3600
+        return int(horas) if horas == int(horas) else round(horas, 1)
     
     class Meta:
         db_table = 'tb_reserva'

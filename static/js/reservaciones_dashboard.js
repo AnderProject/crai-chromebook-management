@@ -61,8 +61,18 @@ function mostrarCodigoRevelado(reservaId, codigo) {
     var celda = document.getElementById('codigo-reserva-' + reservaId);
     if (!celda) { return; }
     celda.innerHTML =
-        '<span class="codigo-reserva codigo-revelado">' + codigo + '</span>' +
+        '<span class="codigo-reserva codigo-revelado codigo-accionable" role="button" tabindex="0" ' +
+        'title="Clic para confirmar la reserva con evidencia">' + codigo +
+        '<i class="bi bi-camera-fill codigo-accion-icono"></i></span>' +
         '<button type="button" class="btn-revelar" title="Ocultar código"><i class="bi bi-eye-slash"></i></button>';
+
+    // Al hacer clic (o Enter) sobre el código revelado se inicia la confirmación
+    // de la reserva: valida y abre el modal de evidencia QR (verificar_reservacion.js).
+    var span = celda.querySelector('.codigo-revelado');
+    span.addEventListener('click', function () { iniciarReservaDesdeCodigo(codigo); });
+    span.addEventListener('keyup', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { iniciarReservaDesdeCodigo(codigo); }
+    });
     celda.querySelector('.btn-revelar').addEventListener('click', function () { restaurarOculto(reservaId); });
 }
 

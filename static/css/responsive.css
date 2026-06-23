@@ -22,8 +22,10 @@ iframe { max-width: 100%; }
 img,
 video { height: auto; }
 
-/* Que ningún contenedor empuje un scroll horizontal accidental */
-.container,
+/* Que ningún contenedor empuje un scroll horizontal accidental.
+   OJO: NO incluir .container aquí. Bootstrap le da max-width por breakpoint
+   y lo centra; forzarle max-width:100% lo estira a todo el ancho y descuadra
+   páginas como el portal (se ven "más grandes y movidas"). */
 .container-fluid,
 .row { max-width: 100%; }
 

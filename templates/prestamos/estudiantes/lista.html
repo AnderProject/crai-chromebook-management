@@ -100,8 +100,8 @@
                     </div>
 
                     <div id="tab-directorio" class="tab-contenido">
-                        <div class="filtros-barra">
-                            <div class="filtro-busqueda">
+                        <div class="directorio-toolbar">
+                            <div class="filtro-busqueda directorio-buscar">
                                 <i class="bi bi-search filtro-icono"></i>
                                 <input type="text" class="filtro-input" placeholder="Buscar por nombre, cédula o carrera..." id="buscarEstudiante" onkeyup="filtrarEstudiantes()" autocomplete="off">
                             </div>
@@ -115,26 +115,35 @@
                                 </select>
                             </div>
                         </div>
-                        
-                        <div id="listaEstudiantes">
-                            {% for estudiante in estudiantes %}
-                            <div class="estudiante-row" data-nombre="{{ estudiante.usuario.user.get_full_name|lower }}" data-cedula="{{ estudiante.usuario.cedula }}" data-carrera="{{ estudiante.carrera.nombre|lower }}" onclick="abrirPerfil('{{ estudiante.id }}')">
-                                <div class="estudiante-info">
-                                    {% include 'prestamos/_avatar.html' with foto=estudiante.usuario.foto nombre=estudiante.usuario.user.first_name apellido=estudiante.usuario.user.last_name clase='avatar-sm bg-primary' %}
-                                    <div>
-                                        <strong class="small">{{ estudiante.usuario.user.get_full_name }}</strong>
-                                        <div class="small text-muted">{{ estudiante.usuario.cedula }} • {{ estudiante.carrera.nombre }} • {{ estudiante.semestre }}to Semestre</div>
+
+                        <div class="estudiantes-scroll-panel">
+                            <div id="listaEstudiantes" class="fichas-grid">
+                                {% for estudiante in estudiantes %}
+                                <div class="estudiante-row ficha-estudiante" data-nombre="{{ estudiante.usuario.user.get_full_name|lower }}" data-cedula="{{ estudiante.usuario.cedula }}" data-carrera="{{ estudiante.carrera.nombre|lower }}" onclick="abrirPerfil('{{ estudiante.id }}')">
+                                    <div class="ficha-cabecera">
+                                        {% include 'prestamos/_avatar.html' with foto=estudiante.usuario.foto nombre=estudiante.usuario.user.first_name apellido=estudiante.usuario.user.last_name clase='avatar-ficha bg-primary' %}
+                                        <div class="ficha-identidad">
+                                            <strong class="ficha-nombre">{{ estudiante.usuario.user.get_full_name }}</strong>
+                                            <span class="ficha-cedula"><i class="bi bi-person-vcard"></i>{{ estudiante.usuario.cedula }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="ficha-chips">
+                                        <span class="ficha-chip"><i class="bi bi-mortarboard"></i>{{ estudiante.carrera.nombre }}</span>
+                                        <span class="ficha-chip ficha-chip-sem"><i class="bi bi-bar-chart-steps"></i>{{ estudiante.semestre }}° Semestre</span>
+                                    </div>
+                                    <div class="ficha-pie">
+                                        {% if estudiante.usuario.user.id in prestamos_activos_ids %}
+                                        <span class="ficha-estado-pill ficha-estado-activo"><span class="estado-dot dot-verde"></span>Con préstamo</span>
+                                        {% else %}
+                                        <span class="ficha-estado-pill ficha-estado-libre"><span class="estado-dot dot-gris"></span>Sin préstamo</span>
+                                        {% endif %}
+                                        <span class="ficha-ver">Ver ficha <i class="bi bi-arrow-right-short"></i></span>
                                     </div>
                                 </div>
-                                <div class="estudiante-estado">
-                                    {% if estudiante.usuario.user.id in prestamos_activos_ids %}<span class="small"><span class="estado-dot dot-verde"></span>Con préstamo</span>
-                                    {% else %}<span class="small"><span class="estado-dot dot-gris"></span>Sin préstamo</span>{% endif %}
-                                    <i class="bi bi-chevron-right text-muted"></i>
-                                </div>
+                                {% endfor %}
                             </div>
-                            {% endfor %}
+                            <div class="text-center text-muted small py-3">Mostrando {{ estudiantes|length }} de {{ total_estudiantes }} estudiantes</div>
                         </div>
-                        <div class="text-center text-muted small py-3">Mostrando {{ estudiantes|length }} de {{ total_estudiantes }} estudiantes</div>
                     </div>
                     
                     <div id="tab-monitoreo" class="tab-contenido" style="display:none;">

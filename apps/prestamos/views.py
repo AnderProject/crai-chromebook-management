@@ -50,11 +50,11 @@ def dashboard(request):
     primer_apellido = request.user.last_name.split()[0] if request.user.last_name else 'CRAI'
     
     total_chromebooks = Chromebook.objects.count()
-    disponibles = _disponibles_efectivos()
+    disponibles = _disponibles_inventario()
     prestados = Chromebook.objects.filter(estado='prestado').count()
     en_mantenimiento = Chromebook.objects.filter(estado='mantenimiento').count()
     porcentaje_disponible = round((disponibles / total_chromebooks) * 100) if total_chromebooks > 0 else 0
-    
+
     prestamos_activos = Prestamo.objects.filter(estado='activo').count()
     por_vencer = _reservas_por_vencer()
     vencidos = Prestamo.objects.filter(estado='vencido').count()
@@ -110,7 +110,7 @@ def api_dashboard_stats(request):
     _expirar_reservas_vencidas()
 
     total_chromebooks = Chromebook.objects.count()
-    disponibles = _disponibles_efectivos()
+    disponibles = _disponibles_inventario()
     prestados = Chromebook.objects.filter(estado='prestado').count()
     en_mantenimiento = Chromebook.objects.filter(estado='mantenimiento').count()
     porcentaje_disponible = round((disponibles / total_chromebooks) * 100) if total_chromebooks > 0 else 0
@@ -297,6 +297,11 @@ def api_devolver_prestamo(request):
             chromebook = prestamo.chromebook
             chromebook.estado = 'disponible'
             chromebook.save()
+
+            # Si este préstamo venía de una reserva, marcarla como completada
+            if prestamo.reserva:
+                prestamo.reserva.estado = 'completada'
+                prestamo.reserva.save()
 
             # Guardar evidencia de devolución si el admin tomó la foto.
             if foto_nombre:
@@ -865,6 +870,139 @@ def reportes(request):
     return render(request, 'prestamos/reportes/reportes.html', contexto)
 
 
+def exportar_reportes(request):
+    """Exporta los datos del panel de Reportes a CSV.
+
+    Genera un ZIP con un CSV por cada tabla/gráfico que se ve en pantalla
+    (temporal, distribución, rankings de estudiantes, mantenimiento y
+    operativo). Cada CSV lleva BOM UTF-8 para que Excel respete los acentos.
+    Reaprovecha exactamente las mismas consultas que la vista `reportes`.
+    """
+    import csv
+    import io
+    import zipfile
+    from django.http import HttpResponse
+    from .models import Chromebook, Prestamo, Mantenimiento
+    from django.db.models import Count, Sum, Q, F
+
+    if not (request.user.is_superuser or
+            request.user.groups.filter(name__in=['Administrador', 'Tics']).exists()):
+        return redirect('prestamos:dashboard')
+
+    ahora = timezone.now()
+    hoy = timezone.localdate()
+    EST = 'estudiante__perfil__estudiante'
+
+    def _nombre(u):
+        return u.get_full_name() or u.username
+
+    def _cedula(u):
+        perfil = getattr(u, 'perfil', None)
+        return perfil.cedula if perfil else '—'
+
+    # (nombre_archivo, [encabezados], [filas]) por cada hoja de datos.
+    hojas = []
+
+    # ---- Resumen (KPIs) ----
+    total_prestamos = Prestamo.objects.count()
+    vencidos = Prestamo.objects.filter(estado='vencido').count()
+    devueltos = Prestamo.objects.filter(fecha_devuelto__isnull=False)
+    total_dev = devueltos.count()
+    a_tiempo = devueltos.filter(fecha_devuelto__lte=F('fecha_devolucion')).count()
+    hojas.append(('resumen.csv', ['Indicador', 'Valor'], [
+        ['Préstamos totales', total_prestamos],
+        ['Préstamos hoy', Prestamo.objects.filter(fecha_prestamo__date=hoy).count()],
+        ['Préstamos vencidos', vencidos],
+        ['Tasa de vencimiento (%)', round(vencidos / total_prestamos * 100) if total_prestamos else 0],
+        ['Devoluciones a tiempo (%)', round(a_tiempo / total_dev * 100) if total_dev else 0],
+    ]))
+
+    # ---- Préstamos por carrera / semestre / facultad / marca ----
+    def _dist(campo, etiqueta):
+        filas = (
+            Prestamo.objects.filter(**{f'{campo}__isnull': False})
+            .values(campo).annotate(total=Count('id')).order_by('-total')
+        )
+        return ([etiqueta, 'Préstamos'], [[f[campo], f['total']] for f in filas])
+
+    enc, filas = _dist(f'{EST}__carrera__nombre', 'Carrera')
+    hojas.append(('prestamos_por_carrera.csv', enc, filas))
+    enc, filas = _dist(f'{EST}__carrera__facultad__nombre', 'Facultad')
+    hojas.append(('prestamos_por_facultad.csv', enc, filas))
+    enc, filas = _dist('chromebook__marca', 'Marca')
+    hojas.append(('prestamos_por_marca.csv', enc, filas))
+
+    # ---- Inventario y condición ----
+    inv = {'disponible': 0, 'prestado': 0, 'reservado': 0, 'mantenimiento': 0}
+    for f in Chromebook.objects.values('estado').annotate(t=Count('id')):
+        inv[f['estado']] = f['t']
+    hojas.append(('inventario.csv', ['Estado', 'Equipos'],
+                  [[k.title(), v] for k, v in inv.items()]))
+
+    cond = {'bueno': 0, 'regular': 0, 'malo': 0}
+    for f in Chromebook.objects.values('condicion').annotate(t=Count('id')):
+        cond[f['condicion']] = f['t']
+    hojas.append(('condicion_equipos.csv', ['Condición', 'Equipos'],
+                  [[k.title(), v] for k, v in cond.items()]))
+
+    # ---- Rankings de estudiantes ----
+    top = (User.objects.filter(groups__name='Estudiante')
+           .annotate(n=Count('prestamo')).filter(n__gt=0)
+           .select_related('perfil').order_by('-n')[:10])
+    hojas.append(('top_estudiantes.csv', ['Estudiante', 'Cédula', 'Préstamos'],
+                  [[_nombre(u), _cedula(u), u.n] for u in top]))
+
+    con_venc = (User.objects
+                .annotate(nv=Count('prestamo', filter=Q(prestamo__estado='vencido')))
+                .filter(nv__gt=0).select_related('perfil').order_by('-nv')[:10])
+    hojas.append(('estudiantes_con_vencidos.csv', ['Estudiante', 'Cédula', 'Vencidos'],
+                  [[_nombre(u), _cedula(u), u.nv] for u in con_venc]))
+
+    # ---- Mantenimiento: técnicos ----
+    tecnicos = (Mantenimiento.objects.exclude(tecnico__isnull=True).exclude(tecnico='')
+                .values('tecnico').annotate(n=Count('id'), costo=Sum('costo')).order_by('-n')[:10])
+    hojas.append(('mantenimiento_tecnicos.csv', ['Técnico', 'Trabajos', 'Costo total'],
+                  [[t['tecnico'], t['n'], t['costo'] or 0] for t in tecnicos]))
+
+    # ---- Operativo: préstamos activos y vencidos ----
+    activos = (Prestamo.objects.filter(estado='activo')
+               .select_related('estudiante', 'chromebook').order_by('fecha_devolucion'))
+    hojas.append(('operativo_activos.csv',
+                  ['Estudiante', 'Chromebook', 'Prestado', 'Devolución prevista'],
+                  [[_nombre(p.estudiante), p.chromebook.codigo,
+                    timezone.localtime(p.fecha_prestamo).strftime('%d/%m/%Y %H:%M'),
+                    timezone.localtime(p.fecha_devolucion).strftime('%d/%m/%Y %H:%M')]
+                   for p in activos]))
+
+    venc = (Prestamo.objects.filter(estado='vencido')
+            .select_related('estudiante', 'chromebook').order_by('fecha_devolucion'))
+    filas_venc = []
+    for p in venc:
+        horas = int((ahora - p.fecha_devolucion).total_seconds() // 3600)
+        filas_venc.append([_nombre(p.estudiante), p.chromebook.codigo,
+                           timezone.localtime(p.fecha_devolucion).strftime('%d/%m/%Y %H:%M'),
+                           horas])
+    hojas.append(('operativo_vencidos.csv',
+                  ['Estudiante', 'Chromebook', 'Vencía', 'Horas de atraso'], filas_venc))
+
+    # ---- Empaquetar en ZIP ----
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for nombre, encabezados, filas in hojas:
+            texto = io.StringIO()
+            writer = csv.writer(texto)
+            writer.writerow(encabezados)
+            writer.writerows(filas)
+            # BOM para que Excel reconozca UTF-8 y muestre bien los acentos.
+            zf.writestr(nombre, '﻿' + texto.getvalue())
+
+    buffer.seek(0)
+    nombre_zip = f'reportes_crai_{hoy.strftime("%Y%m%d")}.zip'
+    respuesta = HttpResponse(buffer.getvalue(), content_type='application/zip')
+    respuesta['Content-Disposition'] = f'attachment; filename="{nombre_zip}"'
+    return respuesta
+
+
 def servir_evidencia(request, nombre_archivo):
     """Sirve la imagen de evidencia"""
     ruta = os.path.join(settings.MEDIA_ROOT, 'evidencias', nombre_archivo)
@@ -1041,8 +1179,11 @@ def agregar_mantenimiento(request):
                 registrado_por=request.user
             )
             
-            # Actualizar estado del Chromebook
+            # Actualizar estado y condición del Chromebook.
+            # Correctivo = algo se dañó -> 'malo'; Preventivo = revisión -> 'regular'.
+            # Al finalizar el mantenimiento la condición vuelve a 'bueno'.
             chromebook.estado = 'mantenimiento'
+            chromebook.condicion = 'malo' if tipo == 'correctivo' else 'regular'
             chromebook.save()
             
             messages.success(request, f'{chromebook.codigo} enviado a mantenimiento.')
@@ -1125,9 +1266,11 @@ def finalizar_mantenimiento(request, id):
             mantenimiento.estado = 'finalizado'
             mantenimiento.save()
             
-            # Devolver Chromebook a disponible
+            # Devolver Chromebook a disponible y su condición a 'bueno'
+            # (ya fue revisado/reparado).
             chromebook = mantenimiento.chromebook
             chromebook.estado = 'disponible'
+            chromebook.condicion = 'bueno'
             chromebook.save()
             
             messages.success(request, f'Mantenimiento finalizado. {chromebook.codigo} disponible.')
@@ -1159,7 +1302,9 @@ def registro_rapido(request):
     _activar_reservas_pendientes()
     ahora = timezone.localtime()
     hoy = ahora.date()
-    disponibles = _disponibles_efectivos()
+    # El contador principal refleja la disponibilidad real "ahora" (igual que el inventario
+    # y el dashboard): una reserva pendiente, sea de hoy o de otro día, ya descuenta.
+    disponibles = _disponibles_inventario()
     disponibles_manana = _disponibles_efectivos(hoy + timedelta(days=1))
     prestamos_hoy = Prestamo.objects.filter(fecha_prestamo__date=hoy).select_related('estudiante', 'chromebook').order_by('-fecha_prestamo')
     total_hoy = prestamos_hoy.count()
@@ -1448,13 +1593,15 @@ def confirmar_prestamo(request):
             if not chromebook:
                 return JsonResponse({'success': False, 'message': 'No hay Chromebooks disponibles.'})
             
+            ahora = timezone.now()
+            duracion_td = reserva.duracion_timedelta()
             prestamo = Prestamo.objects.create(
                 estudiante=reserva.estudiante.usuario.user,
                 chromebook=chromebook,
                 reserva=reserva,
-                fecha_prestamo=timezone.now(),
-                fecha_devolucion=timezone.now() + timedelta(hours=reserva.calcular_duracion()),
-                duracion_horas=reserva.calcular_duracion(),
+                fecha_prestamo=ahora,
+                fecha_devolucion=ahora + duracion_td,
+                duracion_horas=max(1, round(duracion_td.total_seconds() / 3600)),
                 codigo_verificacion=reserva.codigo_verificacion,
                 estado='activo'
             )
@@ -1494,14 +1641,24 @@ def api_buscar_chromebook(request):
                 chromebook = Chromebook.objects.get(codigo=codigo)
             else:
                 chromebook = Chromebook.objects.get(codigo=f'CB-{codigo.zfill(3)}')
-            
-            return JsonResponse({'success': True, 'data': {
-                'id': chromebook.id, 'codigo': chromebook.codigo,
-                'marca': chromebook.marca, 'modelo': chromebook.modelo,
-                'estado': chromebook.estado, 'condicion': chromebook.condicion,
-            }})
         except Chromebook.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Chromebook no encontrado.'})
+
+        # Estado efectivo: una reserva pendiente aparta un cupo aunque sea para otro día.
+        # Usamos la misma lógica que el inventario para que aquí también salga "pendiente
+        # a reserva" en vez de "disponible".
+        chromebooks = list(Chromebook.objects.all().order_by('codigo'))
+        _marcar_pendiente_reserva(chromebooks)
+        estado_efectivo = next(
+            (cb.estado_efectivo for cb in chromebooks if cb.id == chromebook.id),
+            chromebook.estado,
+        )
+
+        return JsonResponse({'success': True, 'data': {
+            'id': chromebook.id, 'codigo': chromebook.codigo,
+            'marca': chromebook.marca, 'modelo': chromebook.modelo,
+            'estado': estado_efectivo, 'condicion': chromebook.condicion,
+        }})
 
 
 @csrf_exempt
@@ -1535,6 +1692,20 @@ def api_buscar_estudiante(request):
         if estudiante is None:
             return JsonResponse({'success': False, 'message': 'Estudiante no encontrado.'})
 
+        # Reservaciones vigentes del estudiante: si ya tiene alguna pendiente/confirmada
+        # se avisa en recepción (mismo criterio de "vigentes" que el resto del sistema).
+        from .models import Reserva
+        _expirar_reservas_vencidas()
+        reservas_vigentes = Reserva.objects.filter(
+            estudiante=estudiante, estado__in=['pendiente', 'confirmada'],
+        ).order_by('fecha_uso', 'hora_inicio')
+        reservas_info = [{
+            'codigo': r.codigo_verificacion,
+            'fecha': r.fecha_uso.strftime('%d/%m/%Y'),
+            'hora': r.hora_inicio.strftime('%H:%M') if r.hora_inicio else '',
+            'estado': r.estado,
+        } for r in reservas_vigentes]
+
         perfil = estudiante.usuario
         return JsonResponse({'success': True, 'data': {
             'id': estudiante.id, 'user_id': perfil.user.id,
@@ -1542,6 +1713,7 @@ def api_buscar_estudiante(request):
             'cedula': perfil.cedula,
             'carrera': estudiante.carrera.nombre if estudiante.carrera else 'No registrada',
             'semestre': estudiante.semestre,
+            'reservas_pendientes': reservas_info,
         }})
 
 
@@ -1569,11 +1741,12 @@ def _expirar_reservas_vencidas():
 
 
 def _reservas_por_vencer():
-    """Reservas 'pendiente' que están a punto de vencer (dentro de su ventana de gracia de 15 min).
+    """Reservas 'pendiente' próximas a su hora (a 15 minutos o menos de vencer).
 
-    Una reserva vence 15 min después de su hora de inicio. Esta función cuenta las
-    reservas cuya hora de inicio ya pasó pero aún no llegan al límite, es decir, las que
-    tienen 15 minutos o menos restantes antes de expirar.
+    La cuenta empieza 15 minutos ANTES de la hora de inicio de la reserva y se
+    mantiene durante los 15 minutos de gracia posteriores (hasta que la reserva
+    expira y pasa a 'vencida'). Así una reserva a la que le faltan, por ejemplo,
+    14 minutos para su hora ya aparece como "por vencer".
     """
     from datetime import datetime, timedelta
     from .models import Reserva
@@ -1582,8 +1755,7 @@ def _reservas_por_vencer():
     cuenta = 0
     for r in Reserva.objects.filter(estado='pendiente'):
         inicio = timezone.make_aware(datetime.combine(r.fecha_uso, r.hora_inicio))
-        limite = inicio + timedelta(minutes=15)
-        if inicio <= ahora < limite:
+        if inicio - timedelta(minutes=15) <= ahora < inicio + timedelta(minutes=15):
             cuenta += 1
     return cuenta
 
@@ -1606,6 +1778,21 @@ def _disponibles_efectivos(fecha=None):
     return max(0, fisicos - reservas)
 
 
+def _disponibles_inventario():
+    """Chromebooks disponibles 'ahora mismo', descontando TODAS las reservas pendientes.
+
+    Es la misma cuenta que muestra el inventario (`_marcar_pendiente_reserva`): una reserva
+    pendiente aparta un cupo aunque sea para otro día. Sirve para que el dashboard y la
+    búsqueda de préstamo reflejen lo mismo que el inventario, en lugar de mirar solo las
+    reservas de hoy.
+    """
+    from .models import Chromebook, Reserva
+    _expirar_reservas_vencidas()
+    fisicos = Chromebook.objects.filter(estado='disponible').count()
+    pendientes = Reserva.objects.filter(estado='pendiente').count()
+    return max(0, fisicos - pendientes)
+
+
 def _activar_reservas_pendientes():
     """Convierte en 'activo' las reservas cuya hora de inicio ya llegó."""
     ahora = timezone.now()
@@ -1625,7 +1812,7 @@ def api_registrar_prestamo(request):
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Método no permitido.'})
 
-    from datetime import datetime
+    from datetime import datetime, timedelta
     data = json.loads(request.body)
     chromebook_id = data.get('chromebook_id')
     user_id = data.get('user_id')
@@ -1664,7 +1851,10 @@ def api_registrar_prestamo(request):
     except User.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Usuario no encontrado.'})
 
-    es_reserva = inicio > ahora
+    # Gracia de 2 min: si el inicio cae dentro de los próximos/últimos 2 minutos se
+    # trata como préstamo INMEDIATO. Evita el bug de que al pasar un minuto la hora
+    # quedaba "en el pasado" y el préstamo no se registraba (se confundía con reserva).
+    es_reserva = inicio > ahora + timedelta(minutes=2)
 
     # ── RESERVA (para más tarde o para mañana): genera una Reserva pendiente con
     #    código. Aparece en "Reservaciones Pendientes" y el estudiante usa el código.

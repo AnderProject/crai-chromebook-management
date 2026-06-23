@@ -55,31 +55,47 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Barra superior fija: tabs + cards de estadísticas permanecen visibles al hacer scroll.
-   El scroll ocurre dentro de .main-content (padding 1.5rem 2rem); los márgenes negativos
-   cancelan ese padding para que la barra se pegue al borde superior del área de contenido. */
+/* Barra superior: se queda en el flujo normal. El scroll real se hace DENTRO del
+   listado de estudiantes para evitar que el título "Historial de Préstamos" tape
+   contenido al deslizar. */
 .estudiantes-topbar {
-    position: sticky;
-    top: 0;
-    z-index: 20;
     background: var(--gris-fondo);
-    /* Sin margen superior negativo: ese pull dejaba una franja ~1.5rem sin cubrir al
-       fijarse, por la que se asomaba el contenido. Sangra solo en horizontal para que
-       el fondo tape a lo ancho; el padding del .main-content da el espacio superior. */
     margin: 0 -2rem 1.25rem;
     padding: 0.25rem 2rem 0.85rem;
 }
 
-.estudiantes-topbar::after {
-    /* Sombra sutil que separa la barra fija del contenido que pasa por debajo. */
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -10px;
-    height: 10px;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.05), transparent);
-    pointer-events: none;
+/* Único bloque deslizante del directorio: solo aquí se hace scroll vertical.
+   Muestra ~6 estudiantes (≈70px c/u) y el resto queda con scroll interno, así
+   el panel es bajo, el .main-content no se desplaza y el título no se tapa. */
+.estudiantes-scroll-panel {
+    max-height: 430px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.estudiantes-scroll-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.estudiantes-scroll-panel::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 3px;
+}
+
+.estudiantes-scroll-panel::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border-radius: 3px;
+}
+
+.estudiantes-scroll-panel::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* Ajustes responsive del bloque deslizante */
+@media (max-width: 991.98px) {
+    .estudiantes-scroll-panel {
+        padding-right: 0.25rem;
+    }
 }
 
 .estudiantes-topbar .estudiantes-header {
@@ -147,6 +163,153 @@
     justify-content: space-between;
     position: relative;
     overflow: hidden;
+}
+
+/* ==========================================
+   FICHAS ESTUDIANTILES (rediseño en rejilla)
+   ========================================== */
+.directorio-toolbar {
+    display: flex;
+    gap: 0.75rem;
+    align-items: stretch;
+    margin-bottom: 1.1rem;
+    flex-wrap: wrap;
+}
+.directorio-buscar { flex: 1 1 320px; }
+
+/* Rejilla de fichas: tarjetas que aprovechan el ancho disponible. */
+.fichas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 0.9rem;
+}
+
+/* Tarjeta-ficha (sustituye la fila horizontal por una tarjeta vertical). */
+.ficha-estudiante {
+    margin-bottom: 0;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.85rem;
+    padding: 1.15rem 1.15rem 1rem;
+    border-radius: 16px;
+}
+.fichas-grid .ficha-estudiante::before {
+    width: 100%;
+    height: 4px;
+    bottom: auto;
+    top: 0;
+    left: 0;
+    background: linear-gradient(90deg, #1a73e8, #4a90ff);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.2s ease;
+}
+.fichas-grid .ficha-estudiante:hover::before { transform: scaleX(1); }
+
+.ficha-cabecera {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.avatar-ficha {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(26,115,232,0.25);
+}
+
+.ficha-identidad { min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.ficha-nombre {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1f2430;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ficha-cedula {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.76rem;
+    color: var(--texto-claro);
+    font-weight: 500;
+}
+.ficha-cedula i { font-size: 0.8rem; }
+
+.ficha-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.ficha-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #41506b;
+    background: #f1f5fb;
+    border: 1px solid #e6edf7;
+    border-radius: 8px;
+    padding: 0.28rem 0.55rem;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ficha-chip i { color: #1a73e8; font-size: 0.78rem; }
+.ficha-chip-sem i { color: #7b1fa2; }
+
+/* Pie de la tarjeta: estado a la izquierda, "Ver ficha" a la derecha */
+.ficha-pie {
+    margin-top: auto;
+    padding-top: 0.85rem;
+    border-top: 1px dashed #eef0f5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.ficha-estado-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 0.28rem 0.6rem;
+    border-radius: 20px;
+}
+.ficha-estado-activo { background: #e6f4ea; color: #1e8e3e; }
+.ficha-estado-libre { background: #f1f3f7; color: #8a93a3; }
+.ficha-estado-pill .estado-dot { margin-right: 0; }
+
+.ficha-ver {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.1rem;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #1a73e8;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.ficha-estudiante:hover .ficha-ver { opacity: 1; transform: translateX(0); }
+.ficha-ver i { font-size: 1.05rem; }
+
+@media (max-width: 575.98px) {
+    .fichas-grid { grid-template-columns: 1fr; }
 }
 
 .estudiante-row::before {
@@ -241,7 +404,9 @@
     box-shadow: -8px 0 30px rgba(0,0,0,0.18);
     transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1050;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .modal-lateral.abierto {
@@ -279,7 +444,11 @@
 }
 
 .perfil-cuerpo {
-    padding: 1.25rem 1.5rem 2rem;
+    padding: 1.25rem 1.5rem 1.5rem;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Datos del estudiante */
@@ -290,6 +459,7 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.04);
     padding: 0.25rem 1rem;
     margin-bottom: 1.25rem;
+    flex-shrink: 0;
 }
 
 .perfil-dato {
@@ -321,6 +491,7 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 0.6rem;
     margin-bottom: 1.25rem;
+    flex-shrink: 0;
 }
 
 .perfil-resumen-card {
@@ -353,12 +524,18 @@
     font-size: 0.9rem;
     color: #212529;
     margin-bottom: 0.75rem;
+    flex-shrink: 0;
 }
 
 .perfil-historial {
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    margin: 0 -0.5rem;
+    padding: 0 0.5rem 0.25rem;
 }
 
 /* Tarjeta de préstamo dentro del historial */

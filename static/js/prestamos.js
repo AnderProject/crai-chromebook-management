@@ -40,9 +40,10 @@ document.addEventListener('DOMContentLoaded', function() {
             var div = document.getElementById('infoChromebook');
             if (data.success) {
                 chromebookSeleccionado = data.data;
+                var est = estadoChromebook(data.data.estado);
                 div.innerHTML = tarjetaResultado('ok', 'bi-laptop', data.data.codigo,
                     data.data.marca + ' ' + data.data.modelo,
-                    '<span class="resultado-estado estado-' + data.data.estado + '">' + data.data.estado + '</span>');
+                    '<span class="resultado-estado ' + est.cls + '">' + est.texto + '</span>');
             } else {
                 chromebookSeleccionado = null;
                 div.innerHTML = tarjetaResultado('error', 'bi-x-circle', 'No encontrado', data.message, '');
@@ -65,7 +66,8 @@ document.addEventListener('DOMContentLoaded', function() {
             var div = document.getElementById('infoEstudiante');
             if (data.success) {
                 estudianteSeleccionado = data.data;
-                div.innerHTML = tarjetaResultado('ok', 'bi-person-check', data.data.nombre, data.data.carrera, '');
+                div.innerHTML = tarjetaResultado('ok', 'bi-person-check', data.data.nombre, data.data.carrera, '')
+                    + avisoReservasPendientes(data.data.reservas_pendientes);
             } else {
                 estudianteSeleccionado = null;
                 div.innerHTML = tarjetaResultado('error', 'bi-person-x', 'No encontrado', data.message, '');
@@ -95,7 +97,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        var esReserva = new Date(fecha + 'T' + horaInicio) > new Date();
+        // Gracia de 2 min (igual que el backend): dentro de ese margen es préstamo inmediato.
+        var esReserva = new Date(fecha + 'T' + horaInicio).getTime() > Date.now() + 120000;
 
         // Llenar y mostrar el modal de confirmación (en vez del confirm() del navegador)
         document.getElementById('confirmTitulo').textContent = esReserva ? 'Confirmar reserva' : 'Confirmar préstamo';
@@ -298,7 +301,7 @@ function actualizarInfoHorario() {
         return;
     }
     var horas = Math.round((fin - inicio) / 3600000 * 10) / 10;
-    var esReserva = inicio > new Date();
+    var esReserva = inicio.getTime() > Date.now() + 120000;
     var etiqueta = esReserva
         ? '<span class="text-primary"><i class="bi bi-calendar-check me-1"></i>Reserva</span>'
         : '<span class="text-success"><i class="bi bi-clock me-1"></i>Inmediato</span>';
@@ -349,6 +352,47 @@ function sincronizarHoraInicio() {
         CraiTP.setAhora('horaInicio', nueva);
         CraiTP.set('horaInicio', nueva, false);
     }
+}
+
+// Aviso (bajo la tarjeta del estudiante) si ya tiene reservaciones vigentes.
+function avisoReservasPendientes(reservas) {
+    if (!reservas || !reservas.length) { return ''; }
+    var filas = reservas.map(function(r) {
+        var cuando = r.fecha + (r.hora ? ' · ' + r.hora : '');
+        var etiqueta = r.estado === 'confirmada' ? 'Confirmada' : 'Pendiente';
+        return '' +
+            '<div class="aviso-reserva-item">' +
+                '<span class="aviso-reserva-codigo"><i class="bi bi-qr-code"></i>' + r.codigo + '</span>' +
+                '<span class="aviso-reserva-fecha"><i class="bi bi-calendar-event"></i>' + cuando + '</span>' +
+                '<span class="aviso-reserva-chip aviso-reserva-chip-' + (r.estado || 'pendiente') + '">' + etiqueta + '</span>' +
+            '</div>';
+    }).join('');
+    var titulo = reservas.length === 1
+        ? 'Ya tiene una reservación vigente'
+        : 'Ya tiene ' + reservas.length + ' reservaciones vigentes';
+    return '' +
+        '<div class="aviso-reserva-pendiente">' +
+            '<div class="aviso-reserva-head">' +
+                '<span class="aviso-reserva-icono"><i class="bi bi-exclamation-triangle-fill"></i></span>' +
+                '<div class="aviso-reserva-head-txt">' +
+                    '<span class="aviso-reserva-titulo">' + titulo + '</span>' +
+                    '<span class="aviso-reserva-sub">Revisa antes de registrar un nuevo préstamo</span>' +
+                '</div>' +
+                '<span class="aviso-reserva-count">' + reservas.length + '</span>' +
+            '</div>' +
+            '<div class="aviso-reserva-lista">' + filas + '</div>' +
+        '</div>';
+}
+
+// Etiqueta + clase de color para el estado efectivo de un Chromebook en la búsqueda.
+function estadoChromebook(estado) {
+    var mapa = {
+        'disponible':        { texto: 'Disponible',          cls: 'estado-disponible' },
+        'prestado':          { texto: 'Prestado',            cls: 'estado-prestado' },
+        'mantenimiento':     { texto: 'En mantenimiento',    cls: 'estado-mantenimiento' },
+        'pendiente_reserva': { texto: 'Pendiente a reserva', cls: 'estado-reservado' },
+    };
+    return mapa[estado] || { texto: estado, cls: 'estado-' + estado };
 }
 
 function tarjetaResultado(tipo, icono, titulo, detalle, extra) {

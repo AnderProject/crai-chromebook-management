@@ -1,0 +1,101 @@
+{
+  "name": "CRAI Chatbot WhatsApp V1",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["messages"]
+      },
+      "id": "wa-trigger-0001",
+      "name": "WhatsApp Trigger",
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "REEMPLAZA_CRED_TRIGGER",
+          "name": "WhatsApp OAuth (CRAI)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrae el telefono del remitente y el texto del mensaje del payload de Meta.\n// Es defensivo: cubre el formato crudo de Meta y el ya aplanado por n8n.\nconst j = $input.first().json;\nconst entry = (j.entry && j.entry[0]) || j;\nconst value = (entry.changes && entry.changes[0] && entry.changes[0].value) || j;\nconst msg = (value.messages && value.messages[0]) || (j.messages && j.messages[0]) || j;\n\nconst telefono = msg.from || (value.contacts && value.contacts[0] && value.contacts[0].wa_id) || '';\nconst mensaje = (msg.text && msg.text.body) || msg.body || (j.text && j.text.body) || '';\n\n// Si no es un mensaje de texto (audio, imagen, status, etc.) no continuamos.\nif (!telefono || !mensaje) {\n  return [];\n}\n\nreturn [{ json: { telefono: String(telefono), mensaje: String(mensaje) } }];"
+      },
+      "id": "code-extract-0002",
+      "name": "Extraer mensaje",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/estudiantes/api/chatbot-whatsapp/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-KEY",
+              "value": "clave-n8n-dev"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "telefono",
+              "value": "={{ $json.telefono }}"
+            },
+            {
+              "name": "mensaje",
+              "value": "={{ $json.mensaje }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-django-0003",
+      "name": "Django Chatbot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "1118596904678310",
+        "recipientPhoneNumber": "={{ $('Extraer mensaje').item.json.telefono }}",
+        "messageType": "text",
+        "textBody": "={{ $json.respuesta }}",
+        "additionalFields": {}
+      },
+      "id": "wa-send-0004",
+      "name": "Responder WhatsApp",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [920, 300],
+      "credentials": {
+        "whatsAppApi": {
+          "id": "REEMPLAZA_CRED_SEND",
+          "name": "WhatsApp account (CRAI)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [[{ "node": "Extraer mensaje", "type": "main", "index": 0 }]]
+    },
+    "Extraer mensaje": {
+      "main": [[{ "node": "Django Chatbot", "type": "main", "index": 0 }]]
+    },
+    "Django Chatbot": {
+      "main": [[{ "node": "Responder WhatsApp", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false,
+  "pinData": {}
+}

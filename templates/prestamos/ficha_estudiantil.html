@@ -20,39 +20,55 @@
     </nav>
     
     <div class="ficha-content">
-        
+
         <!-- Buscador -->
         <div class="buscador-card">
-            <h5 class="fw-bold mb-3"><i class="bi bi-search me-2 text-primary"></i>Consultar Estudiante</h5>
+            <div class="buscador-head">
+                <span class="buscador-icono"><i class="bi bi-search"></i></span>
+                <div>
+                    <h5 class="buscador-titulo">Consultar Estudiante</h5>
+                    <p class="buscador-sub">Busca por cédula, nombre o apellido</p>
+                </div>
+            </div>
             <form method="POST">
                 {% csrf_token %}
                 <div class="buscador-input">
-                    <input type="text" name="busqueda" class="buscador-campo" placeholder="Ingresa cédula, nombre o apellido..." value="{{ busqueda|default:'' }}" required>
+                    <i class="bi bi-person-vcard buscador-campo-icono"></i>
+                    <input type="text" name="busqueda" class="buscador-campo" placeholder="Ingresa cédula, nombre o apellido..." value="{{ busqueda|default:'' }}" required autofocus>
                     <button type="submit" class="btn-buscar">
                         <i class="bi bi-search me-1"></i>Buscar
                     </button>
                 </div>
             </form>
         </div>
-        
+
         <!-- Error -->
         {% if error %}
-        <div class="alert alert-warning">{{ error }}</div>
+        <div class="ficha-alerta">
+            <i class="bi bi-exclamation-triangle"></i>
+            <span>{{ error }}</span>
+        </div>
         {% endif %}
-        
+
         <!-- Resultado -->
         {% if estudiante %}
         <div class="resultado-card">
             <div class="resultado-header">
                 <div class="resultado-avatar">
+                    {% if estudiante.usuario.foto %}
+                    <img src="{{ estudiante.usuario.foto.url }}" alt="Foto de {{ estudiante.usuario.user.get_full_name }}">
+                    {% else %}
                     {{ estudiante.usuario.user.first_name|first|upper }}{{ estudiante.usuario.user.last_name|first|upper }}
+                    {% endif %}
                 </div>
-                <div>
-                    <h5 class="fw-bold mb-0 text-white">{{ estudiante.usuario.user.get_full_name }}</h5>
-                    <small class="resultado-carrera">{{ estudiante.carrera.nombre }}</small>
+                <div class="resultado-header-info">
+                    <h5 class="resultado-nombre">{{ estudiante.usuario.user.get_full_name }}</h5>
+                    <span class="resultado-carrera"><i class="bi bi-mortarboard me-1"></i>{{ estudiante.carrera.nombre }}</span>
                 </div>
+                <span class="resultado-badge"><i class="bi bi-patch-check-fill me-1"></i>Estudiante</span>
             </div>
             <div class="resultado-body">
+                <h6 class="resultado-seccion"><i class="bi bi-info-circle me-1"></i>Información personal</h6>
                 <div class="info-grid">
                     <div class="info-item">
                         <small><i class="bi bi-person-badge me-1"></i>Cédula</small>
@@ -60,12 +76,16 @@
                     </div>
                     <div class="info-item">
                         <small><i class="bi bi-envelope me-1"></i>Email</small>
-                        <strong>{{ estudiante.usuario.user.email }}</strong>
+                        <strong>{{ estudiante.usuario.user.email|default:'No registrado' }}</strong>
                     </div>
                     <div class="info-item">
                         <small><i class="bi bi-telephone me-1"></i>Teléfono</small>
                         <strong>{{ estudiante.usuario.telefono|default:'No registrado' }}</strong>
                     </div>
+                </div>
+
+                <h6 class="resultado-seccion"><i class="bi bi-book me-1"></i>Información académica</h6>
+                <div class="info-grid">
                     <div class="info-item">
                         <small><i class="bi bi-building me-1"></i>Facultad</small>
                         <strong>{{ estudiante.carrera.facultad.nombre }}</strong>
@@ -76,18 +96,19 @@
                     </div>
                     <div class="info-item">
                         <small><i class="bi bi-mortarboard me-1"></i>Semestre</small>
-                        <strong>{{ estudiante.semestre }}to</strong>
+                        <strong>{{ estudiante.semestre }}° Semestre</strong>
                     </div>
                 </div>
             </div>
         </div>
         {% elif not error and not estudiante %}
         <div class="sin-resultados">
-            <i class="bi bi-people"></i>
+            <i class="bi bi-search-heart"></i>
             <p>Ingresa un dato para buscar un estudiante</p>
+            <span class="sin-resultados-hint">Puedes usar la cédula, el nombre o el apellido</span>
         </div>
         {% endif %}
-        
+
     </div>
     
 </div>

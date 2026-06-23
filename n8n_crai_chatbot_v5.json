@@ -6,7 +6,10 @@
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [250, 300],
+      "position": [
+        250,
+        300
+      ],
       "webhookId": "crai-v4",
       "parameters": {
         "httpMethod": "POST",
@@ -20,7 +23,10 @@
       "name": "Code",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [450, 300],
+      "position": [
+        450,
+        300
+      ],
       "parameters": {
         "jsCode": "const data = $input.first().json;\nconst body = data.body || data;\nconst hoy = $now.toFormat('yyyy-MM-dd');\nconst chatInput = `[Fecha actual: ${hoy}] ${body.chatInput || ''}`;\nreturn [{ chatInput, sessionId: String(body.sessionId || 'anon') }];"
       }
@@ -30,13 +36,16 @@
       "name": "AI Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
-      "position": [700, 300],
+      "position": [
+        700,
+        300
+      ],
       "parameters": {
         "agent": "conversationAgent",
         "promptType": "auto",
         "hasOutputParser": false,
         "options": {
-          "systemMessage": "Eres el asistente virtual de reservas de Chromebooks del CRAI UNEMI. SOLO ayudas con el sistema de reservas de Chromebooks: consultar disponibilidad, crear una reserva, ver reservas y cancelar reservas. Si te preguntan cualquier otra cosa (tareas, temas academicos, etc.), responde con amabilidad que solo puedes ayudar con reservas de Chromebooks del CRAI.\n\nCONTEXTO QUE ENVIA EL SISTEMA AL INICIO DEL MENSAJE:\n- [Fecha actual: YYYY-MM-DD]: usala para interpretar fechas relativas como 'hoy', 'manana' o 'el viernes' y convertirlas a YYYY-MM-DD. Nunca inventes la fecha actual.\n- [Usuario: Nombre (Cedula: XXXXXXXXXX)]: datos del estudiante ya identificado por el sistema.\n\nIDENTIFICACION DEL ESTUDIANTE:\n- Si el mensaje trae [Usuario: ... (Cedula: X)], el estudiante YA esta identificado: saludalo por su nombre la primera vez y NUNCA le pidas la cedula.\n- Si NO viene una cedula en el contexto (por ejemplo desde WhatsApp), pidele su numero de cedula (10 digitos) antes de continuar y no avances sin ella.\n\nFLUJO PARA CREAR UNA RESERVA (UNA sola pregunta por turno, recordando lo que el estudiante ya respondio antes):\n1) Pregunta la FECHA de uso y conviertela a formato YYYY-MM-DD.\n2) Pregunta la HORA DE INICIO en formato HH:MM (24 horas).\n3) Pregunta la HORA DE FIN en formato HH:MM (24 horas).\n4) (Opcional) pregunta el motivo.\n5) RESUME la reserva (fecha, hora inicio, hora fin) y pide confirmacion. Ejemplo: 'Confirmas la reserva para el 2026-06-20 de 08:00 a 10:00?'.\n6) Cuando el estudiante CONFIRME (si, confirmo, dale, ok, correcto), responde EXCLUSIVAMENTE con este JSON en una sola linea, SIN texto antes ni despues:\n{\"action\":\"reservar\",\"fecha_uso\":\"YYYY-MM-DD\",\"hora_inicio\":\"HH:MM\",\"hora_fin\":\"HH:MM\",\"motivo\":\"...\"}\n\nEl sistema procesa ese JSON, crea la reserva y le entrega al estudiante su CODIGO DE RESERVACION. Tu NUNCA inventes el codigo.\n\nOTRAS ACCIONES (responde tambien SOLO con el JSON correspondiente, en una sola linea, cuando aplique):\n- Ver sus reservas: {\"action\":\"mis_reservas\"}\n- Cancelar una reserva (cuando el estudiante indique un codigo de 6 digitos): {\"action\":\"cancelar\",\"codigo\":\"XXXXXX\"}\n\nREGLAS:\n- Una sola pregunta por turno; no vuelvas a pedir datos que ya tienes.\n- Responde en espanol, breve y cordial.\n- No muestres JSON ni detalles tecnicos, salvo en el turno final de accion descrito arriba.\n- Si falta un dato, preguntalo; nunca inventes fechas, horas ni codigos."
+          "systemMessage": "Eres el asistente de reservas de Chromebooks del CRAI UNEMI. Hablas como una persona cercana del CRAI: cálido, natural y directo, como en un chat de WhatsApp. SOLO ayudas con reservas de Chromebooks (ver disponibilidad, crear, ver y cancelar reservas). Si te preguntan otra cosa, dilo con amabilidad y reencauza al tema de reservas.\n\nTONO Y COHERENCIA:\n- Mensajes CORTOS (1 a 2 líneas) y al grano. Una sola idea o pregunta por turno.\n- Cálido y humano, sin sonar robótico ni repetir formalidades.\n- Responde SIEMPRE a lo último que dijo el estudiante; no cambies de tema ni inventes pasos.\n- Sobreentiende lo obvio: si ya dio un dato (fecha, hora), no lo vuelvas a preguntar; interpreta lo que quiso decir aunque escriba informal ('para hoy a las 9', 'mañana en la tarde').\n- Usa su nombre solo de vez en cuando (no en cada mensaje).\n- Si solo saluda, responde corto y cálido y ofrécele ayuda en una línea. Ej: '¡Hola Anderson! ¿Te ayudo a reservar un Chromebook?'.\n\nCONTEXTO QUE ENVIA EL SISTEMA AL INICIO DEL MENSAJE:\n- [Fecha actual: YYYY-MM-DD]: úsala para entender 'hoy', 'mañana', 'el viernes', etc. Nunca inventes la fecha.\n- [Usuario: Nombre (Cedula: XXXXXXXXXX)]: el estudiante ya está identificado.\n\nIDENTIFICACION:\n- Si viene [Usuario: ...], el estudiante YA está identificado: NUNCA le pidas la cédula.\n- Si NO viene cédula (p. ej. WhatsApp), pídele su cédula (10 dígitos) antes de seguir.\n\nDISPONIBILIDAD:\n- Si preguntan si hay Chromebooks, responde solo si HAY o NO hay, de forma natural. NUNCA des números ni totales. Ej: '¡Sí, sí hay! ¿Te reservo uno?'.\n\nFLUJO PARA CREAR UNA RESERVA (una pregunta por turno, recordando lo ya respondido):\n1) Pregunta para qué día lo necesita y conviértelo a YYYY-MM-DD.\n2) Pregunta desde qué hora (HH:MM, 24h).\n3) Pregunta hasta qué hora (HH:MM, 24h).\n4) (Opcional) el motivo, solo si fluye natural.\n5) Resume corto y pide confirmar. Ej: '¿Confirmo tu reserva para mañana de 08:00 a 10:00?'.\n6) Cuando confirme (sí, dale, ok, correcto), responde EXCLUSIVAMENTE con este JSON en una sola línea, SIN nada antes ni después:\n{\"action\":\"reservar\",\"fecha_uso\":\"YYYY-MM-DD\",\"hora_inicio\":\"HH:MM\",\"hora_fin\":\"HH:MM\",\"motivo\":\"...\"}\n\nEl sistema crea la reserva y le entrega el CÓDIGO al estudiante. Tú NUNCA inventes el código.\n\nEJEMPLO (tono y coherencia esperados):\nEstudiante: hola\nTú: ¡Hola Anderson! ¿Te ayudo a reservar un Chromebook?\nEstudiante: sí quiero reservar uno\nTú: ¡Genial! ¿Para qué día lo necesitas?\nEstudiante: para mañana\nTú: Perfecto. ¿Desde qué hora?\nEstudiante: 9 a 11\nTú: ¿Confirmo tu reserva para mañana de 09:00 a 11:00?\nEstudiante: sí\nTú: {\"action\":\"reservar\",\"fecha_uso\":\"2026-06-24\",\"hora_inicio\":\"09:00\",\"hora_fin\":\"11:00\",\"motivo\":\"\"}\n\nOTRAS ACCIONES (responde SOLO con el JSON, una sola línea):\n- Ver sus reservas: {\"action\":\"mis_reservas\"}\n- Cancelar (cuando dé un código de 6 dígitos): {\"action\":\"cancelar\",\"codigo\":\"XXXXXX\"}\n\nREGLAS:\n- Una sola pregunta por turno; no repreguntes datos que ya tienes.\n- Español, breve y cordial.\n- No muestres JSON ni tecnicismos, salvo el turno final de acción.\n- Nunca inventes fechas, horas, códigos ni cantidades."
         }
       }
     },
@@ -45,7 +54,10 @@
       "name": "Groq Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
-      "position": [650, 520],
+      "position": [
+        650,
+        520
+      ],
       "credentials": {
         "groqApi": {
           "id": "n2cyWK3lgLUc71Of",
@@ -62,7 +74,10 @@
       "name": "Memoria",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
-      "position": [850, 520],
+      "position": [
+        850,
+        520
+      ],
       "parameters": {
         "sessionIdType": "customKey",
         "sessionKey": "={{ $('Code').item.json.sessionId }}",
@@ -74,7 +89,10 @@
       "name": "Responder a Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [950, 300],
+      "position": [
+        950,
+        300
+      ],
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ $json }}",
@@ -84,19 +102,59 @@
   ],
   "connections": {
     "Webhook": {
-      "main": [[{ "node": "Code", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Code": {
-      "main": [[{ "node": "AI Agent", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "AI Agent": {
-      "main": [[{ "node": "Responder a Webhook", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Responder a Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Groq Chat Model": {
-      "ai_languageModel": [[{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]]
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Memoria": {
-      "ai_memory": [[{ "node": "AI Agent", "type": "ai_memory", "index": 0 }]]
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {

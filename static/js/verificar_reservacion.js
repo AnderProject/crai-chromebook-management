@@ -76,6 +76,57 @@ function verificarCodigo() {
     });
 }
 
+// =============================================================
+// CONFIRMAR DESDE EL CÓDIGO REVELADO (tabla de Reservaciones Pendientes)
+// Al hacer clic en el código ya revelado, se valida (misma regla de ventana de
+// activación que el modal) y se abre directo el modal de evidencia QR para
+// confirmar la reserva. No requiere reescribir el código ni botones extra.
+// =============================================================
+function iniciarReservaDesdeCodigo(codigo) {
+    if (!codigo) { return; }
+    fetch('/prestamos/api/verificar-codigo/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+        body: JSON.stringify({ codigo: codigo })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (!data.success) {
+            mostrarMensajeSimple('No se pudo continuar', data.message || 'Código no válido.', false);
+            return;
+        }
+        // Respetar la ventana de activación (igual que el modal de código).
+        if (data.data.puede_activar === false) {
+            mostrarMensajeSimple('Aún no se puede activar',
+                data.data.ventana_msg || 'Esta reserva no está dentro de su horario de activación.', false);
+            return;
+        }
+        reservaIdActual = data.data.reserva_id;
+        abrirCamaraEvidencia();
+    })
+    .catch(function() {
+        mostrarMensajeSimple('Error de conexión', 'No se pudo conectar con el servidor.', false);
+    });
+}
+
+// Muestra el modal de mensaje simple (#modalMensaje) solo para informar; el botón
+// únicamente cierra (no recarga, a diferencia del flujo de confirmación).
+function mostrarMensajeSimple(titulo, texto, exito) {
+    var icono = document.getElementById('mensajeIcono');
+    if (icono) {
+        icono.innerHTML = exito
+            ? '<i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>'
+            : '<i class="bi bi-exclamation-circle-fill text-warning" style="font-size: 3rem;"></i>';
+    }
+    var t = document.getElementById('mensajeTitulo');
+    var x = document.getElementById('mensajeTexto');
+    if (t) { t.textContent = titulo; }
+    if (x) { x.textContent = texto; }
+    var btn = document.getElementById('btnMensajeCerrar');
+    if (btn) { btn.onclick = null; }  // solo cerrar vía data-bs-dismiss
+    new bootstrap.Modal(document.getElementById('modalMensaje')).show();
+}
+
 function volverIngresarCodigo() {
     document.getElementById('pasoIngresarCodigo').style.display = 'block';
     document.getElementById('pasoDetallesReservacion').style.display = 'none';

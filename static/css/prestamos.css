@@ -152,6 +152,134 @@
 .resultado-estado.estado-mantenimiento { background: #fde8e8; color: #c62828; }
 .resultado-estado.estado-reservado { background: #ede7f6; color: #5e35b1; }
 
+/* Aviso de reservaciones vigentes del estudiante (bajo su tarjeta) */
+.aviso-reserva-pendiente {
+    margin-top: 0.7rem;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #fffdf5 0%, #fff8e6 100%);
+    border: 1px solid #ffe19e;
+    box-shadow: 0 4px 14px rgba(245, 166, 35, 0.12);
+    overflow: hidden;
+    animation: avisoReservaIn 0.28s ease;
+}
+
+@keyframes avisoReservaIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.aviso-reserva-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.65rem 0.85rem;
+    border-bottom: 1px solid #ffeec2;
+}
+
+.aviso-reserva-icono {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #ffe9b0;
+    color: #e08a00;
+    font-size: 1rem;
+}
+
+.aviso-reserva-head-txt {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+    flex: 1;
+    min-width: 0;
+}
+
+.aviso-reserva-titulo {
+    font-weight: 700;
+    font-size: 0.86rem;
+    color: #8a5a00;
+}
+
+.aviso-reserva-sub {
+    font-size: 0.74rem;
+    color: #b5893a;
+}
+
+.aviso-reserva-count {
+    flex-shrink: 0;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 0.45rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: #f9a825;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.aviso-reserva-lista {
+    display: flex;
+    flex-direction: column;
+}
+
+.aviso-reserva-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.8rem;
+}
+
+.aviso-reserva-item + .aviso-reserva-item {
+    border-top: 1px dashed #ffe5a8;
+}
+
+.aviso-reserva-codigo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    padding: 0.18rem 0.55rem;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #ffd980;
+    color: #8a5a00;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.aviso-reserva-fecha {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex: 1;
+    min-width: 0;
+    color: #6b5325;
+}
+
+.aviso-reserva-fecha i,
+.aviso-reserva-codigo i {
+    font-size: 0.85rem;
+    opacity: 0.85;
+}
+
+.aviso-reserva-chip {
+    flex-shrink: 0;
+    padding: 0.12rem 0.55rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.aviso-reserva-chip-pendiente { background: #fff3cd; color: #b8860b; }
+.aviso-reserva-chip-confirmada { background: #e6f4ea; color: #2e7d32; }
+
 /* Cards de pasos */
 .paso-card {
     background: var(--blanco);

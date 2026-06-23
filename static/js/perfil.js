@@ -123,23 +123,40 @@
             .catch(function () { ocupar(btnActivo, false); aviso('Error de conexión.', 'error'); });
     }
 
+    var pwdConfirmando = false;  // evita envíos duplicados (clic + autoconfirmación)
+
     function confirmarCodigo() {
-        var codigo = (document.getElementById('inputPwdCodigo') || {}).value || '';
+        if (pwdConfirmando) { return; }
+        var input = document.getElementById('inputPwdCodigo');
+        var codigo = (input || {}).value || '';
         var btn = document.getElementById('btnConfirmarCodigoPwd');
+        var hint = document.getElementById('pwdCodigoHint');
         if (!codigo.trim()) { aviso('Ingresa el código que recibiste por correo.', 'warning'); return; }
 
+        pwdConfirmando = true;
         ocupar(btn, true, 'Verificando...');
+        if (hint) { hint.innerHTML = '<i class="bi bi-hourglass-split"></i> Verificando código…'; }
         postJSON(URL_PWD_CONFIRMAR, { codigo: codigo.trim() })
             .then(function (data) {
+                pwdConfirmando = false;
                 ocupar(btn, false);
                 if (data.success) {
+                    if (hint) { hint.innerHTML = '<i class="bi bi-check-circle"></i> ¡Verificado!'; }
                     aviso(data.message || 'Contraseña actualizada.', 'success');
                     reiniciarFormularioPwd();
                 } else {
                     aviso(data.message || 'Código incorrecto.', 'error');
+                    // Limpiar para reintentar; la autoconfirmación se vuelve a disparar al completar 6 dígitos.
+                    if (input) { input.value = ''; input.focus(); }
+                    if (hint) { hint.innerHTML = '<i class="bi bi-exclamation-circle text-danger"></i> Código incorrecto, intenta de nuevo'; }
                 }
             })
-            .catch(function () { ocupar(btn, false); aviso('Error de conexión.', 'error'); });
+            .catch(function () {
+                pwdConfirmando = false;
+                ocupar(btn, false);
+                aviso('Error de conexión.', 'error');
+                if (hint) { hint.innerHTML = '<i class="bi bi-info-circle"></i> Ingresa los 6 dígitos'; }
+            });
     }
 
     function reiniciarFormularioPwd() {
@@ -179,6 +196,15 @@
 
         var btnConfirmar = document.getElementById('btnConfirmarCodigoPwd');
         if (btnConfirmar) { btnConfirmar.addEventListener('click', confirmarCodigo); }
+
+        // Código: solo dígitos y autoconfirmación al completar los 6.
+        var inputCodigo = document.getElementById('inputPwdCodigo');
+        if (inputCodigo) {
+            inputCodigo.addEventListener('input', function () {
+                this.value = this.value.replace(/\D/g, '').slice(0, 6);
+                if (this.value.length === 6) { confirmarCodigo(); }
+            });
+        }
 
         var btnVolver = document.getElementById('btnVolverPwd1');
         if (btnVolver) { btnVolver.addEventListener('click', reiniciarFormularioPwd); }

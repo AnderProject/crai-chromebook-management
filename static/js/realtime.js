@@ -3,7 +3,8 @@
 // Polling ligero por sección. Se auto-inicia según las anclas presentes en el DOM.
 // =============================================
 
-var REALTIME_INTERVALO = 20000; // 20s
+var REALTIME_INTERVALO = 8000; // 8s (chromebooks, monitoreo, registro rápido)
+var REALTIME_DASHBOARD = 5000; // 5s: el dashboard refresca reservaciones casi al momento
 
 function craiObtener(url) {
     return fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
@@ -138,7 +139,7 @@ function pollMonitoreo() {
 
 document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById('tbodyUltimosPrestamos')) {
-        setInterval(pollDashboard, REALTIME_INTERVALO);
+        setInterval(pollDashboard, REALTIME_DASHBOARD);
     }
     if (document.getElementById('listaPrestamosHoy')) {
         setInterval(pollPrestamosHoy, REALTIME_INTERVALO);
