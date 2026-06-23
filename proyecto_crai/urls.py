@@ -38,6 +38,9 @@ handler500 = 'proyecto_crai.urls.error_servidor'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # El navegador pide /favicon.ico a la raíz: lo redirigimos al SVG estático
+    # (evita el 404 que aparecía en la terminal en cada visita).
+    path('favicon.ico', lambda request: redirect(f'{settings.STATIC_URL}img/favicon.svg', permanent=True)),
     path('', lambda request: redirect('autenticacion:seleccionar_perfil')),
     path('autenticacion/', include('apps.autenticacion.urls')),
     path('prestamos/', include('apps.prestamos.urls')),
