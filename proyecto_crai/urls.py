@@ -24,7 +24,17 @@ from django.shortcuts import redirect, render
 def pagina_no_encontrada(request, *args, **kwargs):
     """Renderiza la página 404 personalizada para cualquier URL no encontrada
     (funciona también con DEBUG=True gracias al catch-all del final)."""
-    return render(request, '404.html', status=404)
+    return render(request, 'errores/404.html', status=404)
+
+
+def error_servidor(request, *args, **kwargs):
+    """Renderiza la página 500 personalizada en errores de servidor (DEBUG=False)."""
+    return render(request, 'errores/500.html', status=500)
+
+
+# Manejadores de error de Django (se usan con DEBUG=False).
+handler404 = 'proyecto_crai.urls.pagina_no_encontrada'
+handler500 = 'proyecto_crai.urls.error_servidor'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -39,8 +49,8 @@ if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     # Previsualización de las páginas de error (solo en desarrollo)
     urlpatterns += [
-        path('preview/404/', lambda r: render(r, '404.html', status=404)),
-        path('preview/500/', lambda r: render(r, '500.html', status=500)),
+        path('preview/404/', lambda r: render(r, 'errores/404.html', status=404)),
+        path('preview/500/', lambda r: render(r, 'errores/500.html', status=500)),
     ]
 
 # Catch-all: cualquier URL no encontrada cae aquí y muestra la página 404 bonita.

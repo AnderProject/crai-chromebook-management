@@ -21,7 +21,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown dropdown-perfil">
                         <a class="nav-link dropdown-toggle d-flex align-items-center pe-3" href="#" data-bs-toggle="dropdown" style="gap: 0.6rem;">
-                            {% include 'prestamos/_avatar.html' with foto=user.perfil.foto nombre=user.first_name apellido=user.last_name clase='avatar-dashboard' %}
+                            {% include 'prestamos/partials/_avatar.html' with foto=user.perfil.foto nombre=user.first_name apellido=user.last_name clase='avatar-dashboard' %}
                             <div class="d-none d-md-block text-start" style="line-height: 1.2;">
                                 <span style="font-weight: 600; font-size: 0.85rem; color: white;">{{ primer_nombre }} {{ primer_apellido }}</span>
                                 <br>
@@ -44,7 +44,7 @@
     <div class="container-fluid">
         <div class="row">
             
-            {% include "prestamos/_sidebar.html" with activo="mantenimiento" %}
+            {% include "prestamos/partials/_sidebar.html" with activo="mantenimiento" %}
 
             <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
                 

@@ -22,7 +22,7 @@ qr_tokens = {}
 def portal(request):
     """Portal principal de módulos - Bienvenida"""
     contexto = {'titulo_pagina': 'Portal - CRAI UNEMI'}
-    return render(request, 'prestamos/portal.html', contexto)
+    return render(request, 'prestamos/portal/portal.html', contexto)
 
 
 CRAI_HORA_APERTURA = time(8, 0)
@@ -121,7 +121,7 @@ def api_dashboard_stats(request):
     reservas_hoy = Reserva.objects.filter(fecha_uso=timezone.now().date(), estado='pendiente').count()
 
     ultimos_prestamos = Prestamo.objects.select_related('estudiante', 'chromebook').all().order_by('-fecha_prestamo')[:5]
-    filas_html = render_to_string('prestamos/_ultimos_prestamos_rows.html', {'ultimos_prestamos': ultimos_prestamos})
+    filas_html = render_to_string('prestamos/partials/_ultimos_prestamos_rows.html', {'ultimos_prestamos': ultimos_prestamos})
 
     reservas_pendientes = (
         Reserva.objects
@@ -129,7 +129,7 @@ def api_dashboard_stats(request):
         .select_related('estudiante__usuario__user', 'estudiante__carrera')
         .order_by('fecha_uso', 'hora_inicio')
     )
-    reservas_html = render_to_string('prestamos/_reservas_pendientes_rows.html', {'reservas_pendientes': reservas_pendientes})
+    reservas_html = render_to_string('prestamos/partials/_reservas_pendientes_rows.html', {'reservas_pendientes': reservas_pendientes})
 
     return JsonResponse({
         'contadores': {
@@ -156,7 +156,7 @@ def api_prestamos_hoy(request):
         fecha_prestamo__date=hoy
     ).select_related('estudiante', 'chromebook').order_by('-fecha_prestamo')
     total_hoy = prestamos_hoy.count()
-    html = render_to_string('prestamos/_prestamos_hoy.html', {'prestamos_hoy': prestamos_hoy})
+    html = render_to_string('prestamos/partials/_prestamos_hoy.html', {'prestamos_hoy': prestamos_hoy})
     return JsonResponse({'html': html, 'total_hoy': total_hoy})
 
 
@@ -204,10 +204,10 @@ def api_monitoreo(request):
         'estudiante', 'chromebook'
     ).order_by('-fecha_devolucion')[:10]
 
-    activos_html = render_to_string('prestamos/_monitoreo_activos.html', {
+    activos_html = render_to_string('prestamos/partials/_monitoreo_activos.html', {
         'prestamos_activos_lista': prestamos_activos_lista,
     })
-    vencidos_html = render_to_string('prestamos/_monitoreo_vencidos.html', {
+    vencidos_html = render_to_string('prestamos/partials/_monitoreo_vencidos.html', {
         'prestamos_vencidos_lista': prestamos_vencidos_lista,
         'reservas_vencidas_lista': reservas_vencidas_lista,
     })
@@ -359,13 +359,13 @@ def api_generar_qr_evidencia(request):
 def pagina_evidencia(request, token):
     """Página móvil para tomar foto de evidencia"""
     if token not in qr_tokens:
-        return render(request, 'prestamos/evidencia_expirada.html')
+        return render(request, 'prestamos/evidencia/expirada.html')
     
     data = qr_tokens[token]
     
     if data['expiracion'] < timezone.now():
         del qr_tokens[token]
-        return render(request, 'prestamos/evidencia_expirada.html')
+        return render(request, 'prestamos/evidencia/expirada.html')
     
     if request.method == 'POST' and request.FILES.get('foto'):
         foto = request.FILES['foto']
@@ -404,11 +404,11 @@ def pagina_evidencia(request, token):
         
         print(f'✅ Foto guardada: {nombre_archivo}')
         
-        response = render(request, 'prestamos/evidencia_exitosa.html')
+        response = render(request, 'prestamos/evidencia/exitosa.html')
         response['ngrok-skip-browser-warning'] = 'true'
         return response
     
-    response = render(request, 'prestamos/evidencia_subir.html', {'token': token})
+    response = render(request, 'prestamos/evidencia/subir.html', {'token': token})
     response['ngrok-skip-browser-warning'] = 'true'
     return response
 
@@ -1309,7 +1309,7 @@ def registro_rapido(request):
     prestamos_hoy = Prestamo.objects.filter(fecha_prestamo__date=hoy).select_related('estudiante', 'chromebook').order_by('-fecha_prestamo')
     total_hoy = prestamos_hoy.count()
 
-    return render(request, 'prestamos/prestamos/registro_rapido.html', {
+    return render(request, 'prestamos/registro_rapido/registro_rapido.html', {
         'titulo_pagina': 'Nuevo Préstamo - CRAI UNEMI',
         'disponibles': disponibles, 'disponibles_manana': disponibles_manana,
         'prestamos_hoy': prestamos_hoy, 'total_hoy': total_hoy,
@@ -2014,7 +2014,7 @@ def ficha_estudiantil(request):
         'estudiante': estudiante_encontrado,
         'error': error,
     }
-    return render(request, 'prestamos/ficha_estudiantil.html', contexto)
+    return render(request, 'prestamos/estudiantes/ficha_estudiantil.html', contexto)
 
 
 
@@ -2033,7 +2033,7 @@ def ajustes(request):
         'sesiones': sesiones,
         'api_activa': ConfiguracionSistema.obtener().api_matriculas_activa,
     }
-    return render(request, 'prestamos/ajustes.html', contexto)
+    return render(request, 'prestamos/ajustes/ajustes.html', contexto)
 
 
 @login_required
@@ -2041,7 +2041,7 @@ def perfil(request):
     """Perfil del usuario: datos, foto y cambio de contraseña."""
     perfil_usuario = getattr(request.user, 'perfil', None)
     rol = request.user.groups.values_list('name', flat=True).first() or 'Usuario'
-    return render(request, 'prestamos/perfil.html', {
+    return render(request, 'prestamos/perfil/perfil.html', {
         'titulo_pagina': 'Mi Perfil - CRAI UNEMI',
         'perfil_usuario': perfil_usuario,
         'rol': rol,
@@ -2323,7 +2323,7 @@ def gestion_personal(request):
         'total_admins': sum(1 for p in personal if p.rol_actual == 'Administrador'),
         'total_recep': sum(1 for p in personal if p.rol_actual == 'Recepcionista'),
     }
-    return render(request, 'prestamos/personal.html', contexto)
+    return render(request, 'prestamos/personal/personal.html', contexto)
 
 
 
@@ -2425,13 +2425,13 @@ def api_generar_qr_foto_chromebook(request):
 def subir_foto_chromebook(request, token):
     """Página móvil para subir foto del Chromebook"""
     if token not in qr_tokens:
-        return render(request, 'prestamos/evidencia_expirada.html')
+        return render(request, 'prestamos/evidencia/expirada.html')
     
     data = qr_tokens[token]
     
     if data['expiracion'] < timezone.now():
         del qr_tokens[token]
-        return render(request, 'prestamos/evidencia_expirada.html')
+        return render(request, 'prestamos/evidencia/expirada.html')
     
     if request.method == 'POST' and request.FILES.get('foto'):
         import os
@@ -2454,10 +2454,10 @@ def subir_foto_chromebook(request, token):
         qr_tokens[token]['recibida'] = True
         print(f'✅ Foto guardada: {nombre_archivo}')
         
-        response = render(request, 'prestamos/evidencia_exitosa.html')
+        response = render(request, 'prestamos/evidencia/exitosa.html')
         response['ngrok-skip-browser-warning'] = 'true'
         return response
     
-    response = render(request, 'prestamos/evidencia_subir.html', {'token': token})
+    response = render(request, 'prestamos/evidencia/subir.html', {'token': token})
     response['ngrok-skip-browser-warning'] = 'true'
     return response

@@ -1,4 +1,4 @@
-<!-- templates/prestamos/portal.html -->
+<!-- templates/prestamos/portal/portal.html -->
 {% extends 'base.html' %}
 {% load static %}
 
@@ -27,7 +27,7 @@
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center text-white" href="#" data-bs-toggle="dropdown">
-                            {% include 'prestamos/_avatar.html' with foto=user.perfil.foto nombre=user.first_name apellido=user.last_name clase='avatar-portal me-2' %}
+                            {% include 'prestamos/partials/_avatar.html' with foto=user.perfil.foto nombre=user.first_name apellido=user.last_name clase='avatar-portal me-2' %}
                             <span>{{ user.first_name }} {{ user.last_name }}</span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end shadow">
@@ -55,7 +55,7 @@
                 <div class="saludo-deco saludo-deco-1"></div>
                 <div class="saludo-deco saludo-deco-2"></div>
                 <div class="saludo-contenido">
-                    {% include 'prestamos/_avatar.html' with foto=user.perfil.foto nombre=user.first_name apellido=user.last_name clase='saludo-avatar' %}
+                    {% include 'prestamos/partials/_avatar.html' with foto=user.perfil.foto nombre=user.first_name apellido=user.last_name clase='saludo-avatar' %}
                     <div class="saludo-texto">
                         <span class="saludo-bienvenida"><i class="bi bi-hand-wave"></i> Bienvenido de nuevo</span>
                         <h3 class="saludo-nombre">¡Hola, {{ user.first_name }} {{ user.last_name }}!</h3>
