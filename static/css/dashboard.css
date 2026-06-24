@@ -930,6 +930,11 @@ tr:hover .badge-estado {
     max-height: 240px; /* cabecera + 3 filas reales (~60px por fila) */
 }
 
+/* "Reservaciones Pendientes": solo 2 filas visibles, el resto con scroll. */
+.tabla-reservas .table-responsive {
+    max-height: 135px; /* cabecera + 2 filas reales (~45px por fila) */
+}
+
 /* Buscador en vivo de reservaciones pendientes */
 .buscador-reservas {
     position: relative;
