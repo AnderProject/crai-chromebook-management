@@ -118,15 +118,18 @@
                     <h4 class="fw-bold text-center mb-1">Estudiante</h4>
                     <p class="text-muted text-center small mb-4">Inicia sesión para reservar Chromebooks</p>
                     
-                    {% if messages %}
+                    {% if messages and abrir_vista == 'estudiante' %}
                         {% for message in messages %}
-                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show small">
-                                {{ message }}
-                                <button class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
+                        <div class="alerta-login alerta-login-{% if message.tags == 'error' %}error{% else %}exito{% endif %}">
+                            <i class="bi {% if message.tags == 'error' %}bi-exclamation-triangle-fill{% else %}bi-check-circle-fill{% endif %} alerta-login-icono"></i>
+                            <span class="alerta-login-texto">{{ message }}</span>
+                            <button type="button" class="alerta-login-cerrar" onclick="this.closest('.alerta-login').remove()">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                         {% endfor %}
                     {% endif %}
-                    
+
                     <form method="POST" action="{% url 'autenticacion:login_estudiante' %}">
                         {% csrf_token %}
                         <div class="mb-3">
@@ -172,15 +175,18 @@
                     <h4 class="fw-bold text-center mb-1">Administrador</h4>
                     <p class="text-muted text-center small mb-4">Inicia sesión para gestionar el sistema</p>
                     
-                    {% if messages %}
+                    {% if messages and abrir_vista == 'administrador' %}
                         {% for message in messages %}
-                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show small">
-                                {{ message }}
-                                <button class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
+                        <div class="alerta-login alerta-login-{% if message.tags == 'error' %}error{% else %}exito{% endif %}">
+                            <i class="bi {% if message.tags == 'error' %}bi-exclamation-triangle-fill{% else %}bi-check-circle-fill{% endif %} alerta-login-icono"></i>
+                            <span class="alerta-login-texto">{{ message }}</span>
+                            <button type="button" class="alerta-login-cerrar" onclick="this.closest('.alerta-login').remove()">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                         {% endfor %}
                     {% endif %}
-                    
+
                     <form method="POST" action="{% url 'autenticacion:login_administrador' %}">
                         {% csrf_token %}
                         <div class="mb-3">
@@ -226,12 +232,15 @@
                     <h4 class="fw-bold text-center mb-1">Recepcionista</h4>
                     <p class="text-muted text-center small mb-4">Inicia sesión para atender préstamos en el CRAI</p>
 
-                    {% if messages %}
+                    {% if messages and abrir_vista == 'recepcionista' %}
                         {% for message in messages %}
-                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show small">
-                                {{ message }}
-                                <button class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
+                        <div class="alerta-login alerta-login-{% if message.tags == 'error' %}error{% else %}exito{% endif %}">
+                            <i class="bi {% if message.tags == 'error' %}bi-exclamation-triangle-fill{% else %}bi-check-circle-fill{% endif %} alerta-login-icono"></i>
+                            <span class="alerta-login-texto">{{ message }}</span>
+                            <button type="button" class="alerta-login-cerrar" onclick="this.closest('.alerta-login').remove()">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                         {% endfor %}
                     {% endif %}
 

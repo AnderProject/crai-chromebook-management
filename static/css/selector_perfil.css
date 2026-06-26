@@ -301,6 +301,60 @@
 }
 
 /* ==========================================
+   ALERTAS EN PANELES DE LOGIN
+   ========================================== */
+.alerta-login {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.8rem 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    font-size: 0.83rem;
+    line-height: 1.45;
+    animation: fadeInVista 0.3s ease;
+}
+
+.alerta-login-error {
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.alerta-login-exito {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+}
+
+.alerta-login-icono {
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.alerta-login-texto {
+    flex: 1;
+}
+
+.alerta-login-cerrar {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.55;
+    padding: 0;
+    line-height: 1;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+}
+
+.alerta-login-cerrar:hover {
+    opacity: 1;
+}
+
+/* ==========================================
    RESPONSIVE
    ========================================== */
 @media (max-width: 991.98px) {

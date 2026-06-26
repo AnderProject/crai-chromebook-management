@@ -1,63 +1,183 @@
-<!-- templates/autenticacion/recuperar_contraseña.html -->
-
 {% extends 'base.html' %}
 {% load static %}
 
 {% block titulo %}Recuperar Contraseña - CRAI UNEMI{% endblock %}
-
 {% block toast_messages %}{% endblock %}
 
+{% block estilos_extra %}
+<link href="{% static 'css/base.css' %}" rel="stylesheet">
+<link href="{% static 'css/recuperar.css' %}" rel="stylesheet">
+{% endblock %}
+
 {% block contenido %}
-<div class="container-fluid vh-100 bg-light">
-    <div class="row h-100 justify-content-center align-items-center">
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow">
-                <div class="card-body p-5">
-                    
-                    <!-- Botón Volver -->
-                    <a href="{% url 'autenticacion:login' %}" class="btn btn-outline-secondary btn-sm mb-4">
-                        <i class="bi bi-arrow-left me-1"></i>Volver al inicio de sesión
+<div class="recuperar-fondo">
+    <div class="recuperar-wrapper">
+
+        <!-- Panel izquierdo informativo -->
+        <div class="recuperar-panel-info d-none d-lg-flex">
+            <div class="recuperar-info-contenido">
+                <div class="recuperar-info-icono">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <h3 class="fw-bold mt-3 mb-2">Recupera tu acceso</h3>
+                <p class="opacity-75 mb-4">Te enviamos un enlace seguro a tu correo registrado para restablecer tu contraseña.</p>
+                <ul class="list-unstyled recuperar-pasos">
+                    <li>
+                        <span class="paso-num">1</span>
+                        <span>Ingresa tu número de cédula</span>
+                    </li>
+                    <li>
+                        <span class="paso-num">2</span>
+                        <span>Revisa tu correo electrónico</span>
+                    </li>
+                    <li>
+                        <span class="paso-num">3</span>
+                        <span>Crea tu nueva contraseña</span>
+                    </li>
+                </ul>
+                <div class="recuperar-info-nota">
+                    <i class="bi bi-clock me-2"></i>
+                    El enlace expira en <strong>24 horas</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel derecho: formulario o estado de éxito -->
+        <div class="recuperar-panel-form">
+
+            {% if enviado %}
+            <!-- ===== ESTADO: CORREO ENVIADO ===== -->
+            <div class="recuperar-exito-estado">
+                <div class="recuperar-exito-circulo">
+                    <i class="bi bi-envelope-check-fill"></i>
+                </div>
+                <h3 class="fw-bold mt-4 mb-2">¡Correo enviado!</h3>
+                <p class="text-muted mb-1 small">Enviamos un enlace de recuperación a:</p>
+                <div class="recuperar-correo-chip">
+                    <i class="bi bi-envelope me-2"></i>{{ correo_enmascarado }}
+                </div>
+                <p class="text-muted small mt-3 mb-4">
+                    Revisa tu bandeja de entrada y sigue el enlace para restablecer tu contraseña.<br>
+                    Si no lo encuentras, revisa la carpeta de <strong>correo no deseado</strong>.
+                </p>
+                <a href="{% url 'autenticacion:seleccionar_perfil' %}" class="btn btn-primario px-5 py-2 fw-semibold">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Ir al inicio de sesión
+                </a>
+                <p class="mt-3 small">
+                    <a href="{% url 'autenticacion:recuperar_contraseña' %}" class="text-muted text-decoration-none">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>¿No llegó? Intentar de nuevo
                     </a>
-                    
-                    <h2 class="text-center fw-bold mb-3">Recuperar / Desbloquear Cuenta</h2>
-                    <p class="text-muted text-center mb-4">Ingrese su número de cédula. Si coincide con una cuenta, enviaremos un enlace a su correo registrado para restablecer la contraseña y desbloquear la cuenta.</p>
+                </p>
+            </div>
 
-                    <!-- Mensajes -->
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
+            {% else %}
+            <!-- ===== ESTADO: FORMULARIO ===== -->
+            <a href="{% url 'autenticacion:seleccionar_perfil' %}" class="recuperar-volver">
+                <i class="bi bi-arrow-left me-1"></i>Volver al inicio de sesión
+            </a>
+
+            <div class="recuperar-form-icono">
+                <i class="bi bi-lock-fill"></i>
+            </div>
+            <h2 class="fw-bold text-center mb-1">Recuperar / Desbloquear</h2>
+            <p class="text-center text-muted small mb-4">
+                Ingresa tu número de cédula. Si coincide con una cuenta, enviaremos un enlace a tu correo registrado.
+            </p>
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alerta-recuperar alerta-recuperar-{% if message.tags == 'error' %}error{% else %}exito{% endif %}">
+                    <i class="bi {% if message.tags == 'error' %}bi-exclamation-circle-fill{% else %}bi-check-circle-fill{% endif %} me-2"></i>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" id="formRecuperar" novalidate>
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small">
+                        <i class="bi bi-person-vcard me-1"></i>Número de Cédula
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-person-badge"></i></span>
+                        {{ formulario.cedula }}
+                    </div>
+                    {% if formulario.cedula.errors %}
+                    <div class="text-danger small mt-1">
+                        <i class="bi bi-exclamation-circle me-1"></i>{{ formulario.cedula.errors.0 }}
+                    </div>
                     {% endif %}
+                </div>
 
-                    <form method="POST" id="formularioRecuperar">
-                        {% csrf_token %}
+                <button type="button" class="btn btn-primario w-100 py-2 fw-semibold" id="btnAbrirConfirmacion">
+                    <i class="bi bi-send-fill me-2"></i>Enviar Enlace de Recuperación
+                </button>
+            </form>
+            {% endif %}
 
-                        <div class="mb-4">
-                            <label for="id_cedula" class="form-label fw-semibold">
-                                <i class="bi bi-person-vcard me-1"></i>Número de Cédula
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="bi bi-person-badge"></i></span>
-                                {{ formulario.cedula }}
-                            </div>
-                            {% if formulario.cedula.errors %}
-                                <div class="text-danger small mt-1">{{ formulario.cedula.errors.0 }}</div>
-                            {% endif %}
-                        </div>
+        </div>
+    </div>
+</div>
 
-                        <button type="submit" class="btn btn-primario w-100 py-2 fw-semibold mb-3">
-                            <i class="bi bi-send-fill me-2"></i>Enviar Enlace de Recuperación
-                        </button>
-                    </form>
+<!-- Modal: confirmar envío -->
+{% if not enviado %}
+<div class="modal fade" id="modalConfirmarEnvio" tabindex="-1" aria-labelledby="modalConfirmarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content modal-recuperar-confirm">
+            <div class="modal-body text-center p-4">
+                <div class="modal-confirm-icono">
+                    <i class="bi bi-envelope-arrow-up-fill"></i>
+                </div>
+                <h5 class="fw-bold mt-3 mb-1" id="modalConfirmarLabel">¿Confirmas el envío?</h5>
+                <p class="text-muted small mb-4">
+                    Se enviará un enlace de recuperación al correo registrado con tu número de cédula.
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primario px-3" id="btnConfirmarEnvio">
+                        <i class="bi bi-send-fill me-1"></i>Sí, enviar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
-{% block estilos_extra %}
-<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+
+{% block scripts_extra %}
+{% if not enviado %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btnAbrir    = document.getElementById('btnAbrirConfirmacion');
+    const btnConfirmar = document.getElementById('btnConfirmarEnvio');
+    const form        = document.getElementById('formRecuperar');
+    const modalEl     = document.getElementById('modalConfirmarEnvio');
+
+    if (!btnAbrir || !modalEl) return;
+    const modal = new bootstrap.Modal(modalEl);
+
+    btnAbrir.addEventListener('click', function () {
+        const cedula = form.querySelector('[name="cedula"]');
+        if (!cedula || cedula.value.trim().length !== 10 || !/^\d+$/.test(cedula.value.trim())) {
+            cedula.focus();
+            cedula.classList.add('is-invalid');
+            return;
+        }
+        cedula.classList.remove('is-invalid');
+        modal.show();
+    });
+
+    btnConfirmar.addEventListener('click', function () {
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Enviando…';
+        this.disabled = true;
+        modal.hide();
+        setTimeout(() => form.submit(), 280);
+    });
+});
+</script>
+{% endif %}
 {% endblock %}

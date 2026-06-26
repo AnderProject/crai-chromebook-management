@@ -257,6 +257,7 @@ def login_estudiante(request):
     contexto = {
         'formulario': formulario,
         'abrir_vista': 'estudiante',
+        'vista_error': 'estudiante',
         'titulo_pagina': 'Login Estudiante - CRAI UNEMI'
     }
     return render(request, 'autenticacion/seleccionar_perfil.html', contexto)
@@ -306,13 +307,23 @@ def login_administrador(request):
                     else:
                         messages.error(request, 'Credenciales Incorrectas')
                 else:
-                    bloqueada, restantes = _registrar_intento_fallido(user_existente)
-                    _mensaje_intentos(request, bloqueada, restantes)
-    
-    # En error/GET se vuelve al MISMO selector con la vista de admin abierta.
+                    # Solo contar intentos si el usuario identificado tiene rol de administrador;
+                    # evita que errores en el panel de admin bloqueen cuentas de otro rol.
+                    grupos_existente = [g.name for g in user_existente.groups.all()] if user_existente else []
+                    es_admin = (
+                        'Administrador' in grupos_existente
+                        or (user_existente and (user_existente.is_staff or user_existente.is_superuser))
+                    )
+                    if es_admin:
+                        bloqueada, restantes = _registrar_intento_fallido(user_existente)
+                        _mensaje_intentos(request, bloqueada, restantes)
+                    else:
+                        messages.error(request, 'Usuario o contraseña incorrectos.')
+
     contexto = {
         'formulario': formulario,
         'abrir_vista': 'administrador',
+        'vista_error': 'administrador',
         'titulo_pagina': 'Login Administrador - CRAI UNEMI'
     }
     return render(request, 'autenticacion/seleccionar_perfil.html', contexto)
@@ -362,12 +373,19 @@ def login_recepcionista(request):
                     else:
                         messages.error(request, 'Credenciales Incorrectas')
                 else:
-                    bloqueada, restantes = _registrar_intento_fallido(user_existente)
-                    _mensaje_intentos(request, bloqueada, restantes)
+                    # Solo contar intentos si el usuario identificado tiene rol de recepcionista;
+                    # evita bloquear cuentas de otro rol desde este panel.
+                    grupos_existente = [g.name for g in user_existente.groups.all()] if user_existente else []
+                    if 'Recepcionista' in grupos_existente:
+                        bloqueada, restantes = _registrar_intento_fallido(user_existente)
+                        _mensaje_intentos(request, bloqueada, restantes)
+                    else:
+                        messages.error(request, 'Usuario o contraseña incorrectos.')
 
     contexto = {
         'formulario': formulario,
         'abrir_vista': 'recepcionista',
+        'vista_error': 'recepcionista',
         'titulo_pagina': 'Login Recepcionista - CRAI UNEMI'
     }
     return render(request, 'autenticacion/seleccionar_perfil.html', contexto)
@@ -419,11 +437,11 @@ def recuperar_contraseña(request):
                     [user.email],
                     fail_silently=False,
                 )
-                messages.success(
-                    request,
-                    f'Se ha enviado un enlace de recuperación a tu correo ({_enmascarar_correo(user.email)}).'
-                )
-                return redirect('autenticacion:seleccionar_perfil')
+                return render(request, 'autenticacion/recuperar_contraseña.html', {
+                    'formulario': formulario,
+                    'enviado': True,
+                    'correo_enmascarado': _enmascarar_correo(user.email),
+                })
 
     return render(request, 'autenticacion/recuperar_contraseña.html', {'formulario': formulario})
 
@@ -471,8 +489,9 @@ def cambiar_contraseña(request, uidb64, token):
                     perfil.session_key = None
                     perfil.save(update_fields=['intentos_fallidos', 'cuenta_bloqueada', 'session_key'])
 
-                messages.success(request, 'Contraseña cambiada exitosamente. Ya puedes iniciar sesión.')
-                return redirect('autenticacion:seleccionar_perfil')
+                return render(request, 'autenticacion/cambiar_contraseña.html', {
+                    'cambio_exitoso': True,
+                })
             else:
                 messages.error(request, 'Las contraseñas no coinciden o son muy cortas (mínimo 8 caracteres).')
         

@@ -98,8 +98,139 @@
     .cambiar-contraseña-card {
         padding: 1.5rem;
     }
-    
+
     .cambiar-contraseña-fondo {
         padding: 1rem;
     }
+}
+
+/* ==========================================
+   ÍCONO SUPERIOR DEL FORMULARIO
+   ========================================== */
+.cambiar-form-icono {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primario), #3949ab);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #fff;
+    margin: 0 auto;
+    box-shadow: 0 4px 14px rgba(26, 35, 126, 0.3);
+}
+
+/* ==========================================
+   INDICADOR DE FORTALEZA
+   ========================================== */
+.fortaleza-wrap {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.fortaleza-wrap.visible {
+    display: flex;
+}
+
+.fortaleza-barras {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+}
+
+.fortaleza-barra {
+    height: 4px;
+    flex: 1;
+    border-radius: 4px;
+    background: #e5e7eb;
+    transition: background 0.3s;
+}
+
+.fortaleza-texto {
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 70px;
+    text-align: right;
+}
+
+/* ==========================================
+   ALERTAS INLINE
+   ========================================== */
+.alerta-cambio {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.8rem 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    animation: fadeAlerta 0.3s ease;
+}
+
+@keyframes fadeAlerta {
+    from { opacity: 0; transform: translateY(-5px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.alerta-cambio-error {
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.alerta-cambio-exito {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+}
+
+/* ==========================================
+   ÍCONO DE ÉXITO (estado cambio_exitoso)
+   ========================================== */
+.cambiar-exito-icono {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    color: #fff;
+    margin: 0 auto;
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+}
+
+/* ==========================================
+   MODAL CONFIRMAR CAMBIO
+   ========================================== */
+.modal-cambio-confirm .modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.modal-confirm-icono.modal-confirm-warn {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: #fff;
+    margin: 0 auto;
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
 }

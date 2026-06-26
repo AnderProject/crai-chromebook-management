@@ -15,61 +15,124 @@
     <div class="row w-100 justify-content-center align-items-center">
         <div class="col-md-6 col-lg-4">
             <div class="cambiar-contraseña-card">
-                
-                <h2 class="text-center fw-bold mb-3">
-                    <i class="bi bi-shield-lock-fill icono-titulo"></i> Nueva Contraseña
-                </h2>
-                <p class="text-muted text-center mb-4">Ingresa tu nueva contraseña</p>
-                
+
+                {% if cambio_exitoso %}
+                <!-- ===== ESTADO: ÉXITO (se abre como modal vía JS) ===== -->
+                <div class="text-center py-2">
+                    <div class="cambiar-exito-icono">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+                    <h3 class="fw-bold mt-4 mb-2" style="color: var(--exito);">¡Contraseña actualizada!</h3>
+                    <p class="text-muted mb-4">
+                        Tu contraseña ha sido cambiada exitosamente.<br>
+                        Ya puedes iniciar sesión con tus nuevas credenciales.
+                    </p>
+                    <a href="{% url 'autenticacion:seleccionar_perfil' %}" class="btn btn-cambiar px-5 py-2 fw-semibold">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Ir al inicio de sesión
+                    </a>
+                </div>
+
+                {% else %}
+                <!-- ===== ESTADO: FORMULARIO ===== -->
+                <div class="text-center mb-4">
+                    <div class="cambiar-form-icono">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <h2 class="fw-bold mt-3 mb-1">Nueva Contraseña</h2>
+                    <p class="text-muted small">Crea una contraseña segura de mínimo 8 caracteres</p>
+                </div>
+
                 {% if messages %}
                     {% for message in messages %}
-                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
+                    <div class="alerta-cambio alerta-cambio-{% if message.tags == 'error' %}error{% else %}exito{% endif %}">
+                        <i class="bi {% if message.tags == 'error' %}bi-exclamation-circle-fill{% else %}bi-check-circle-fill{% endif %} me-2"></i>
+                        <span>{{ message }}</span>
+                    </div>
                     {% endfor %}
                 {% endif %}
-                
-                <form method="POST">
+
+                <form method="POST" id="formCambiarContrasena">
                     {% csrf_token %}
-                    
+
                     <div class="mb-3">
-                        <label for="nueva_contraseña" class="form-label fw-semibold">
+                        <label class="form-label fw-semibold small">
                             <i class="bi bi-lock-fill me-1"></i>Nueva Contraseña
                         </label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light">
-                                <i class="bi bi-key"></i>
-                            </span>
-                            <input type="password" name="nueva_contraseña" id="nueva_contraseña" 
-                                   class="form-control" placeholder="Mínimo 8 caracteres" required>
-                            <button class="btn btn-outline-secondary" type="button" id="btnMostrarContraseña">
+                            <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                            <input type="password" name="nueva_contraseña" id="nueva_contraseña"
+                                   class="form-control" placeholder="Mínimo 8 caracteres" required autocomplete="new-password">
+                            <button class="btn btn-outline-secondary" type="button" id="btnTogglePass" title="Mostrar / ocultar">
                                 <i class="bi bi-eye-fill"></i>
                             </button>
                         </div>
+                        <!-- Indicador fortaleza -->
+                        <div class="fortaleza-wrap" id="fortalezaWrap">
+                            <div class="fortaleza-barras">
+                                <div class="fortaleza-barra" id="fb1"></div>
+                                <div class="fortaleza-barra" id="fb2"></div>
+                                <div class="fortaleza-barra" id="fb3"></div>
+                                <div class="fortaleza-barra" id="fb4"></div>
+                            </div>
+                            <span class="fortaleza-texto" id="fortalezaTexto"></span>
+                        </div>
                     </div>
-                    
+
                     <div class="mb-4">
-                        <label for="confirmar_contraseña" class="form-label fw-semibold">
+                        <label class="form-label fw-semibold small">
                             <i class="bi bi-lock-fill me-1"></i>Confirmar Contraseña
                         </label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light">
-                                <i class="bi bi-key"></i>
-                            </span>
-                            <input type="password" name="confirmar_contraseña" id="confirmar_contraseña" 
-                                   class="form-control" placeholder="Repite la contraseña" required>
+                            <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                            <input type="password" name="confirmar_contraseña" id="confirmar_contraseña"
+                                   class="form-control" placeholder="Repite la contraseña" required autocomplete="new-password">
                         </div>
+                        <div id="matchIndicador" class="small mt-1" style="display:none;"></div>
                     </div>
-                    
-                    <button type="submit" class="btn btn-cambiar w-100 py-2 fw-semibold">
+
+                    <button type="button" class="btn btn-cambiar w-100 py-2 fw-semibold" id="btnCambiarFinal" disabled>
                         <i class="bi bi-check-circle me-2"></i>Cambiar Contraseña
                     </button>
                 </form>
+
+                <div class="text-center mt-3">
+                    <a href="{% url 'autenticacion:seleccionar_perfil' %}" class="small text-muted text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i>Volver al inicio de sesión
+                    </a>
+                </div>
+                {% endif %}
+
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal: confirmar cambio de contraseña -->
+{% if not cambio_exitoso %}
+<div class="modal fade" id="modalConfirmarCambio" tabindex="-1" aria-labelledby="modalCambioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content modal-cambio-confirm">
+            <div class="modal-body text-center p-4">
+                <div class="modal-confirm-icono modal-confirm-warn">
+                    <i class="bi bi-shield-exclamation"></i>
+                </div>
+                <h5 class="fw-bold mt-3 mb-1" id="modalCambioLabel">¿Confirmas el cambio?</h5>
+                <p class="text-muted small mb-4">
+                    Esta acción actualizará tu contraseña. Asegúrate de recordarla o guardarla en un lugar seguro.
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-cambiar px-3" id="btnConfirmarCambio">
+                        <i class="bi bi-check-circle me-1"></i>Sí, cambiar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block scripts_extra %}
