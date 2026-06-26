@@ -1058,6 +1058,65 @@ def api_detalle_prestamo(request, id):
         return JsonResponse({'success': False, 'message': 'Préstamo no encontrado'})
 
 
+# ==========================================
+# API KIOSKO (app Android instalada en cada Chromebook)
+# ==========================================
+
+def _kiosko_autorizado(request):
+    """Valida la clave compartida que envía la app del kiosko."""
+    clave = request.headers.get('X-KIOSKO-KEY', '')
+    return bool(clave) and clave == getattr(settings, 'KIOSKO_API_KEY', None)
+
+
+@csrf_exempt
+def api_kiosko_estado(request, codigo):
+    """Estado de una Chromebook para la app kiosko instalada en ese equipo.
+
+    La app (identificada por el ``codigo`` de inventario configurado una sola
+    vez) consulta este endpoint por polling. Si hay un préstamo ACTIVO para esa
+    Chromebook, devuelve los datos del estudiante y la ventana de tiempo (en
+    epoch milisegundos) para que la app arranque la sesión automáticamente.
+    """
+    if not _kiosko_autorizado(request):
+        return JsonResponse({'success': False, 'message': 'No autorizado'}, status=401)
+
+    try:
+        chromebook = Chromebook.objects.get(codigo=codigo)
+    except Chromebook.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Chromebook no registrada'}, status=404)
+
+    prestamo = (Prestamo.objects
+                .select_related('estudiante')
+                .filter(chromebook=chromebook, estado='activo')
+                .order_by('-fecha_prestamo')
+                .first())
+
+    data = {
+        'success': True,
+        'codigo': chromebook.codigo,
+        'estado_equipo': chromebook.estado,
+        'prestamo': None,
+    }
+
+    if prestamo:
+        # Cédula del estudiante (vía perfil Usuario, si existe).
+        cedula = ''
+        perfil = PerfilUsuario.objects.filter(user=prestamo.estudiante).first()
+        if perfil:
+            cedula = perfil.cedula
+
+        data['prestamo'] = {
+            'id': prestamo.id,
+            'estudiante': prestamo.estudiante.get_full_name() or prestamo.estudiante.username,
+            'cedula': cedula,
+            'estado': prestamo.estado,
+            'inicio_ms': int(prestamo.fecha_prestamo.timestamp() * 1000),
+            'fin_ms': int(prestamo.fecha_devolucion.timestamp() * 1000),
+        }
+
+    return JsonResponse(data)
+
+
 @login_required
 def lista_chromebooks(request):
     """Vista de inventario de Chromebooks con datos reales"""

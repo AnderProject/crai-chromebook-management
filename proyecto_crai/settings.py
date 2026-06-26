@@ -35,7 +35,7 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['immunize-bronco-graveyard.ngrok-free.dev', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['immunize-bronco-graveyard.ngrok-free.dev', '127.0.0.1', 'localhost', '192.168.100.7']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://immunize-bronco-graveyard.ngrok-free.dev',
@@ -185,3 +185,8 @@ API_MATRICULAS_TIMEOUT = float(os.environ.get('API_MATRICULAS_TIMEOUT', '5'))
 # Webhook de n8n para procesar mensajes del chatbot
 N8N_CHATBOT_WEBHOOK_URL = os.environ.get('N8N_CHATBOT_WEBHOOK_URL', 'http://localhost:5678/webhook/crai-chatbot')
 N8N_API_KEY = os.environ.get('N8N_API_KEY', 'clave-n8n-dev')
+
+# ==================== APP KIOSKO CHROMEBOOK ====================
+# Clave compartida que la app instalada en cada Chromebook envía en el header
+# 'X-KIOSKO-KEY' para consultar el estado/préstamo de su equipo.
+KIOSKO_API_KEY = os.environ.get('KIOSKO_API_KEY', 'clave-kiosko-dev')

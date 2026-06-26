@@ -66,6 +66,9 @@ urlpatterns = [
     path('api/sincronizar/', views.api_sincronizar_estudiantes, name='api_sincronizar'),
     path('api/toggle-matriculas/', views.api_toggle_matriculas, name='api_toggle_matriculas'),
 
+    # API de la app kiosko (instalada en cada Chromebook)
+    path('api/kiosko/chromebook/<str:codigo>/estado/', views.api_kiosko_estado, name='api_kiosko_estado'),
+
     # APIs de actualización en vivo (admin)
     path('api/dashboard-stats/', views.api_dashboard_stats, name='api_dashboard_stats'),
     path('api/prestamos-hoy/', views.api_prestamos_hoy, name='api_prestamos_hoy'),
