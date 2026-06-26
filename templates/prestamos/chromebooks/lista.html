@@ -273,9 +273,31 @@
                                 <option value="bueno">Bueno</option><option value="regular">Regular</option><option value="malo">Malo</option>
                             </select>
                         </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Fecha de Compra / Adquisición</label>
+                            <input type="date" id="editFechaAdquisicion" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Garantía</label>
+                            <div class="form-check mt-2">
+                                <input type="checkbox" id="editTieneGarantia" class="form-check-input" onchange="toggleGarantiaEdit()">
+                                <label class="form-check-label small" for="editTieneGarantia">El equipo tiene garantía</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4" id="editWrapFinGarantia" style="display: none;">
+                            <label class="form-label small fw-semibold">Garantía válida hasta</label>
+                            <input type="date" id="editFechaFinGarantia" class="form-control">
+                        </div>
                         <div class="col-12">
                             <label class="form-label small fw-semibold">Notas</label>
                             <textarea id="editNotas" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="col-12" id="editMantAviso" style="display: none;">
+                            <div class="alert alert-warning py-2 px-3 small mb-0">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                Este equipo está en <strong>mantenimiento</strong>. Para devolverlo a disponible debes
+                                finalizar su mantenimiento desde la sección <strong>Mantenimiento</strong>.
+                            </div>
                         </div>
                     </div>
                 </form>

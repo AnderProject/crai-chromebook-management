@@ -10,6 +10,7 @@ urlpatterns = [
     # Login por rol
     path('login/estudiante/', views.login_estudiante, name='login_estudiante'),
     path('login/administrador/', views.login_administrador, name='login_administrador'),
+    path('login/recepcionista/', views.login_recepcionista, name='login_recepcionista'),
     
     # Login genérico (redirige al selector)
     path('login/', views.pagina_login, name='login'),

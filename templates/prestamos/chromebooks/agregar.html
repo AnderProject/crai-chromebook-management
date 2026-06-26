@@ -101,10 +101,25 @@
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label small fw-semibold">Fecha de Adquisición</label>
-                                    <input type="date" name="fecha_adquisicion" class="form-control" id="fechaAdquisicion" readonly>
-                                    <small class="text-muted">Fecha automática del sistema</small>
+                                    <label class="form-label small fw-semibold">Fecha de Compra / Adquisición</label>
+                                    <input type="date" name="fecha_adquisicion" class="form-control" id="fechaAdquisicion">
+                                    <small class="text-muted">Fecha en que se adquirió el equipo</small>
                                 </div>
+
+                                <!-- Garantía -->
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold">Garantía</label>
+                                    <div class="form-check mt-2">
+                                        <input type="checkbox" name="tiene_garantia" class="form-check-input" id="tieneGarantia" onchange="toggleGarantia()">
+                                        <label class="form-check-label small" for="tieneGarantia">El equipo tiene garantía</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4" id="wrapFinGarantia" style="display: none;">
+                                    <label class="form-label small fw-semibold">Garantía válida hasta</label>
+                                    <input type="date" name="fecha_fin_garantia" class="form-control" id="fechaFinGarantia">
+                                    <small class="text-muted">Hasta qué fecha cubre la garantía</small>
+                                </div>
+
                                 <div class="col-12">
                                     <label class="form-label small fw-semibold">Notas</label>
                                     <textarea name="notas" class="form-control" rows="2" placeholder="Observaciones adicionales..."></textarea>

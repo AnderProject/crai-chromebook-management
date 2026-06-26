@@ -3,6 +3,27 @@
    CRAI UNEMI
    ========================================== */
 
+/* La pantalla de login es un split a pantalla completa (azul/blanco).
+   Bootstrap añade gutters: padding en .container-fluid y margen negativo en
+   .row, lo que provoca un pequeño desbordamiento horizontal y hace que el
+   panel blanco se vea "descuadrado"/corrido respecto a la pantalla.
+   Anulamos esos gutters para que los dos paneles vayan borde a borde. */
+.container-fluid.vh-100 {
+    padding-left: 0;
+    padding-right: 0;
+    overflow-x: hidden;
+}
+
+.container-fluid.vh-100 > .row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.container-fluid.vh-100 > .row > [class*="col-"] {
+    padding-left: 0;
+    padding-right: 0;
+}
+
 /* Panel dinámico */
 .panel-dinamico {
     width: 100%;
@@ -69,6 +90,12 @@
     box-shadow: 0 6px 20px rgba(26, 35, 126, 0.12);
 }
 
+.opcion-recepcionista:hover {
+    border-color: #f57c00;
+    background: #fff8f0;
+    box-shadow: 0 6px 20px rgba(245, 124, 0, 0.15);
+}
+
 /* Ícono de la opción */
 .opcion-icono {
     width: 50px;
@@ -89,6 +116,11 @@
 .icono-admin {
     background: #e8f0fe;
     color: var(--primario);
+}
+
+.icono-recepcionista {
+    background: #fff0e0;
+    color: #f57c00;
 }
 
 /* Texto de la opción */
@@ -122,6 +154,10 @@
 
 .opcion-estudiante:hover .opcion-flecha {
     color: var(--exito);
+}
+
+.opcion-recepcionista:hover .opcion-flecha {
+    color: #f57c00;
 }
 
 /* Animación entrada */
@@ -162,6 +198,10 @@
     background: var(--primario);
 }
 
+.login-icono-recepcionista {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
 /* ==========================================
    BOTONES DE LOGIN
    ========================================== */
@@ -197,6 +237,24 @@
 
 .btn-admin:hover {
     background: var(--primario-claro);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-recepcionista {
+    background: #f57c00;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transicion);
+    padding: 0.65rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.btn-recepcionista:hover {
+    background: #e06f00;
     color: white;
     transform: translateY(-1px);
 }

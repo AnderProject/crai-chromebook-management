@@ -27,12 +27,25 @@ class FormularioLogin(forms.Form):
     )
 
 class FormularioRecuperarContraseña(forms.Form):
-    """Formulario para recuperar contraseña"""
-    email = forms.EmailField(
-        label='Correo Electrónico',
-        widget=forms.EmailInput(attrs={
+    """Formulario para recuperar/desbloquear contraseña mediante la cédula.
+
+    Se valida que la cédula coincida con un usuario; el enlace de recuperación se
+    envía al correo registrado de ese usuario. Sirve tanto para recuperar como
+    para desbloquear una cuenta bloqueada por intentos fallidos.
+    """
+    cedula = forms.CharField(
+        label='Número de Cédula',
+        max_length=10,
+        widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Ingrese su correo electrónico institucional',
-            'id': 'id_email'
+            'placeholder': 'Ingrese su número de cédula',
+            'id': 'id_cedula',
+            'inputmode': 'numeric',
         })
     )
+
+    def clean_cedula(self):
+        cedula = (self.cleaned_data.get('cedula') or '').strip()
+        if not cedula.isdigit() or len(cedula) != 10:
+            raise forms.ValidationError('La cédula debe tener 10 dígitos.')
+        return cedula

@@ -1165,6 +1165,15 @@ def agregar_mantenimiento(request):
         try:
             chromebook = Chromebook.objects.get(id=chromebook_id)
 
+            # La garantía manda sobre el costo: si el equipo está en garantía vigente,
+            # el mantenimiento no tiene costo (0) y queda marcado en garantía,
+            # independientemente de lo que llegue del formulario.
+            if chromebook.en_garantia_vigente:
+                en_garantia = True
+                costo = 0
+            else:
+                en_garantia = False
+
             # Crear mantenimiento
             from .models import Mantenimiento
             Mantenimiento.objects.create(
@@ -2360,6 +2369,10 @@ def api_detalle_chromebook(request, id):
                 'condicion': cb.condicion,
                 'notas': cb.notas,
                 'foto_url': foto_url,
+                'fecha_adquisicion': cb.fecha_adquisicion.strftime('%Y-%m-%d') if cb.fecha_adquisicion else '',
+                'tiene_garantia': cb.tiene_garantia,
+                'fecha_fin_garantia': cb.fecha_fin_garantia.strftime('%Y-%m-%d') if cb.fecha_fin_garantia else '',
+                'en_garantia_vigente': cb.en_garantia_vigente,
             }
         })
     except Chromebook.DoesNotExist:
@@ -2374,25 +2387,35 @@ def api_editar_chromebook(request, id):
     if request.method == 'POST':
         data = json.loads(request.body)
         try:
-            from .models import Mantenimiento
             cb = Chromebook.objects.get(id=id)
             estado_anterior = cb.estado
             nuevo_estado = data.get('estado', cb.estado)
+
+            # Un equipo en mantenimiento NO puede volverse disponible/prestado desde el
+            # inventario: ese cambio debe hacerse finalizando el mantenimiento en su
+            # sección dedicada (así se registra solución, costo y fecha de fin).
+            if estado_anterior == 'mantenimiento' and nuevo_estado != 'mantenimiento':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Este equipo está en mantenimiento. Finaliza su mantenimiento '
+                               'desde la sección Mantenimiento para volverlo a disponible.',
+                })
+
             cb.marca = data.get('marca', cb.marca)
             cb.modelo = data.get('modelo', cb.modelo)
             cb.serie = data.get('serie', cb.serie)
             cb.estado = nuevo_estado
             cb.condicion = data.get('condicion', cb.condicion)
             cb.notas = data.get('notas', cb.notas)
-            cb.save()
 
-            # Si el equipo sale de mantenimiento desde el inventario, cerrar el/los
-            # mantenimientos abiertos para que no queden "en proceso" descuadrados.
-            if estado_anterior == 'mantenimiento' and nuevo_estado != 'mantenimiento':
-                Mantenimiento.objects.filter(chromebook=cb, estado='en_proceso').update(
-                    estado='finalizado',
-                    fecha_fin=timezone.now().date(),
-                )
+            # Fecha de compra/adquisición y garantía
+            fecha_adq = data.get('fecha_adquisicion')
+            cb.fecha_adquisicion = fecha_adq or None
+            cb.tiene_garantia = bool(data.get('tiene_garantia', cb.tiene_garantia))
+            fecha_fin = data.get('fecha_fin_garantia')
+            cb.fecha_fin_garantia = fecha_fin if (cb.tiene_garantia and fecha_fin) else None
+
+            cb.save()
 
             return JsonResponse({'success': True})
         except Chromebook.DoesNotExist:

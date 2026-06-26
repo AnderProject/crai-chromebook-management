@@ -463,3 +463,26 @@
     .mant-form-acciones { flex-direction: column-reverse; }
     .mant-btn-cancelar, .mant-btn-enviar { justify-content: center; width: 100%; }
 }
+
+/* Texto de ayuda bajo un campo (garantía/costo automáticos) */
+.mant-hint {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--texto-claro, #6c757d);
+}
+
+/* Costo bloqueado cuando el equipo está en garantía */
+.mant-input-bloqueado {
+    background: #f1f3f5 !important;
+    color: #868e96 !important;
+    cursor: not-allowed;
+}
+
+/* La garantía se decide automáticamente: el control es de solo lectura.
+   pointer-events:none evita que el usuario lo cambie, pero el radio marcado
+   sigue enviando su valor en el POST (a diferencia de un input disabled). */
+.mant-seg-auto {
+    pointer-events: none;
+    opacity: 0.95;
+}

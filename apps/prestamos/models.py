@@ -71,6 +71,11 @@ class Usuario(models.Model):
     matricula_id = models.IntegerField(null=True, blank=True, db_index=True, verbose_name='ID en Matrículas')
     sincronizado = models.DateTimeField(null=True, blank=True, verbose_name='Última sincronización')
 
+    # Control de acceso: bloqueo por intentos fallidos y sesión única por usuario.
+    intentos_fallidos = models.IntegerField(default=0, verbose_name='Intentos de login fallidos')
+    cuenta_bloqueada = models.BooleanField(default=False, verbose_name='Cuenta bloqueada')
+    session_key = models.CharField(max_length=40, blank=True, null=True, verbose_name='Sesión activa actual')
+
     class Meta:
         db_table = 'tb_usuario'
         verbose_name = 'Usuario'
@@ -121,7 +126,9 @@ class Chromebook(models.Model):
     serie = models.CharField(max_length=50, unique=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='disponible')
     condicion = models.CharField(max_length=20, choices=CONDICIONES, default='bueno')
-    fecha_adquisicion = models.DateField(null=True, blank=True)
+    fecha_adquisicion = models.DateField(null=True, blank=True, verbose_name='Fecha de compra/adquisición')
+    tiene_garantia = models.BooleanField(default=False, verbose_name='¿Tiene garantía?')
+    fecha_fin_garantia = models.DateField(null=True, blank=True, verbose_name='Garantía válida hasta')
     notas = models.TextField(blank=True, null=True)
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
@@ -134,6 +141,21 @@ class Chromebook(models.Model):
 
     def __str__(self):
         return f'{self.codigo} - {self.marca} {self.modelo}'
+
+    @property
+    def en_garantia_vigente(self):
+        """True si el equipo tiene garantía y aún no ha vencido (hoy <= fecha_fin).
+
+        Si está marcado con garantía pero sin fecha de fin, se considera vigente
+        (garantía sin caducidad registrada). Se usa para automatizar el costo de
+        los mantenimientos: en garantía => costo 0.
+        """
+        if not self.tiene_garantia:
+            return False
+        if self.fecha_fin_garantia is None:
+            return True
+        from django.utils import timezone
+        return self.fecha_fin_garantia >= timezone.localdate()
 
 
 # ==========================================

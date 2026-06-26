@@ -67,10 +67,10 @@
                         <div class="mant-campo">
                             <label class="mant-label"><i class="bi bi-laptop"></i> Chromebook</label>
                             <div class="mant-select-wrap">
-                                <select name="chromebook_id" class="mant-select" required>
+                                <select name="chromebook_id" id="mantChromebook" class="mant-select" required onchange="aplicarGarantiaEquipo()">
                                     <option value="">Selecciona un equipo…</option>
                                     {% for cb in chromebooks %}
-                                    <option value="{{ cb.id }}">{{ cb.codigo }} — {{ cb.marca }} {{ cb.modelo }} ({{ cb.estado|title }})</option>
+                                    <option value="{{ cb.id }}" data-garantia="{% if cb.en_garantia_vigente %}1{% else %}0{% endif %}" data-fin="{{ cb.fecha_fin_garantia|date:'d/m/Y'|default:'' }}">{{ cb.codigo }} — {{ cb.marca }} {{ cb.modelo }} ({{ cb.estado|title }})</option>
                                     {% endfor %}
                                 </select>
                                 <i class="bi bi-chevron-down mant-select-caret"></i>
@@ -89,15 +89,16 @@
                                 </div>
                             </div>
 
-                            <!-- ¿En garantía? (segmentado) -->
+                            <!-- ¿En garantía? (automático según el equipo seleccionado) -->
                             <div class="mant-campo">
                                 <label class="mant-label"><i class="bi bi-patch-check"></i> ¿En garantía?</label>
-                                <div class="mant-seg" role="radiogroup" aria-label="¿En garantía?">
+                                <div class="mant-seg mant-seg-auto" role="radiogroup" aria-label="¿En garantía?">
                                     <input type="radio" name="en_garantia" id="garantiaNo" value="0" checked>
                                     <label for="garantiaNo" class="mant-seg-opt"><i class="bi bi-x-circle"></i>No</label>
                                     <input type="radio" name="en_garantia" id="garantiaSi" value="1">
                                     <label for="garantiaSi" class="mant-seg-opt mant-seg-ok"><i class="bi bi-check-circle"></i>Sí</label>
                                 </div>
+                                <small class="mant-hint" id="garantiaHint">Se determina automáticamente al elegir el equipo.</small>
                             </div>
 
                             <!-- Técnico -->
@@ -114,8 +115,9 @@
                                 <label class="mant-label"><i class="bi bi-cash-coin"></i> Costo</label>
                                 <div class="mant-input-wrap">
                                     <span class="mant-input-prefijo">$</span>
-                                    <input type="number" name="costo" class="mant-input mant-input-con-prefijo" placeholder="0.00" step="0.01" min="0" value="0">
+                                    <input type="number" name="costo" id="mantCosto" class="mant-input mant-input-con-prefijo" placeholder="0.00" step="0.01" min="0" value="0">
                                 </div>
+                                <small class="mant-hint" id="costoHint"></small>
                             </div>
 
                             <!-- Fecha de inicio -->
@@ -147,4 +149,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/mantenimiento_agregar.js' %}"></script>
 {% endblock %}

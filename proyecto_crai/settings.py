@@ -65,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.prestamos.middleware.SesionUnicaMiddleware',
     'apps.prestamos.middleware.RegistrarSesionMiddleware',
 ]
 

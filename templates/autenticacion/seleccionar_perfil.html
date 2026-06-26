@@ -86,7 +86,18 @@
                         </div>
                         <i class="bi bi-chevron-right opcion-flecha"></i>
                     </div>
-                    
+
+                    <div class="opcion-perfil opcion-recepcionista" onclick="mostrarLogin('recepcionista')">
+                        <div class="opcion-icono icono-recepcionista">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                        <div class="opcion-texto">
+                            <strong>Recepcionista</strong>
+                            <small>Atención y registro de préstamos en el CRAI</small>
+                        </div>
+                        <i class="bi bi-chevron-right opcion-flecha"></i>
+                    </div>
+
                     <div class="text-center mt-4">
                         <small class="text-muted">
                             <i class="bi bi-envelope me-1"></i>crai@unemi.edu.ec |
@@ -202,10 +213,63 @@
                         <a href="{% url 'autenticacion:recuperar_contraseña' %}" class="small text-decoration-none">¿Olvidaste tu contraseña?</a>
                     </div>
                 </div>
-                
+
+                <!-- ================================ -->
+                <!-- VISTA 4: LOGIN RECEPCIONISTA      -->
+                <!-- ================================ -->
+                <div id="vista-login-recepcionista" class="vista-oculta">
+
+                    <div class="login-icono login-icono-recepcionista">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+
+                    <h4 class="fw-bold text-center mb-1">Recepcionista</h4>
+                    <p class="text-muted text-center small mb-4">Inicia sesión para atender préstamos en el CRAI</p>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show small">
+                                {{ message }}
+                                <button class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST" action="{% url 'autenticacion:login_recepcionista' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Usuario o Correo</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                                <input type="text" name="usuario" class="form-control" placeholder="Ingrese su usuario o correo" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Contraseña</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                                <input type="password" name="contraseña" class="form-control" placeholder="Ingrese su contraseña" required>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-volver-login" onclick="volverSelector()">
+                                <i class="bi bi-arrow-left me-1"></i>Volver
+                            </button>
+                            <button type="submit" class="btn btn-recepcionista flex-grow-1 py-2 fw-semibold">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Ingresar
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <a href="{% url 'autenticacion:recuperar_contraseña' %}" class="small text-decoration-none">¿Olvidaste tu contraseña?</a>
+                    </div>
+                </div>
+
             </div>
         </div>
-        
+
     </div>
 </div>
 {% endblock %}

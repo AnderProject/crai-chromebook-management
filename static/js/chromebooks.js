@@ -66,19 +66,46 @@ function editarChromebook(id) {
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
+                var d = data.data;
                 document.getElementById('editId').value = id;
-                document.getElementById('editCodigo').value = data.data.codigo;
-                document.getElementById('editMarca').value = data.data.marca;
-                document.getElementById('editModelo').value = data.data.modelo;
-                document.getElementById('editSerie').value = data.data.serie;
-                document.getElementById('editEstado').value = data.data.estado;
-                document.getElementById('editCondicion').value = data.data.condicion;
-                document.getElementById('editNotas').value = data.data.notas || '';
-                
+                document.getElementById('editCodigo').value = d.codigo;
+                document.getElementById('editMarca').value = d.marca;
+                document.getElementById('editModelo').value = d.modelo;
+                document.getElementById('editSerie').value = d.serie;
+                document.getElementById('editEstado').value = d.estado;
+                document.getElementById('editCondicion').value = d.condicion;
+                document.getElementById('editNotas').value = d.notas || '';
+
+                // Fecha de compra y garantía
+                document.getElementById('editFechaAdquisicion').value = d.fecha_adquisicion || '';
+                document.getElementById('editTieneGarantia').checked = !!d.tiene_garantia;
+                document.getElementById('editFechaFinGarantia').value = d.fecha_fin_garantia || '';
+                toggleGarantiaEdit();
+
+                bloquearEstadoMantenimiento(d.estado);
+
                 var modal = new bootstrap.Modal(document.getElementById('modalEditarChromebook'));
                 modal.show();
             }
         });
+}
+
+// Muestra/oculta la fecha de fin de garantía en el modal de edición
+function toggleGarantiaEdit() {
+    var tiene = document.getElementById('editTieneGarantia').checked;
+    document.getElementById('editWrapFinGarantia').style.display = tiene ? '' : 'none';
+    if (!tiene) document.getElementById('editFechaFinGarantia').value = '';
+}
+
+// Si el equipo está en mantenimiento, no se puede cambiar a disponible/prestado
+// desde el inventario: se bloquea el select y se muestra el aviso. Debe finalizarse
+// el mantenimiento desde su sección dedicada.
+function bloquearEstadoMantenimiento(estado) {
+    var select = document.getElementById('editEstado');
+    var aviso = document.getElementById('editMantAviso');
+    var enMant = (estado === 'mantenimiento');
+    select.disabled = enMant;
+    aviso.style.display = enMant ? '' : 'none';
 }
 
 function guardarEdicion() {
@@ -89,9 +116,12 @@ function guardarEdicion() {
         serie: document.getElementById('editSerie').value,
         estado: document.getElementById('editEstado').value,
         condicion: document.getElementById('editCondicion').value,
-        notas: document.getElementById('editNotas').value
+        notas: document.getElementById('editNotas').value,
+        fecha_adquisicion: document.getElementById('editFechaAdquisicion').value,
+        tiene_garantia: document.getElementById('editTieneGarantia').checked,
+        fecha_fin_garantia: document.getElementById('editFechaFinGarantia').value
     };
-    
+
     fetch('/prestamos/api/editar-chromebook/' + id + '/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },

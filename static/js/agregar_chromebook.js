@@ -2,12 +2,20 @@
 // AGREGAR CHROMEBOOK - VALIDACIONES
 // =============================================
 
-// Fecha automática del sistema
+// Fecha de adquisición: por defecto hoy, pero editable (puede ser una compra pasada)
 document.addEventListener('DOMContentLoaded', function() {
     var hoy = new Date();
     var fecha = hoy.toISOString().split('T')[0];
-    document.getElementById('fechaAdquisicion').value = fecha;
+    var campoFecha = document.getElementById('fechaAdquisicion');
+    if (campoFecha && !campoFecha.value) campoFecha.value = fecha;
 });
+
+// Muestra/oculta la fecha de fin de garantía según el checkbox
+function toggleGarantia() {
+    var tiene = document.getElementById('tieneGarantia').checked;
+    document.getElementById('wrapFinGarantia').style.display = tiene ? '' : 'none';
+    if (!tiene) document.getElementById('fechaFinGarantia').value = '';
+}
 
 // Validar código CB-XXX
 function validarCodigo() {

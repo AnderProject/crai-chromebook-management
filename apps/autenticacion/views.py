@@ -92,6 +92,96 @@ def sincronizar_y_autenticar(cedula, contraseña):
 
 
 # ==========================================
+# CONTROL DE ACCESO: BLOQUEO POR INTENTOS + SESIÓN ÚNICA
+# ==========================================
+
+INTENTOS_MAXIMOS = 3
+
+
+def _resolver_user(identificador):
+    """Devuelve el User por username, email o cédula (sin validar contraseña), o None.
+
+    Se incluye la cédula porque los estudiantes pueden iniciar sesión con su número
+    de cédula; así el bloqueo por intentos también aplica en ese caso.
+    """
+    try:
+        return User.objects.get(username=identificador)
+    except User.DoesNotExist:
+        pass
+    try:
+        return User.objects.get(email=identificador)
+    except User.DoesNotExist:
+        pass
+    from apps.prestamos.models import Usuario
+    perfil = Usuario.objects.filter(cedula=identificador).select_related('user').first()
+    return perfil.user if perfil else None
+
+
+def _perfil_de(user):
+    """Perfil (apps.prestamos.Usuario) asociado al User, o None si no tiene."""
+    return getattr(user, 'perfil', None) if user else None
+
+
+def _cuenta_bloqueada(user):
+    perfil = _perfil_de(user)
+    return bool(perfil and perfil.cuenta_bloqueada)
+
+
+def _registrar_intento_fallido(user):
+    """Suma un intento fallido; bloquea al alcanzar el máximo.
+
+    Devuelve (bloqueada: bool, restantes: int|None). restantes es None cuando el
+    usuario no tiene perfil donde contabilizar (p. ej. superusuario sin perfil).
+    """
+    perfil = _perfil_de(user)
+    if perfil is None:
+        return False, None
+    perfil.intentos_fallidos += 1
+    if perfil.intentos_fallidos >= INTENTOS_MAXIMOS:
+        perfil.cuenta_bloqueada = True
+        perfil.save(update_fields=['intentos_fallidos', 'cuenta_bloqueada'])
+        return True, 0
+    perfil.save(update_fields=['intentos_fallidos'])
+    return False, INTENTOS_MAXIMOS - perfil.intentos_fallidos
+
+
+def _resetear_intentos(user):
+    """Limpia el contador de intentos tras un login exitoso."""
+    perfil = _perfil_de(user)
+    if perfil is not None and (perfil.intentos_fallidos or perfil.cuenta_bloqueada):
+        perfil.intentos_fallidos = 0
+        perfil.cuenta_bloqueada = False
+        perfil.save(update_fields=['intentos_fallidos', 'cuenta_bloqueada'])
+
+
+def _activar_sesion_unica(request, user):
+    """Registra la sesión actual como la única válida del usuario.
+
+    Cualquier sesión anterior queda invalidada porque su session_key dejará de
+    coincidir con la guardada (ver SesionUnicaMiddleware).
+    """
+    perfil = _perfil_de(user)
+    if perfil is not None:
+        perfil.session_key = request.session.session_key
+        perfil.save(update_fields=['session_key'])
+
+
+def _mensaje_intentos(request, bloqueada, restantes):
+    """Mensaje de error coherente según el estado del bloqueo."""
+    if bloqueada:
+        messages.error(
+            request,
+            'Tu cuenta ha sido bloqueada por 3 intentos fallidos. '
+            'Desbloquéala desde "¿Olvidó su contraseña?" usando tu número de cédula.'
+        )
+    elif restantes is not None:
+        plural = 'intento' if restantes == 1 else 'intentos'
+        messages.error(request, f'Usuario o contraseña incorrectos. Te quedan {restantes} {plural}.')
+    else:
+        messages.error(request, 'Usuario o contraseña incorrectos.')
+
+
+# ==========================================
 # SELECTOR DE PERFIL (Página inicial)
 # ==========================================
 
@@ -126,25 +216,41 @@ def login_estudiante(request):
             usuario_ingresado = formulario.cleaned_data['usuario']
             contraseña = formulario.cleaned_data['contraseña']
 
-            user = autenticar_usuario(usuario_ingresado, contraseña)
+            user_existente = _resolver_user(usuario_ingresado)
 
-            # Sync on-demand: estudiante que aún no existe localmente pero sí en matrículas.
-            mensaje_sync = None
-            if user is None and usuario_ingresado.isdigit() and len(usuario_ingresado) == 10:
-                user, mensaje_sync = sincronizar_y_autenticar(usuario_ingresado, contraseña)
-
-            if user is not None and user.is_active:
-                grupos = [g.name for g in user.groups.all()]
-
-                if 'Estudiante' in grupos or (not user.is_staff and not user.is_superuser):
-                    login(request, user)
-                    limpiar_mensajes(request)
-                    messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}!')
-                    return redirect('estudiantes:portal_estudiante')
-                else:
-                    messages.error(request, 'Credenciales Incorrectas.')
+            if _cuenta_bloqueada(user_existente):
+                messages.error(
+                    request,
+                    'Tu cuenta está bloqueada por 3 intentos fallidos. '
+                    'Desbloquéala desde "¿Olvidaste tu contraseña?" usando tu número de cédula.'
+                )
             else:
-                messages.error(request, mensaje_sync or 'Usuario o contraseña incorrectos.')
+                user = autenticar_usuario(usuario_ingresado, contraseña)
+
+                # Sync on-demand: estudiante que aún no existe localmente pero sí en matrículas.
+                mensaje_sync = None
+                if user is None and usuario_ingresado.isdigit() and len(usuario_ingresado) == 10:
+                    user, mensaje_sync = sincronizar_y_autenticar(usuario_ingresado, contraseña)
+
+                if user is not None and user.is_active:
+                    grupos = [g.name for g in user.groups.all()]
+
+                    if 'Estudiante' in grupos or (not user.is_staff and not user.is_superuser):
+                        _resetear_intentos(user)
+                        login(request, user)
+                        _activar_sesion_unica(request, user)
+                        limpiar_mensajes(request)
+                        messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}!')
+                        return redirect('estudiantes:portal_estudiante')
+                    else:
+                        messages.error(request, 'Credenciales Incorrectas.')
+                elif mensaje_sync:
+                    # El estudiante existe en matrículas pero la contraseña no coincide:
+                    # no contabilizamos intento local (aún puede no tener perfil local).
+                    messages.error(request, mensaje_sync)
+                else:
+                    bloqueada, restantes = _registrar_intento_fallido(user_existente)
+                    _mensaje_intentos(request, bloqueada, restantes)
     
     # En error/GET se vuelve al MISMO selector con la vista de estudiante abierta
     # y el mensaje de error visible ahí mismo (no se redirige a otra página).
@@ -176,26 +282,93 @@ def login_administrador(request):
             usuario_ingresado = formulario.cleaned_data['usuario']
             contraseña = formulario.cleaned_data['contraseña']
             
-            user = autenticar_usuario(usuario_ingresado, contraseña)
-            
-            if user is not None and user.is_active:
-                grupos = [g.name for g in user.groups.all()]
-                
-                if 'Administrador' in grupos or 'Recepcionista' in grupos or user.is_staff or user.is_superuser:
-                    login(request, user)
-                    limpiar_mensajes(request)
-                    messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}!')
-                    return redirect('prestamos:portal')
-                else:
-                    messages.error(request, 'Credenciales Incorrectas')
+            user_existente = _resolver_user(usuario_ingresado)
+
+            if _cuenta_bloqueada(user_existente):
+                messages.error(
+                    request,
+                    'Tu cuenta está bloqueada por 3 intentos fallidos. '
+                    'Desbloquéala desde "¿Olvidó su contraseña?" usando tu número de cédula.'
+                )
             else:
-                messages.error(request, 'Usuario o contraseña incorrectos.')
+                user = autenticar_usuario(usuario_ingresado, contraseña)
+
+                if user is not None and user.is_active:
+                    grupos = [g.name for g in user.groups.all()]
+
+                    if 'Administrador' in grupos or user.is_staff or user.is_superuser:
+                        _resetear_intentos(user)
+                        login(request, user)
+                        _activar_sesion_unica(request, user)
+                        limpiar_mensajes(request)
+                        messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}!')
+                        return redirect('prestamos:portal')
+                    else:
+                        messages.error(request, 'Credenciales Incorrectas')
+                else:
+                    bloqueada, restantes = _registrar_intento_fallido(user_existente)
+                    _mensaje_intentos(request, bloqueada, restantes)
     
     # En error/GET se vuelve al MISMO selector con la vista de admin abierta.
     contexto = {
         'formulario': formulario,
         'abrir_vista': 'administrador',
         'titulo_pagina': 'Login Administrador - CRAI UNEMI'
+    }
+    return render(request, 'autenticacion/seleccionar_perfil.html', contexto)
+
+
+# ==========================================
+# LOGIN DE RECEPCIONISTA
+# ==========================================
+
+def login_recepcionista(request):
+    """Login exclusivo para recepcionistas (separado del de administrador)."""
+
+    if request.user.is_authenticated:
+        return redirect('prestamos:portal')
+
+    limpiar_mensajes(request)
+    formulario = FormularioLogin()
+
+    if request.method == 'POST':
+        formulario = FormularioLogin(request.POST)
+
+        if formulario.is_valid():
+            usuario_ingresado = formulario.cleaned_data['usuario']
+            contraseña = formulario.cleaned_data['contraseña']
+
+            user_existente = _resolver_user(usuario_ingresado)
+
+            if _cuenta_bloqueada(user_existente):
+                messages.error(
+                    request,
+                    'Tu cuenta está bloqueada por 3 intentos fallidos. '
+                    'Desbloquéala desde "¿Olvidaste tu contraseña?" usando tu número de cédula.'
+                )
+            else:
+                user = autenticar_usuario(usuario_ingresado, contraseña)
+
+                if user is not None and user.is_active:
+                    grupos = [g.name for g in user.groups.all()]
+
+                    if 'Recepcionista' in grupos:
+                        _resetear_intentos(user)
+                        login(request, user)
+                        _activar_sesion_unica(request, user)
+                        limpiar_mensajes(request)
+                        messages.success(request, f'¡Bienvenido/a {user.first_name or user.username}!')
+                        return redirect('prestamos:portal')
+                    else:
+                        messages.error(request, 'Credenciales Incorrectas')
+                else:
+                    bloqueada, restantes = _registrar_intento_fallido(user_existente)
+                    _mensaje_intentos(request, bloqueada, restantes)
+
+    contexto = {
+        'formulario': formulario,
+        'abrir_vista': 'recepcionista',
+        'titulo_pagina': 'Login Recepcionista - CRAI UNEMI'
     }
     return render(request, 'autenticacion/seleccionar_perfil.html', contexto)
 
@@ -222,26 +395,47 @@ def recuperar_contraseña(request):
     if request.method == 'POST':
         formulario = FormularioRecuperarContraseña(request.POST)
         if formulario.is_valid():
-            email = formulario.cleaned_data['email']
-            try:
-                user = User.objects.get(email=email)
+            cedula = formulario.cleaned_data['cedula']
+            from apps.prestamos.models import Usuario
+
+            perfil = Usuario.objects.filter(cedula=cedula).select_related('user').first()
+
+            if perfil is None:
+                messages.error(request, 'No existe ninguna cuenta con ese número de cédula.')
+            elif not perfil.user.email:
+                messages.error(request, 'Tu cuenta no tiene un correo registrado. Contacta al administrador.')
+            else:
+                user = perfil.user
                 token = default_token_generator.make_token(user)
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 enlace = f"http://{request.get_host()}/autenticacion/cambiar-contraseña/{uid}/{token}/"
-                
+
                 send_mail(
                     'Recuperación de Contraseña - CRAI UNEMI',
-                    f'Para restablecer tu contraseña, haz clic aquí:\n\n{enlace}\n\nEste enlace expira en 5 minutos.',
+                    f'Hola {user.first_name or user.username}:\n\n'
+                    f'Para restablecer tu contraseña y desbloquear tu cuenta, haz clic aquí:\n\n{enlace}\n\n'
+                    f'Si no solicitaste esto, ignora este correo.',
                     settings.DEFAULT_FROM_EMAIL,
-                    [email],
+                    [user.email],
                     fail_silently=False,
                 )
-                messages.success(request, 'Se ha enviado un enlace de recuperación a tu correo.')
+                messages.success(
+                    request,
+                    f'Se ha enviado un enlace de recuperación a tu correo ({_enmascarar_correo(user.email)}).'
+                )
                 return redirect('autenticacion:seleccionar_perfil')
-            except User.DoesNotExist:
-                messages.error(request, 'No existe una cuenta con ese correo electrónico.')
-    
+
     return render(request, 'autenticacion/recuperar_contraseña.html', {'formulario': formulario})
+
+
+def _enmascarar_correo(correo):
+    """Devuelve el correo parcialmente oculto, p.ej. an***@gmail.com."""
+    try:
+        usuario, dominio = correo.split('@', 1)
+    except ValueError:
+        return correo
+    visible = usuario[:2] if len(usuario) > 2 else usuario[:1]
+    return f'{visible}***@{dominio}'
 
 
 # ==========================================
@@ -267,6 +461,16 @@ def cambiar_contraseña(request, uidb64, token):
             if nueva == confirmar and len(nueva) >= 8:
                 user.set_password(nueva)
                 user.save()
+
+                # Desbloquear la cuenta: cambiar la contraseña limpia los intentos
+                # fallidos y la bandera de bloqueo (también libera la sesión previa).
+                perfil = getattr(user, 'perfil', None)
+                if perfil is not None:
+                    perfil.intentos_fallidos = 0
+                    perfil.cuenta_bloqueada = False
+                    perfil.session_key = None
+                    perfil.save(update_fields=['intentos_fallidos', 'cuenta_bloqueada', 'session_key'])
+
                 messages.success(request, 'Contraseña cambiada exitosamente. Ya puedes iniciar sesión.')
                 return redirect('autenticacion:seleccionar_perfil')
             else:

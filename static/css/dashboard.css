@@ -932,7 +932,13 @@ tr:hover .badge-estado {
 
 /* "Reservaciones Pendientes": solo 2 filas visibles, el resto con scroll. */
 .tabla-reservas .table-responsive {
-    max-height: 135px; /* cabecera + 2 filas reales (~45px por fila) */
+    max-height: 150px; /* cabecera + 2 filas reales (~45px por fila) */
+}
+
+/* Cuando no hay reservaciones, el estado vacío (ícono + texto) necesita más
+   aire que el alto de 2 filas: liberamos la altura para que se vea completo. */
+.tabla-reservas .table-responsive:has(.reservas-vacio) {
+    max-height: none;
 }
 
 /* Buscador en vivo de reservaciones pendientes */
