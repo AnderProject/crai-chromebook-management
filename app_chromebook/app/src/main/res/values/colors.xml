@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="azul">#1B4F9C</color>
+    <color name="azul_oscuro">#143A75</color>
+    <color name="azul_claro">#E8F0FB</color>
+    <color name="blanco">#FFFFFF</color>
+    <color name="gris_texto">#5A6473</color>
+    <color name="verde">#2E9E5B</color>
+    <color name="rojo">#C0392B</color>
+    <color name="ambar">#E08600</color>
+</resources>

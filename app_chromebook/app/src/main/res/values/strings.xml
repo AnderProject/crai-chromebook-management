@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Kiosko CRAI</string>
+
+    <!-- Login -->
+    <string name="login_titulo">Préstamo de Chromebook</string>
+    <string name="login_subtitulo">Ingresa tus datos para iniciar tu sesión</string>
+    <string name="login_cedula">Cédula</string>
+    <string name="login_nombre">Nombre completo</string>
+    <string name="login_iniciar">Iniciar reserva</string>
+
+    <!-- Sesión -->
+    <string name="sesion_restante">Tiempo restante</string>
+    <string name="sesion_devolver">Devolver Chromebook</string>
+
+    <!-- Bloqueo -->
+    <string name="lock_titulo">Tiempo finalizado</string>
+    <string name="lock_mensaje">Tu tiempo de uso terminó.\nPor favor acércate al CRAI.</string>
+    <string name="lock_desbloquear">Desbloquear (personal CRAI)</string>
+</resources>
