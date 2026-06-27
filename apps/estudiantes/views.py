@@ -669,12 +669,9 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
                             estado='pendiente',
                         )
                         respuesta = (
-                            f'✅ *¡Reserva creada!*\n'
-                            f'👤 A nombre de: {nombre_completo}\n'
-                            f'📅 Fecha: {fecha_uso}\n'
-                            f'⏰ Horario: {hora_inicio} - {hora_fin}\n'
-                            f'🔑 Código: *{codigo}*\n\n'
-                            f'Presenta este código en el CRAI para confirmar tu reserva.'
+                            f'✅ *Reserva creada* · {fecha_uso}, {hora_inicio}–{hora_fin}\n'
+                            f'🔑 Código: *{codigo}*\n'
+                            f'Muéstralo en el CRAI para retirar tu Chromebook.'
                         )
                         accion_realizada = 'reservar'
 
