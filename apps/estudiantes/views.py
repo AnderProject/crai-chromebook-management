@@ -554,8 +554,18 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
     if not respuesta:
         contexto_usuario = (f'[Usuario: {nombre_completo} (Cédula: {cedula})] '
                             if cedula else '[Usuario no identificado] ')
+
+        # Damos al agente la fecha Y hora actuales para que pueda razonar (p. ej.
+        # no aceptar una hora que ya pasó hoy). El horario del CRAI es 08:00–17:00.
+        ahora = timezone.localtime()
+        dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
+        contexto_tiempo = (
+            f'[Ahora es {dias[ahora.weekday()]} {ahora:%Y-%m-%d} a las {ahora:%H:%M}. '
+            f'Horario del CRAI: 08:00 a 17:00. No ofrezcas ni aceptes horas que ya '
+            f'pasaron hoy; si piden una, dilo y sugiere una hora más tarde o mañana.] '
+        )
         payload = {
-            'chatInput': f'{contexto_usuario}{(mensaje_raw or "").strip()}',
+            'chatInput': f'{contexto_tiempo}{contexto_usuario}{(mensaje_raw or "").strip()}',
             'sessionId': str(session_id or 'anon'),
         }
 
@@ -619,10 +629,19 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
                         fecha_dt == timezone.localdate()
                         and timezone.make_aware(datetime.combine(fecha_dt, hora_inicio_dt)) < timezone.localtime() - timedelta(minutes=2)
                     ):
-                        respuesta = (
-                            'Esa fecha u horario ya pasó. Reserva para hoy a una hora más tarde '
-                            'o para otro día.'
-                        )
+                        ahora_local = timezone.localtime()
+                        # Siguiente hora en punto a partir de ahora.
+                        prox = (ahora_local + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+                        if prox.date() == timezone.localdate() and prox.time() < dtime(17, 0):
+                            respuesta = (
+                                f'Esa hora ya pasó (ahora son las {ahora_local:%H:%M}). '
+                                f'¿Te reservo desde las {prox:%H:%M}? También puedes elegir otro día.'
+                            )
+                        else:
+                            respuesta = (
+                                f'Ya terminó el horario de hoy (son las {ahora_local:%H:%M} y '
+                                f'cerramos a las 17:00). ¿Reservamos para mañana?'
+                            )
                     elif vigentes >= MAX_RESERVAS_VIGENTES:
                         respuesta = (
                             f'Ya tienes {MAX_RESERVAS_VIGENTES} reservas activas. Espera a que se completen '
@@ -770,6 +789,116 @@ def api_chatbot_whatsapp(request):
         intencion_detectada=accion or 'conversacion',
     )
     return JsonResponse({'respuesta': respuesta, 'accion': accion})
+
+
+# ==========================================
+# WEBHOOK DIRECTO DE WHATSAPP (Meta -> Django, sin n8n)
+# ==========================================
+
+# Memoria de IDs de mensajes ya procesados, para ignorar reintentos de Meta
+# (Meta reenvía si no recibe 200 a tiempo). Se reinicia al reiniciar el server.
+_wa_mensajes_procesados = set()
+
+
+def _enviar_whatsapp(telefono, texto):
+    """Envía un mensaje de texto por la Graph API de WhatsApp Cloud."""
+    import requests
+    token = settings.WHATSAPP_ACCESS_TOKEN
+    pnid = settings.WHATSAPP_PHONE_NUMBER_ID
+    if not token or not pnid:
+        return False, 'Falta WHATSAPP_ACCESS_TOKEN o WHATSAPP_PHONE_NUMBER_ID en .env'
+    url = f'https://graph.facebook.com/{settings.WHATSAPP_API_VERSION}/{pnid}/messages'
+    payload = {
+        'messaging_product': 'whatsapp',
+        'to': telefono,
+        'type': 'text',
+        'text': {'body': texto[:4096]},
+    }
+    try:
+        r = requests.post(
+            url, json=payload,
+            headers={'Authorization': f'Bearer {token}'},
+            timeout=15,
+        )
+        if r.status_code >= 400:
+            return False, r.text[:300]
+        return True, ''
+    except requests.RequestException as e:
+        return False, str(e)
+
+
+@csrf_exempt
+def webhook_whatsapp(request):
+    """Webhook directo de WhatsApp Cloud API.
+
+    GET  -> verificación del webhook de Meta (responde el hub.challenge).
+    POST -> mensaje entrante: identifica al estudiante por teléfono, reutiliza
+            ``_procesar_chatbot`` y responde por la Graph API.
+    """
+    import json
+    import re
+    from django.http import HttpResponse
+    from apps.prestamos.models import ChatbotConversacion
+
+    # --- Verificación del webhook (Meta hace un GET una sola vez) ---
+    if request.method == 'GET':
+        modo = request.GET.get('hub.mode')
+        token = request.GET.get('hub.verify_token')
+        challenge = request.GET.get('hub.challenge', '')
+        if modo == 'subscribe' and token == settings.WHATSAPP_VERIFY_TOKEN:
+            return HttpResponse(challenge, content_type='text/plain')
+        return HttpResponse('Token de verificación inválido', status=403)
+
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    # --- Mensaje entrante ---
+    try:
+        data = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return HttpResponse(status=200)  # 200 para que Meta no reintente
+
+    # Extraer el primer mensaje de texto del payload de Meta (defensivo).
+    telefono = mensaje_raw = msg_id = ''
+    try:
+        value = data['entry'][0]['changes'][0]['value']
+        mensajes = value.get('messages') or []
+        if mensajes:
+            m = mensajes[0]
+            msg_id = m.get('id', '')
+            telefono = m.get('from', '')
+            if m.get('type') == 'text':
+                mensaje_raw = (m.get('text') or {}).get('body', '')
+    except (KeyError, IndexError, TypeError):
+        pass
+
+    # Sin texto (status de entrega, audio, etc.) o reintento ya visto -> 200 y salir.
+    if not telefono or not mensaje_raw:
+        return HttpResponse(status=200)
+    if msg_id and msg_id in _wa_mensajes_procesados:
+        return HttpResponse(status=200)
+    if msg_id:
+        _wa_mensajes_procesados.add(msg_id)
+
+    # Identificar por teléfono; si no, por cédula de 10 dígitos en el mensaje.
+    estudiante, perfil = _buscar_estudiante_n8n(telefono=telefono)
+    if estudiante is None:
+        mm = re.search(r'\b(\d{10})\b', mensaje_raw)
+        if mm:
+            estudiante, perfil = _buscar_estudiante_n8n(cedula=mm.group(1))
+
+    respuesta, accion = _procesar_chatbot(mensaje_raw, estudiante, perfil, telefono or 'wa-anon')
+
+    ChatbotConversacion.objects.create(
+        usuario=perfil.user if perfil else None,
+        mensaje_usuario=mensaje_raw,
+        respuesta_bot=respuesta,
+        canal='whatsapp',
+        intencion_detectada=accion or 'conversacion',
+    )
+
+    _enviar_whatsapp(telefono, respuesta)
+    return HttpResponse(status=200)
 
 
 # ==========================================

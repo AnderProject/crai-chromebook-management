@@ -35,7 +35,7 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['immunize-bronco-graveyard.ngrok-free.dev', '127.0.0.1', 'localhost', '192.168.100.7']
+ALLOWED_HOSTS = ['immunize-bronco-graveyard.ngrok-free.dev', '127.0.0.1', 'localhost', '192.168.100.7', '.devtunnels.ms']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://immunize-bronco-graveyard.ngrok-free.dev',
@@ -190,3 +190,10 @@ N8N_API_KEY = os.environ.get('N8N_API_KEY', 'clave-n8n-dev')
 # Clave compartida que la app instalada en cada Chromebook envía en el header
 # 'X-KIOSKO-KEY' para consultar el estado/préstamo de su equipo.
 KIOSKO_API_KEY = os.environ.get('KIOSKO_API_KEY', 'clave-kiosko-dev')
+
+# ==================== WHATSAPP CLOUD API (Meta) ====================
+# Webhook directo: Meta -> Django (sin n8n). Los valores reales van en .env.
+WHATSAPP_VERIFY_TOKEN = os.environ.get('WHATSAPP_VERIFY_TOKEN', 'crai-verify-2026')
+WHATSAPP_ACCESS_TOKEN = os.environ.get('WHATSAPP_ACCESS_TOKEN', '')  # token de Meta (caduca 24h el temporal)
+WHATSAPP_PHONE_NUMBER_ID = os.environ.get('WHATSAPP_PHONE_NUMBER_ID', '1087899717740956')
+WHATSAPP_API_VERSION = os.environ.get('WHATSAPP_API_VERSION', 'v21.0')

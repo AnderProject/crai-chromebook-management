@@ -15,6 +15,9 @@ urlpatterns = [
     path('api/chatbot/', views.api_chatbot, name='api_chatbot'),
     path('api/chatbot-whatsapp/', views.api_chatbot_whatsapp, name='api_chatbot_whatsapp'),
 
+    # Webhook directo de WhatsApp Cloud API (Meta -> Django, sin n8n)
+    path('api/whatsapp/webhook/', views.webhook_whatsapp, name='webhook_whatsapp'),
+
     # Actividad reciente (refresco en vivo del portal)
     path('api/actividad/', views.api_actividad, name='api_actividad'),
 
