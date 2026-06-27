@@ -2,6 +2,7 @@ package com.crai.chromebook.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -9,23 +10,29 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import coil.load
+import coil.transform.CircleCropTransformation
 import com.crai.chromebook.R
-import com.crai.chromebook.api.ApiClient
 import com.crai.chromebook.data.AppDatabase
 import com.crai.chromebook.data.Prefs
 import com.crai.chromebook.data.Reserva
 import com.crai.chromebook.data.ReservaRepository
 import com.crai.chromebook.databinding.ActivitySesionBinding
+import com.crai.chromebook.service.OverlayService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 /**
- * Sesión activa con cuenta regresiva. Funciona en dos modos:
- *  - LOCAL: la reserva vive en Room (login manual).
- *  - SERVIDOR: los datos vienen de un préstamo de Django; re-consulta el
- *    servidor para detectar devolución anticipada o extensión del tiempo.
- * Al llegar a 0 → pantalla de bloqueo.
+ * Pantalla de sesión. Dos modos:
+ *  - SERVIDOR (reservas de Django): muestra los datos del estudiante (con foto)
+ *    durante unos segundos de "bienvenida" y luego se MINIMIZA para que el
+ *    estudiante pueda usar la Chromebook. El conteo del tiempo, el polling al
+ *    servidor (devolución/extensión/bloqueo remoto) y la apertura del bloqueo
+ *    los maneja `OverlayService` (sigue vivo aunque la app esté en segundo
+ *    plano), que además dibuja la burbuja flotante con el tiempo restante.
+ *  - LOCAL (login manual de respaldo): sesión a pantalla completa con cuenta
+ *    regresiva propia; al llegar a 0 → bloqueo.
  */
 class SesionActivity : AppCompatActivity() {
 
@@ -35,6 +42,8 @@ class SesionActivity : AppCompatActivity() {
         const val EXTRA_NOMBRE = "nombre"
         const val EXTRA_CEDULA = "cedula"
         const val EXTRA_FIN_MS = "fin_ms"
+        const val EXTRA_FOTO = "foto_url"
+        private const val SEGUNDOS_BIENVENIDA = 12
     }
 
     private lateinit var b: ActivitySesionBinding
@@ -44,7 +53,6 @@ class SesionActivity : AppCompatActivity() {
     private val avisoMinutos = 5
     private var modoServidor = false
 
-    // Estado de la sesión actual (sirve para ambos modos).
     private var finMs = 0L
     private var duracionTotalMs = 0L
     private var prestamoId = 0L
@@ -60,7 +68,6 @@ class SesionActivity : AppCompatActivity() {
         })
 
         modoServidor = intent.getBooleanExtra(EXTRA_SERVIDOR, false)
-
         if (modoServidor) iniciarServidor() else iniciarLocal()
     }
 
@@ -71,41 +78,51 @@ class SesionActivity : AppCompatActivity() {
         finMs = intent.getLongExtra(EXTRA_FIN_MS, 0)
         val nombre = intent.getStringExtra(EXTRA_NOMBRE).orEmpty()
         val cedula = intent.getStringExtra(EXTRA_CEDULA).orEmpty()
+        val fotoUrl = intent.getStringExtra(EXTRA_FOTO)
         duracionTotalMs = (finMs - System.currentTimeMillis()).coerceAtLeast(1)
 
         b.txtNombre.text = nombre
         b.txtCedula.text = cedula
-        b.btnDevolver.visibility = android.view.View.GONE // la devolución se hace en el sistema
+        b.btnDevolver.visibility = View.GONE // la devolución se hace en el sistema
+        liberarPantalla() // durante la sesión NO se fija: el estudiante usa el equipo
+        cargarFoto(fotoUrl)
 
+        // El servicio toma el control del conteo/bloqueo/polling y la burbuja.
+        iniciarServicioOverlay()
+
+        // Bienvenida: muestra los datos ~12s y luego minimiza para liberar el equipo.
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                var tick = 0
+                var segundos = 0
                 while (true) {
                     val restante = (finMs - System.currentTimeMillis()).coerceAtLeast(0)
                     pintar(restante)
-                    if (restante <= 0L) { irBloqueo(); break }
-                    // Cada ~12s vuelve a consultar el servidor.
-                    if (tick % 12 == 0) verificarServidor()
-                    tick++
+                    if (restante <= 0L) break // el servicio abrirá el bloqueo
+                    if (segundos >= SEGUNDOS_BIENVENIDA) { moveTaskToBack(true); break }
+                    segundos++
                     delay(1000L)
                 }
             }
         }
     }
 
-    /** Detecta devolución anticipada (vuelve a Espera) o extensión del tiempo. */
-    private suspend fun verificarServidor() {
-        try {
-            val api = ApiClient.crear(prefs.servidorUrl)
-            val r = api.estado(prefs.codigoEquipo, prefs.apiKey)
-            val p = r.prestamo
-            if (p == null || p.estado != "activo" || p.id != prestamoId) {
-                irEspera() // el préstamo se cerró/devolvió en el sistema
-            } else if (p.fin_ms != finMs) {
-                finMs = p.fin_ms // tiempo extendido/ajustado desde el sistema
+    private fun iniciarServicioOverlay() {
+        val i = Intent(this, OverlayService::class.java).apply {
+            putExtra(OverlayService.EXTRA_FIN_MS, finMs)
+            putExtra(OverlayService.EXTRA_PRESTAMO_ID, prestamoId)
+            putExtra(OverlayService.EXTRA_SERVIDOR, true)
+        }
+        ContextCompat.startForegroundService(this, i)
+    }
+
+    private fun cargarFoto(url: String?) {
+        if (!url.isNullOrBlank()) {
+            b.imgFoto.load(url) {
+                crossfade(true)
+                placeholder(R.drawable.ic_avatar)
+                error(R.drawable.ic_avatar)
+                transformations(CircleCropTransformation())
             }
-        } catch (_: Exception) {
-            // Sin conexión: seguimos con el tiempo ya conocido (modo tolerante).
         }
     }
 
@@ -128,7 +145,7 @@ class SesionActivity : AppCompatActivity() {
                     pintar(restante)
                     if (restante <= 0L) {
                         repo.vencer(r)
-                        irBloqueo()
+                        irBloqueoLocal()
                         break
                     }
                     delay(1000L)
@@ -170,14 +187,9 @@ class SesionActivity : AppCompatActivity() {
         return String.format("%02d:%02d:%02d", h, m, s)
     }
 
-    private fun irBloqueo() {
+    private fun irBloqueoLocal() {
         startActivity(Intent(this, LockActivity::class.java)
-            .putExtra(LockActivity.EXTRA_SERVIDOR, modoServidor))
-        finish()
-    }
-
-    private fun irEspera() {
-        startActivity(Intent(this, EsperaActivity::class.java))
+            .putExtra(LockActivity.EXTRA_SERVIDOR, false))
         finish()
     }
 

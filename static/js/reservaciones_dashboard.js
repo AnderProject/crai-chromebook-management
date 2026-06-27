@@ -127,3 +127,109 @@ function mostrarFilaSinResultados(tbody, mostrar) {
         fila.remove();
     }
 }
+
+// =============================================
+// CANCELAR RESERVACIÓN PENDIENTE (desde el badge de estado)
+// Al hacer clic en "Pendiente" se abre un modal que exige la cédula del
+// personal logueado (admin/recepcionista) para confirmar la cancelación.
+// =============================================
+var _cancelarReservaId = null;
+
+function abrirCancelarReserva(reservaId, nombre) {
+    _cancelarReservaId = reservaId;
+
+    var lbl = document.getElementById('cancelarNombre');
+    if (lbl) { lbl.textContent = nombre || 'este estudiante'; }
+
+    var input = document.getElementById('cancelarCedula');
+    var err = document.getElementById('cancelarError');
+    if (input) { input.value = ''; input.classList.remove('cedula-error'); }
+    if (err) { err.textContent = ''; }
+
+    var modalEl = document.getElementById('modalCancelarReserva');
+    if (modalEl && window.bootstrap) {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        setTimeout(function () { if (input) { input.focus(); } }, 300);
+    }
+}
+
+function enviarCancelarReserva() {
+    var input = document.getElementById('cancelarCedula');
+    var err = document.getElementById('cancelarError');
+    var btn = document.getElementById('btnCancelarReserva');
+    if (!input || _cancelarReservaId == null) { return; }
+
+    var cedula = input.value.trim();
+    if (!cedula) {
+        input.classList.add('cedula-error');
+        if (err) { err.textContent = 'Ingresa tu cédula para confirmar.'; }
+        return;
+    }
+
+    if (btn) { btn.disabled = true; }
+    fetch('/prestamos/api/cancelar-reserva/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+        body: JSON.stringify({ reserva_id: _cancelarReservaId, cedula: cedula })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        if (btn) { btn.disabled = false; }
+        if (data.success) {
+            var modalEl = document.getElementById('modalCancelarReserva');
+            if (modalEl && window.bootstrap) { bootstrap.Modal.getOrCreateInstance(modalEl).hide(); }
+            quitarFilaReserva(_cancelarReservaId);
+            _cancelarReservaId = null;
+            if (window.mostrarToast) { mostrarToast('Reservación cancelada', 'success'); }
+        } else {
+            input.classList.remove('cedula-error');
+            void input.offsetWidth; // reinicia la animación de shake
+            input.classList.add('cedula-error');
+            if (err) { err.textContent = data.message || 'No se pudo cancelar.'; }
+        }
+    })
+    .catch(function () {
+        if (btn) { btn.disabled = false; }
+        if (err) { err.textContent = 'Error de conexión.'; }
+    });
+}
+
+// Quita la fila de la reserva cancelada y actualiza el contador del encabezado.
+function quitarFilaReserva(reservaId) {
+    var celda = document.getElementById('codigo-reserva-' + reservaId);
+    var fila = celda ? celda.closest('tr') : null;
+    if (fila) { fila.remove(); }
+
+    var badge = document.getElementById('badgeReservasPendientes');
+    if (badge) {
+        var n = parseInt(badge.textContent, 10);
+        if (!isNaN(n) && n > 0) { badge.textContent = n - 1; }
+    }
+
+    var tbody = document.getElementById('tbodyReservasPendientes');
+    if (tbody) {
+        var quedan = false;
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            if (!tr.querySelector('td[colspan]')) { quedan = true; }
+        });
+        if (!quedan && !tbody.querySelector('.reservas-vacio')) {
+            var vacio = document.createElement('tr');
+            vacio.className = 'reservas-vacio';
+            vacio.innerHTML = '<td colspan="6" class="text-center text-muted py-3">' +
+                '<i class="bi bi-calendar-x fs-3 d-block mb-1"></i>No hay reservaciones pendientes</td>';
+            tbody.appendChild(vacio);
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('btnCancelarReserva');
+    if (btn) { btn.addEventListener('click', enviarCancelarReserva); }
+
+    var input = document.getElementById('cancelarCedula');
+    if (input) {
+        input.addEventListener('keyup', function (e) {
+            if (e.key === 'Enter') { enviarCancelarReserva(); }
+        });
+    }
+});

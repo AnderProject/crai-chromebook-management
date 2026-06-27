@@ -1046,11 +1046,13 @@ def api_detalle_prestamo(request, id):
             'success': True,
             'data': {
                 'id': f'#{prestamo.id:03d}',
+                'pk': prestamo.id,
                 'estudiante': prestamo.estudiante.get_full_name() or prestamo.estudiante.username,
                 'chromebook': prestamo.chromebook.codigo,
                 'fecha_prestamo': prestamo.fecha_prestamo.strftime('%d/%m/%Y %H:%M'),
                 'devolucion': prestamo.fecha_devuelto.strftime('%d/%m/%Y %H:%M') if prestamo.fecha_devuelto else (prestamo.fecha_devolucion.strftime('%d/%m/%Y %H:%M') if prestamo.fecha_devolucion else 'Pendiente'),
                 'estado': prestamo.estado,
+                'bloqueado': prestamo.bloqueado,
                 'foto_url': foto_url,
             }
         })
@@ -1099,22 +1101,78 @@ def api_kiosko_estado(request, codigo):
     }
 
     if prestamo:
-        # Cédula del estudiante (vía perfil Usuario, si existe).
+        # Cédula y foto del estudiante (vía perfil Usuario, si existe).
         cedula = ''
+        foto_url = None
         perfil = PerfilUsuario.objects.filter(user=prestamo.estudiante).first()
         if perfil:
             cedula = perfil.cedula
+            if perfil.foto:
+                # URL absoluta para que la app (Coil) pueda descargarla directo.
+                foto_url = request.build_absolute_uri(perfil.foto.url)
 
         data['prestamo'] = {
             'id': prestamo.id,
             'estudiante': prestamo.estudiante.get_full_name() or prestamo.estudiante.username,
             'cedula': cedula,
             'estado': prestamo.estado,
+            'bloqueado': prestamo.bloqueado,
+            'foto_url': foto_url,
             'inicio_ms': int(prestamo.fecha_prestamo.timestamp() * 1000),
             'fin_ms': int(prestamo.fecha_devolucion.timestamp() * 1000),
         }
 
     return JsonResponse(data)
+
+
+@csrf_exempt
+def api_kiosko_desbloquear(request, codigo):
+    """La app del kiosko avisa que el personal desbloqueó con PIN: limpia el
+    flag ``bloqueado`` del préstamo activo para que no se vuelva a bloquear."""
+    if not _kiosko_autorizado(request):
+        return JsonResponse({'success': False, 'message': 'No autorizado'}, status=401)
+
+    prestamo = (Prestamo.objects
+                .filter(chromebook__codigo=codigo, estado='activo')
+                .order_by('-fecha_prestamo')
+                .first())
+    if prestamo and prestamo.bloqueado:
+        prestamo.bloqueado = False
+        prestamo.save(update_fields=['bloqueado'])
+
+    return JsonResponse({'success': True})
+
+
+@login_required
+@csrf_exempt
+def api_bloquear_prestamo(request, id):
+    """Bloquea/desbloquea remotamente la Chromebook de un préstamo activo.
+
+    Lo usa el personal desde el modal de detalle del dashboard. La app del
+    kiosko ve el flag por polling y muestra (o quita) la pantalla de bloqueo.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+    try:
+        prestamo = Prestamo.objects.get(id=id)
+    except Prestamo.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Préstamo no encontrado.'})
+
+    if prestamo.estado != 'activo':
+        return JsonResponse({'success': False, 'message': 'Solo se puede bloquear un préstamo activo.'})
+
+    data = json.loads(request.body) if request.body else {}
+    # Si no se especifica, se alterna el estado actual.
+    bloquear = data.get('bloquear', not prestamo.bloqueado)
+    prestamo.bloqueado = bool(bloquear)
+    prestamo.save(update_fields=['bloqueado'])
+
+    return JsonResponse({
+        'success': True,
+        'bloqueado': prestamo.bloqueado,
+        'message': 'Chromebook bloqueada.' if prestamo.bloqueado else 'Chromebook desbloqueada.',
+    })
 
 
 @login_required
@@ -1583,6 +1641,49 @@ def revelar_codigo_reserva(request):
         return JsonResponse({'success': False, 'message': 'La cédula no coincide con el estudiante de esta reserva.'})
 
     return JsonResponse({'success': True, 'codigo': reserva.codigo_verificacion})
+
+
+@login_required
+@csrf_exempt
+def cancelar_reserva_admin(request):
+    """Cancela una reserva pendiente desde el dashboard del personal.
+
+    Como control, exige que el admin/recepcionista confirme con SU PROPIA cédula
+    (la del usuario logueado). Así queda claro quién autorizó la cancelación y se
+    evita un clic accidental sobre el botón de estado.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+    from .models import Reserva
+    data = json.loads(request.body)
+    reserva_id = data.get('reserva_id')
+    cedula = (data.get('cedula') or '').strip()
+
+    perfil = getattr(request.user, 'perfil', None)
+    if not perfil or not perfil.cedula:
+        return JsonResponse({'success': False, 'message': 'No se pudo verificar tu identidad.'})
+
+    if not cedula:
+        return JsonResponse({'success': False, 'message': 'Ingresa tu cédula para confirmar.'})
+
+    if cedula != perfil.cedula:
+        return JsonResponse({'success': False, 'message': 'La cédula no coincide con tu usuario.'})
+
+    try:
+        reserva = Reserva.objects.select_related('estudiante__usuario__user').get(
+            id=reserva_id, estado='pendiente')
+    except Reserva.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'La reserva no existe o ya fue procesada.'})
+
+    reserva.estado = 'cancelada'
+    reserva.save(update_fields=['estado'])
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Reservación cancelada correctamente.',
+        'estudiante': reserva.estudiante.usuario.user.get_full_name(),
+    })
 
 
 def _validar_ventana_reserva(reserva):

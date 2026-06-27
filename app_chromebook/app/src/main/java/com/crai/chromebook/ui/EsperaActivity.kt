@@ -1,7 +1,9 @@
 package com.crai.chromebook.ui
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
@@ -42,6 +44,7 @@ class EsperaActivity : AppCompatActivity() {
         }
 
         recargar()
+        pedirPermisoOverlay()
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -49,6 +52,31 @@ class EsperaActivity : AppCompatActivity() {
                     sondear()
                     delay(intervaloMs)
                 }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Pantalla de espera fijada solo si el personal activó el modo estricto.
+        if (prefs.kioskoEstricto) fijarPantalla() else liberarPantalla()
+    }
+
+    /**
+     * La burbuja de tiempo necesita el permiso "dibujar sobre otras apps". En la
+     * Chromebook se concede una sola vez; si falta, abrimos los ajustes para que
+     * el personal lo active.
+     */
+    private fun pedirPermisoOverlay() {
+        if (!Settings.canDrawOverlays(this)) {
+            try {
+                startActivity(
+                    Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:$packageName")
+                    )
+                )
+            } catch (_: Exception) {
             }
         }
     }
@@ -68,7 +96,13 @@ class EsperaActivity : AppCompatActivity() {
             val r = api.estado(prefs.codigoEquipo, prefs.apiKey)
             val p = r.prestamo
             if (p != null && p.estado == "activo" && p.fin_ms > System.currentTimeMillis()) {
-                irSesion(p.id, p.estudiante, p.cedula, p.fin_ms)
+                irSesion(p)
+                return
+            }
+            // Equipo en mantenimiento → pantalla dedicada.
+            if (r.estado_equipo == "mantenimiento") {
+                startActivity(Intent(this, MantenimientoActivity::class.java))
+                finish()
                 return
             }
             // Equipo libre.
@@ -88,13 +122,14 @@ class EsperaActivity : AppCompatActivity() {
         else -> "Disponible"
     }
 
-    private fun irSesion(id: Long, nombre: String, cedula: String, finMs: Long) {
+    private fun irSesion(p: com.crai.chromebook.api.PrestamoDto) {
         val i = Intent(this, SesionActivity::class.java).apply {
             putExtra(SesionActivity.EXTRA_SERVIDOR, true)
-            putExtra(SesionActivity.EXTRA_PRESTAMO_ID, id)
-            putExtra(SesionActivity.EXTRA_NOMBRE, nombre)
-            putExtra(SesionActivity.EXTRA_CEDULA, cedula)
-            putExtra(SesionActivity.EXTRA_FIN_MS, finMs)
+            putExtra(SesionActivity.EXTRA_PRESTAMO_ID, p.id)
+            putExtra(SesionActivity.EXTRA_NOMBRE, p.estudiante)
+            putExtra(SesionActivity.EXTRA_CEDULA, p.cedula)
+            putExtra(SesionActivity.EXTRA_FIN_MS, p.fin_ms)
+            putExtra(SesionActivity.EXTRA_FOTO, p.foto_url)
         }
         startActivity(i)
         finish()

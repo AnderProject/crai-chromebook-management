@@ -15,6 +15,13 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+
+        // Defaults pre-cableados del kiosko: la app arranca ya configurada para
+        // la demo, sin que nadie tenga que escribir nada en la Chromebook. El
+        // personal aún puede sobreescribirlos desde ⚙ (protegido por PIN).
+        buildConfigField("String", "DEFAULT_SERVER_URL", "\"http://192.168.100.7:8000/\"")
+        buildConfigField("String", "DEFAULT_CODIGO", "\"CB-001\"")
+        buildConfigField("String", "DEFAULT_API_KEY", "\"crai-kiosko-2026\"")
     }
 
     buildTypes {
@@ -36,6 +43,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -58,6 +66,9 @@ dependencies {
     // Retrofit + Gson (Fase 4: sincronización con el backend Django)
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
+    // Coil: carga de la foto de perfil del estudiante en la sesión
+    implementation("io.coil-kt:coil:2.6.0")
 
     // WorkManager (sync diferido cuando vuelva la red)
     implementation("androidx.work:work-runtime-ktx:2.9.0")

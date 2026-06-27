@@ -47,6 +47,9 @@ class LockActivity : AppCompatActivity() {
 
         b.btnDesbloquear.setOnClickListener { pedirPin() }
 
+        // Al bloquear, la burbuja de tiempo ya no aplica.
+        stopService(Intent(this, com.crai.chromebook.service.OverlayService::class.java))
+
         if (modoServidor) {
             lifecycleScope.launch {
                 repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -57,6 +60,12 @@ class LockActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // En modo estricto el bloqueo fija la pantalla para que no puedan escapar.
+        if (prefs.kioskoEstricto) fijarPantalla()
     }
 
     /** True si el servidor ya no reporta un préstamo activo para este equipo. */
@@ -90,9 +99,22 @@ class LockActivity : AppCompatActivity() {
     }
 
     private fun salir() {
-        val destino = if (modoServidor || prefs.modoAuto) EsperaActivity::class.java else LoginActivity::class.java
-        startActivity(Intent(this, destino))
-        finish()
+        liberarPantalla() // quita el screen pinning al desbloquear legítimamente
+        if (modoServidor) {
+            // Si el bloqueo vino del dashboard, limpiamos el flag para que no se
+            // vuelva a bloquear; luego Espera reanuda la sesión si sigue vigente.
+            lifecycleScope.launch {
+                try {
+                    ApiClient.crear(prefs.servidorUrl).desbloquear(prefs.codigoEquipo, prefs.apiKey)
+                } catch (_: Exception) {
+                }
+                irEspera()
+            }
+        } else {
+            val destino = if (prefs.modoAuto) EsperaActivity::class.java else LoginActivity::class.java
+            startActivity(Intent(this, destino))
+            finish()
+        }
     }
 
     private fun irEspera() {

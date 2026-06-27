@@ -462,7 +462,10 @@ function verDetallePrestamo(id) {
                 
                 var estadoClass = data.data.estado === 'activo' ? 'success' : (data.data.estado === 'devuelto' ? 'info' : 'danger');
                 document.getElementById('detallePrestamoEstado').innerHTML = '<span class="badge bg-' + estadoClass + ' px-3 py-2"><strong>' + data.data.estado.toUpperCase() + '</strong></span>';
-                
+
+                // Botón de bloqueo remoto (solo para préstamos activos).
+                configurarBotonBloqueo(data.data.pk, data.data.estado === 'activo', data.data.bloqueado);
+
                 var fotoImg = document.getElementById('detalleFotoEvidencia');
                 var sinFoto = document.getElementById('detalleSinFoto');
                 if (data.data.foto_url) {
@@ -479,6 +482,63 @@ function verDetallePrestamo(id) {
             }
         });
 }
+
+// ---- Bloqueo remoto de la Chromebook desde el modal de detalle ----
+var _bloqueoPrestamoId = null;
+
+function configurarBotonBloqueo(pk, activo, bloqueado) {
+    _bloqueoPrestamoId = pk;
+    var btn = document.getElementById('btnBloquearChromebook');
+    if (!btn) { return; }
+    if (!activo) { btn.style.display = 'none'; return; }
+    btn.style.display = '';
+    pintarBotonBloqueo(bloqueado);
+}
+
+function pintarBotonBloqueo(bloqueado) {
+    var btn = document.getElementById('btnBloquearChromebook');
+    var txt = document.getElementById('btnBloquearTexto');
+    var ico = document.getElementById('btnBloquearIcono');
+    if (!btn) { return; }
+    btn.dataset.bloqueado = bloqueado ? '1' : '0';
+    if (bloqueado) {
+        btn.classList.add('btn-desbloquear-cb');
+        if (txt) { txt.textContent = 'Desbloquear Chromebook'; }
+        if (ico) { ico.className = 'bi bi-unlock-fill me-1'; }
+    } else {
+        btn.classList.remove('btn-desbloquear-cb');
+        if (txt) { txt.textContent = 'Bloquear Chromebook'; }
+        if (ico) { ico.className = 'bi bi-lock-fill me-1'; }
+    }
+}
+
+function alternarBloqueoChromebook() {
+    if (_bloqueoPrestamoId == null) { return; }
+    var btn = document.getElementById('btnBloquearChromebook');
+    var bloquear = btn && btn.dataset.bloqueado !== '1'; // si no está bloqueado, lo bloqueamos
+    if (btn) { btn.disabled = true; }
+
+    fetch('/prestamos/api/prestamo/' + _bloqueoPrestamoId + '/bloquear/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+        body: JSON.stringify({ bloquear: bloquear })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        if (btn) { btn.disabled = false; }
+        if (data.success) {
+            pintarBotonBloqueo(data.bloqueado);
+            if (window.mostrarToast) { mostrarToast(data.message, data.bloqueado ? 'warning' : 'success'); }
+        } else if (window.mostrarToast) {
+            mostrarToast(data.message || 'No se pudo cambiar el bloqueo.', 'error');
+        }
+    })
+    .catch(function () {
+        if (btn) { btn.disabled = false; }
+        if (window.mostrarToast) { mostrarToast('Error de conexión.', 'error'); }
+    });
+}
+
 function getCSRFToken() {
     var cookies = document.cookie.split(';');
     for (var i = 0; i < cookies.length; i++) {

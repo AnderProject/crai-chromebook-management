@@ -283,6 +283,34 @@
     </div>
 </div>
 
+<!-- MODAL: CANCELAR RESERVACIÓN (confirmación con cédula del personal) -->
+<div class="modal fade" id="modalCancelarReserva" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content mp">
+            <div class="mp-confirm-body">
+                <div class="mp-confirm-icono mp-icono-danger"><i class="bi bi-x-octagon"></i></div>
+                <h5 class="mp-confirm-titulo">Cancelar reservación</h5>
+                <p class="mp-confirm-texto">
+                    Vas a cancelar la reservación de
+                    <strong id="cancelarNombre">—</strong>. Esta acción no se puede deshacer.
+                </p>
+                <div class="mp-campo">
+                    <label class="mp-campo-label" for="cancelarCedula">Confirma con tu cédula</label>
+                    <input type="text" class="mp-input" id="cancelarCedula" inputmode="numeric"
+                           maxlength="10" autocomplete="off" placeholder="Cédula del personal CRAI">
+                    <div class="mp-input-error" id="cancelarError"></div>
+                </div>
+                <div class="mp-acciones">
+                    <button class="mp-btn mp-btn-soft" data-bs-dismiss="modal">Volver</button>
+                    <button class="mp-btn mp-btn-danger" id="btnCancelarReserva">
+                        <i class="bi bi-x-lg"></i>Cancelar reserva
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL: CONFIRMAR DEVOLUCIÓN -->
 <div class="modal fade" id="modalDevolucion" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -459,6 +487,10 @@
             <div class="detalle-modal-footer">
                 <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
                     <i class="bi bi-x-lg me-1"></i>Cerrar
+                </button>
+                <button class="btn btn-sm btn-bloquear-cb" id="btnBloquearChromebook" style="display:none;"
+                        onclick="alternarBloqueoChromebook()">
+                    <i class="bi bi-lock-fill me-1" id="btnBloquearIcono"></i><span id="btnBloquearTexto">Bloquear Chromebook</span>
                 </button>
             </div>
         </div>

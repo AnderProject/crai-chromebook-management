@@ -24,6 +24,7 @@ urlpatterns = [
 
     path('api/verificar-codigo/', views.verificar_codigo_reservacion, name='verificar_codigo_api'),
     path('api/revelar-codigo-reserva/', views.revelar_codigo_reserva, name='revelar_codigo_reserva'),
+    path('api/cancelar-reserva/', views.cancelar_reserva_admin, name='cancelar_reserva_admin'),
     path('api/confirmar-prestamo/', views.confirmar_prestamo, name='confirmar_prestamo_api'),
 
     path('api/buscar-chromebook/', views.api_buscar_chromebook, name='api_buscar_chromebook'),
@@ -39,6 +40,7 @@ urlpatterns = [
     path('api/verificar-evidencia/', views.api_verificar_evidencia, name='api_verificar_evidencia'),
     path('evidencia-foto/<str:nombre_archivo>/', views.servir_evidencia, name='servir_evidencia'),
     path('api/detalle-prestamo/<int:id>/', views.api_detalle_prestamo, name='api_detalle_prestamo'),
+    path('api/prestamo/<int:id>/bloquear/', views.api_bloquear_prestamo, name='api_bloquear_prestamo'),
     path('ficha-estudiantil/', views.ficha_estudiantil, name='ficha_estudiantil'),
     path('mantenimiento/', views.lista_mantenimientos, name='lista_mantenimientos'),
     path('mantenimiento/agregar/', views.agregar_mantenimiento, name='agregar_mantenimiento'),
@@ -68,6 +70,7 @@ urlpatterns = [
 
     # API de la app kiosko (instalada en cada Chromebook)
     path('api/kiosko/chromebook/<str:codigo>/estado/', views.api_kiosko_estado, name='api_kiosko_estado'),
+    path('api/kiosko/chromebook/<str:codigo>/desbloquear/', views.api_kiosko_desbloquear, name='api_kiosko_desbloquear'),
 
     # APIs de actualización en vivo (admin)
     path('api/dashboard-stats/', views.api_dashboard_stats, name='api_dashboard_stats'),

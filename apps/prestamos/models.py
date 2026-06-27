@@ -231,6 +231,7 @@ class Prestamo(models.Model):
     fecha_devolucion = models.DateTimeField()
     fecha_devuelto = models.DateTimeField(null=True, blank=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='activo')
+    bloqueado = models.BooleanField(default=False, verbose_name='Bloqueado remotamente')
     duracion_horas = models.IntegerField(default=4)
     codigo_verificacion = models.CharField(max_length=6, blank=True, null=True)
     notas = models.TextField(blank=True, null=True)
