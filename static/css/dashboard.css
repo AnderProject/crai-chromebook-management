@@ -321,16 +321,40 @@
 /* ==========================================
    BOTONES DEL DASHBOARD
    ========================================== */
+/* Botones de acción (icono) — estilo profesional reutilizable.
+   Relleno suave en reposo que se "llena" con color al pasar el cursor. */
 .btn-accion {
-    font-size: 0.85rem;
-    padding: 0.4rem 0.8rem;
-    border-radius: 0.3rem;
-    transition: all 0.2s;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 11px;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.18s ease, color 0.18s ease;
 }
 
 .btn-accion:hover {
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(20, 30, 70, 0.16);
 }
+
+.btn-accion.btn-outline-primary { background: #e8f0fb; color: #1a73e8; }
+.btn-accion.btn-outline-primary:hover { background: #1a73e8; color: #fff; }
+
+.btn-accion.btn-outline-warning { background: #fff4e0; color: #e08600; }
+.btn-accion.btn-outline-warning:hover { background: #e08600; color: #fff; }
+
+.btn-accion.btn-outline-success { background: #e7f6ec; color: #2e9e5b; }
+.btn-accion.btn-outline-success:hover { background: #2e9e5b; color: #fff; }
+
+.btn-accion.btn-outline-danger { background: #fde8e8; color: #e53935; }
+.btn-accion.btn-outline-danger:hover { background: #e53935; color: #fff; }
+
+.btn-accion.btn-outline-secondary { background: #eef0f6; color: #5a6080; }
+.btn-accion.btn-outline-secondary:hover { background: #5a6080; color: #fff; }
 
 /* ==========================================
    RESPONSIVE

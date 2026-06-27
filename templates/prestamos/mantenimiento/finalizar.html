@@ -7,6 +7,7 @@
 <link href="{% static 'css/base.css' %}" rel="stylesheet">
 <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
 <link href="{% static 'css/mantenimiento.css' %}" rel="stylesheet">
+<link href="{% static 'css/finalizar_mantenimiento.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block contenido %}
@@ -46,42 +47,85 @@
             {% include "prestamos/partials/_sidebar.html" with activo="mantenimiento" %}
 
             <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
-                
-                <div class="mb-4">
-                    <a href="{% url 'prestamos:lista_mantenimientos' %}" class="btn btn-outline-secondary btn-sm mb-3">
-                        <i class="bi bi-arrow-left me-1"></i>Volver
+
+                <div class="fm-wrap">
+
+                    <a href="{% url 'prestamos:lista_mantenimientos' %}" class="fm-volver">
+                        <i class="bi bi-arrow-left"></i> Volver a mantenimientos
                     </a>
-                    <h2 class="fw-bold"><i class="bi bi-check-circle me-2 text-success"></i>Finalizar Mantenimiento</h2>
-                </div>
-                
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3"><strong>Chromebook:</strong> {{ mantenimiento.chromebook.codigo }}</div>
-                            <div class="col-md-3"><strong>Marca:</strong> {{ mantenimiento.chromebook.marca }} {{ mantenimiento.chromebook.modelo }}</div>
-                            <div class="col-md-3"><strong>Tipo:</strong> {{ mantenimiento.tipo|title }}</div>
-                            <div class="col-md-3"><strong>Fecha Inicio:</strong> {{ mantenimiento.fecha_inicio|date:"d/m/Y" }}</div>
+
+                    <!-- Hero -->
+                    <div class="fm-hero">
+                        <div class="fm-hero-icono"><i class="bi bi-tools"></i></div>
+                        <div>
+                            <h2>Finalizar Mantenimiento</h2>
+                            <p>Registra la solución y devuelve el equipo a disponible</p>
                         </div>
-                        <hr>
-                        <p><strong>Problema:</strong> {{ mantenimiento.descripcion_problema|default:'No especificado' }}</p>
+                        <span class="fm-hero-chip">{{ mantenimiento.chromebook.codigo }}</span>
                     </div>
-                </div>
-                
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body p-4">
+
+                    <!-- Datos del equipo -->
+                    <div class="fm-card">
+                        <div class="fm-card-titulo">Datos del equipo</div>
+                        <div class="fm-datos">
+                            <div class="fm-dato">
+                                <i class="bi bi-laptop"></i>
+                                <div>
+                                    <div class="fm-dato-label">Chromebook</div>
+                                    <div class="fm-dato-valor">{{ mantenimiento.chromebook.codigo }}</div>
+                                </div>
+                            </div>
+                            <div class="fm-dato">
+                                <i class="bi bi-tag"></i>
+                                <div>
+                                    <div class="fm-dato-label">Marca / Modelo</div>
+                                    <div class="fm-dato-valor">{{ mantenimiento.chromebook.marca }} {{ mantenimiento.chromebook.modelo }}</div>
+                                </div>
+                            </div>
+                            <div class="fm-dato">
+                                <i class="bi bi-wrench-adjustable"></i>
+                                <div>
+                                    <div class="fm-dato-label">Tipo</div>
+                                    <div class="fm-dato-valor">{{ mantenimiento.tipo|title }}</div>
+                                </div>
+                            </div>
+                            <div class="fm-dato">
+                                <i class="bi bi-calendar-event"></i>
+                                <div>
+                                    <div class="fm-dato-label">Fecha de inicio</div>
+                                    <div class="fm-dato-valor">{{ mantenimiento.fecha_inicio|date:"d/m/Y" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fm-problema">
+                            <strong>Problema reportado:</strong>
+                            {{ mantenimiento.descripcion_problema|default:'No especificado' }}
+                        </div>
+                    </div>
+
+                    <!-- Formulario de solución -->
+                    <div class="fm-card">
+                        <div class="fm-card-titulo">Solución aplicada</div>
                         <form method="POST">
                             {% csrf_token %}
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold">Solución Aplicada</label>
-                                <textarea name="descripcion_solucion" class="form-control" rows="3" placeholder="Describe la solución aplicada..." required></textarea>
+                            <label class="fm-form-label" for="descripcion_solucion">
+                                Describe qué se hizo para resolver el problema
+                            </label>
+                            <textarea id="descripcion_solucion" name="descripcion_solucion" class="fm-textarea"
+                                      placeholder="Ej.: Se reemplazó el cargador y se actualizó ChromeOS. El equipo enciende y carga con normalidad." required></textarea>
+                            <div class="fm-acciones">
+                                <a href="{% url 'prestamos:lista_mantenimientos' %}" class="fm-btn fm-btn-cancelar">
+                                    <i class="bi bi-x-lg"></i> Cancelar
+                                </a>
+                                <button type="submit" class="fm-btn fm-btn-ok">
+                                    <i class="bi bi-check-circle"></i> Finalizar y liberar equipo
+                                </button>
                             </div>
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-check-circle me-1"></i>Finalizar Mantenimiento
-                            </button>
                         </form>
                     </div>
+
                 </div>
-                
+
             </main>
         </div>
     </div>

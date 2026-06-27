@@ -11,16 +11,21 @@ import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import coil.load
+import coil.transform.CircleCropTransformation
 import com.crai.chromebook.R
 import com.crai.chromebook.api.ApiClient
 import com.crai.chromebook.data.Prefs
 import com.crai.chromebook.ui.EsperaActivity
 import com.crai.chromebook.ui.LockActivity
+import kotlin.math.hypot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -49,6 +54,9 @@ class OverlayService : Service() {
         const val EXTRA_FIN_MS = "fin_ms"
         const val EXTRA_PRESTAMO_ID = "prestamo_id"
         const val EXTRA_SERVIDOR = "modo_servidor"
+        const val EXTRA_FOTO = "foto_url"
+        const val EXTRA_NOMBRE = "nombre"
+        const val EXTRA_CEDULA = "cedula"
         const val ACTION_STOP = "com.crai.chromebook.OVERLAY_STOP"
         private const val CANAL_ID = "kiosko_overlay"
         private const val NOTIF_ID = 4711
@@ -58,11 +66,19 @@ class OverlayService : Service() {
     private val prefs by lazy { Prefs(this) }
     private var wm: WindowManager? = null
     private var vista: View? = null
+    private var lp: WindowManager.LayoutParams? = null
     private var txt: TextView? = null
+    private var vInfo: View? = null
+    private var vFoto: View? = null
+    private var vColapsado: View? = null
+    private var colapsado = true // arranca oculto/compacto para no estorbar
 
     private var finMs = 0L
     private var prestamoId = 0L
     private var modoServidor = false
+    private var fotoUrl: String? = null
+    private var nombre = ""
+    private var cedula = ""
     private var terminando = false
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -79,6 +95,9 @@ class OverlayService : Service() {
         finMs = intent?.getLongExtra(EXTRA_FIN_MS, 0L) ?: 0L
         prestamoId = intent?.getLongExtra(EXTRA_PRESTAMO_ID, 0L) ?: 0L
         modoServidor = intent?.getBooleanExtra(EXTRA_SERVIDOR, false) ?: false
+        intent?.getStringExtra(EXTRA_FOTO)?.let { fotoUrl = it }
+        intent?.getStringExtra(EXTRA_NOMBRE)?.let { nombre = it }
+        intent?.getStringExtra(EXTRA_CEDULA)?.let { cedula = it }
         arrancarPrimerPlano()
         mostrarBurbuja()
         iniciarConteo()
@@ -114,18 +133,29 @@ class OverlayService : Service() {
         wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val v = LayoutInflater.from(this).inflate(R.layout.overlay_tiempo, null)
         txt = v.findViewById(R.id.overlayTiempo)
+        vInfo = v.findViewById(R.id.overlayInfo)
+        vFoto = v.findViewById(R.id.overlayFoto)
+        vColapsado = v.findViewById(R.id.overlayColapsado)
+
+        // Foto de perfil del estudiante junto al tiempo (si la tiene).
+        fotoUrl?.takeIf { it.isNotBlank() }?.let { url ->
+            v.findViewById<ImageView>(R.id.overlayFoto).load(url) {
+                placeholder(R.drawable.ic_avatar)
+                error(R.drawable.ic_avatar)
+                transformations(CircleCropTransformation())
+            }
+        }
 
         val tipo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         else
             @Suppress("DEPRECATION") WindowManager.LayoutParams.TYPE_PHONE
 
-        val lp = WindowManager.LayoutParams(
+        val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             tipo,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         ).apply {
@@ -133,14 +163,60 @@ class OverlayService : Service() {
             x = dp(12)
             y = dp(12)
         }
+        lp = params
+
+        // Arranca compacto (círculo con reloj) para no estorbar.
+        aplicarColapso()
+
+        // Arrastrar para mover; 1 toque (sin arrastrar) = expandir/compactar.
+        var downX = 0f; var downY = 0f; var startX = 0; var startY = 0; var arrastrando = false
+        v.setOnTouchListener { _, e ->
+            when (e.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    downX = e.rawX; downY = e.rawY
+                    startX = params.x; startY = params.y; arrastrando = false; true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = e.rawX - downX; val dy = e.rawY - downY
+                    if (!arrastrando && hypot(dx, dy) > dp(8)) arrastrando = true
+                    if (arrastrando) {
+                        params.x = (startX - dx).toInt().coerceAtLeast(0) // gravedad END
+                        params.y = (startY + dy).toInt().coerceAtLeast(0) // gravedad TOP
+                        try { wm?.updateViewLayout(v, params) } catch (_: Exception) {}
+                    }
+                    true
+                }
+                MotionEvent.ACTION_UP -> { if (!arrastrando) alternarColapso(); true }
+                else -> false
+            }
+        }
+
+        // Con mouse/trackpad: al pasar el cursor se revela; al salir se oculta.
+        v.setOnHoverListener { _, e ->
+            when (e.action) {
+                MotionEvent.ACTION_HOVER_ENTER -> { expandir(); true }
+                MotionEvent.ACTION_HOVER_EXIT -> { colapsar(); true }
+                else -> false
+            }
+        }
 
         try {
-            wm?.addView(v, lp)
+            wm?.addView(v, params)
             vista = v
         } catch (_: Exception) {
             // Sin permiso de overlay: la sesión sigue, solo no se ve la burbuja.
         }
     }
+
+    private fun aplicarColapso() {
+        vColapsado?.visibility = if (colapsado) View.VISIBLE else View.GONE
+        vFoto?.visibility = if (colapsado) View.GONE else View.VISIBLE
+        vInfo?.visibility = if (colapsado) View.GONE else View.VISIBLE
+    }
+
+    private fun alternarColapso() { colapsado = !colapsado; aplicarColapso() }
+    private fun expandir() { if (colapsado) { colapsado = false; aplicarColapso() } }
+    private fun colapsar() { if (!colapsado) { colapsado = true; aplicarColapso() } }
 
     private fun iniciarConteo() {
         tarea?.cancel()
@@ -151,7 +227,7 @@ class OverlayService : Service() {
                 val restante = (finMs - System.currentTimeMillis()).coerceAtLeast(0)
                 pintar(restante)
                 if (restante <= 0L) { abrirBloqueo(); break }
-                if (modoServidor && tick % 10 == 0) consultarServidor()
+                if (modoServidor && tick % 3 == 0) consultarServidor()
                 if (terminando) break
                 tick++
                 delay(1000L)

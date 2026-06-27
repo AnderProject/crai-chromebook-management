@@ -43,7 +43,7 @@ class SesionActivity : AppCompatActivity() {
         const val EXTRA_CEDULA = "cedula"
         const val EXTRA_FIN_MS = "fin_ms"
         const val EXTRA_FOTO = "foto_url"
-        private const val SEGUNDOS_BIENVENIDA = 12
+        const val EXTRA_FIJO = "vista_fija"
     }
 
     private lateinit var b: ActivitySesionBinding
@@ -81,36 +81,51 @@ class SesionActivity : AppCompatActivity() {
         val fotoUrl = intent.getStringExtra(EXTRA_FOTO)
         duracionTotalMs = (finMs - System.currentTimeMillis()).coerceAtLeast(1)
 
+        val fijo = intent.getBooleanExtra(EXTRA_FIJO, false)
+
         b.txtNombre.text = nombre
         b.txtCedula.text = cedula
-        b.btnDevolver.visibility = View.GONE // la devolución se hace en el sistema
-        liberarPantalla() // durante la sesión NO se fija: el estudiante usa el equipo
         cargarFoto(fotoUrl)
 
-        // El servicio toma el control del conteo/bloqueo/polling y la burbuja.
-        iniciarServicioOverlay()
+        if (fijo) {
+            // Vista GRANDE y FIJA (abierta con doble clic en el widget flotante).
+            fijarPantalla()
+            b.btnDevolver.visibility = View.VISIBLE
+            b.btnDevolver.text = "Minimizar"
+            b.btnDevolver.setOnClickListener { liberarPantalla(); moveTaskToBack(true) }
+            tickerVisual()
+        } else {
+            // Modo normal: el servicio toma el control (burbuja + conteo + bloqueo)
+            // y la app se MINIMIZA al instante para liberar la Chromebook.
+            b.btnDevolver.visibility = View.GONE
+            liberarPantalla()
+            iniciarServicioOverlay(nombre, cedula, fotoUrl)
+            b.root.post { moveTaskToBack(true) }
+        }
+    }
 
-        // Bienvenida: muestra los datos ~12s y luego minimiza para liberar el equipo.
+    /** Cuenta regresiva solo para mostrar (la sesión la gobierna el servicio). */
+    private fun tickerVisual() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                var segundos = 0
                 while (true) {
                     val restante = (finMs - System.currentTimeMillis()).coerceAtLeast(0)
                     pintar(restante)
                     if (restante <= 0L) break // el servicio abrirá el bloqueo
-                    if (segundos >= SEGUNDOS_BIENVENIDA) { moveTaskToBack(true); break }
-                    segundos++
                     delay(1000L)
                 }
             }
         }
     }
 
-    private fun iniciarServicioOverlay() {
+    private fun iniciarServicioOverlay(nombre: String, cedula: String, fotoUrl: String?) {
         val i = Intent(this, OverlayService::class.java).apply {
             putExtra(OverlayService.EXTRA_FIN_MS, finMs)
             putExtra(OverlayService.EXTRA_PRESTAMO_ID, prestamoId)
             putExtra(OverlayService.EXTRA_SERVIDOR, true)
+            putExtra(OverlayService.EXTRA_FOTO, fotoUrl)
+            putExtra(OverlayService.EXTRA_NOMBRE, nombre)
+            putExtra(OverlayService.EXTRA_CEDULA, cedula)
         }
         ContextCompat.startForegroundService(this, i)
     }

@@ -26,7 +26,7 @@ class MantenimientoActivity : AppCompatActivity() {
 
     private lateinit var b: ActivityMantenimientoBinding
     private val prefs by lazy { Prefs(this) }
-    private val intervaloMs = 8000L
+    private val intervaloMs = 3000L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

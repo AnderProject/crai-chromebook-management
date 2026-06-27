@@ -250,6 +250,18 @@ class Prestamo(models.Model):
     def __str__(self):
         return f'Préstamo #{self.id} - {self.estudiante.username}'
 
+    @property
+    def bloqueado_efectivo(self):
+        """True si la Chromebook está (o debería estar) bloqueada ahora mismo:
+        bloqueo remoto desde el dashboard, o préstamo activo cuyo tiempo ya venció
+        (sigue 'activo' porque aún no se devuelve en el sistema)."""
+        from django.utils import timezone
+        if self.estado != 'activo':
+            return False
+        if self.bloqueado:
+            return True
+        return bool(self.fecha_devolucion and self.fecha_devolucion < timezone.now())
+
 
 # ==========================================
 # TABLAS DE SOPORTE (NUEVAS)

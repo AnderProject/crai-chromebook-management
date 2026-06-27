@@ -89,7 +89,21 @@
                     <i class="bi bi-chevron-right"></i>
                 </div>
             </a>
-            
+
+            <!-- Bot de WhatsApp -->
+            <a href="{{ whatsapp_url|default:'#' }}" {% if whatsapp_url %}target="_blank" rel="noopener"{% endif %} class="accion-card">
+                <div class="accion-icono bg-whatsapp">
+                    <i class="bi bi-whatsapp"></i>
+                </div>
+                <div class="accion-info">
+                    <h4>Reserva por WhatsApp</h4>
+                    <p>Chatea con el bot del CRAI desde tu celular</p>
+                </div>
+                <div class="accion-flecha">
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+            </a>
+
         </div>
         
         <!-- Actividad reciente -->

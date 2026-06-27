@@ -15,7 +15,8 @@
             {% endif %}
         </td>
         <td>
-            {% if prestamo.estado == 'activo' %}<span class="badge-estado badge-activo">Activo</span>
+            {% if prestamo.bloqueado_efectivo %}<span class="badge-estado badge-vencido"><i class="bi bi-lock-fill me-1"></i>Bloqueado</span>
+            {% elif prestamo.estado == 'activo' %}<span class="badge-estado badge-activo">Activo</span>
             {% elif prestamo.estado == 'devuelto' %}<span class="badge-estado badge-devuelto">Devuelto</span>
             {% elif prestamo.estado == 'reservado' %}<span class="badge-estado badge-reservado">Reservado</span>
             {% else %}<span class="badge-estado badge-vencido">Vencido</span>{% endif %}

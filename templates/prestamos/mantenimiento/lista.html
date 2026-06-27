@@ -132,8 +132,8 @@
                                         <td>{% if m.estado == 'en_proceso' %}<span class="badge bg-warning text-dark">En proceso</span>{% else %}<span class="badge bg-success">Finalizado</span>{% endif %}</td>
                                         <td>
                                             {% if m.estado == 'en_proceso' %}
-                                            <button class="btn btn-sm btn-outline-warning me-1" title="Editar" onclick="editarMantenimiento('{{ m.id }}')"><i class="bi bi-pencil"></i></button>
-                                            <a href="{% url 'prestamos:finalizar_mantenimiento' m.id %}" class="btn btn-sm btn-outline-success"><i class="bi bi-check-circle"></i> Finalizar</a>
+                                            <button class="btn btn-sm btn-outline-warning btn-accion me-1" title="Editar" onclick="editarMantenimiento('{{ m.id }}')"><i class="bi bi-pencil"></i></button>
+                                            <a href="{% url 'prestamos:finalizar_mantenimiento' m.id %}" class="btn btn-sm btn-outline-success" title="Finalizar"><i class="bi bi-check-circle me-1"></i>Finalizar</a>
                                             {% else %}
                                             <span class="text-muted small">—</span>
                                             {% endif %}

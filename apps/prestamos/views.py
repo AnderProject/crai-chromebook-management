@@ -1269,55 +1269,72 @@ def agregar_mantenimiento(request):
     """Formulario para registrar un nuevo mantenimiento"""
     from .models import Chromebook
     from django.contrib import messages
-    
+    from django.utils import timezone
+
     if request.method == 'POST':
-        chromebook_id = request.POST.get('chromebook_id')
-        tipo = request.POST.get('tipo')
-        descripcion_problema = request.POST.get('descripcion_problema')
-        tecnico = request.POST.get('tecnico')
-        costo = request.POST.get('costo', 0)
+        chromebook_id = request.POST.get('chromebook_id', '').strip()
+        tipo = request.POST.get('tipo', '').strip()
+        descripcion_problema = request.POST.get('descripcion_problema', '').strip()
+        tecnico = request.POST.get('tecnico', '').strip()
+        costo = request.POST.get('costo', '').strip()
         en_garantia = request.POST.get('en_garantia') == '1'
-        fecha_inicio = request.POST.get('fecha_inicio')
+        fecha_inicio = request.POST.get('fecha_inicio', '').strip()
 
-        try:
-            chromebook = Chromebook.objects.get(id=chromebook_id)
+        # Validación de obligatorios: evita que el formulario en blanco rompa el servidor.
+        if not chromebook_id.isdigit():
+            messages.error(request, 'Selecciona un Chromebook válido.')
+        elif not tipo:
+            messages.error(request, 'Selecciona el tipo de mantenimiento.')
+        else:
+            try:
+                chromebook = Chromebook.objects.get(id=int(chromebook_id))
 
-            # La garantía manda sobre el costo: si el equipo está en garantía vigente,
-            # el mantenimiento no tiene costo (0) y queda marcado en garantía,
-            # independientemente de lo que llegue del formulario.
-            if chromebook.en_garantia_vigente:
-                en_garantia = True
-                costo = 0
-            else:
-                en_garantia = False
+                # Costo numérico tolerante (vacío → 0).
+                try:
+                    costo = float(costo) if costo else 0
+                except (ValueError, TypeError):
+                    costo = 0
 
-            # Crear mantenimiento
-            from .models import Mantenimiento
-            Mantenimiento.objects.create(
-                chromebook=chromebook,
-                tipo=tipo,
-                descripcion_problema=descripcion_problema,
-                tecnico=tecnico,
-                costo=costo,
-                en_garantia=en_garantia,
-                fecha_inicio=fecha_inicio,
-                estado='en_proceso',
-                registrado_por=request.user
-            )
-            
-            # Actualizar estado y condición del Chromebook.
-            # Correctivo = algo se dañó -> 'malo'; Preventivo = revisión -> 'regular'.
-            # Al finalizar el mantenimiento la condición vuelve a 'bueno'.
-            chromebook.estado = 'mantenimiento'
-            chromebook.condicion = 'malo' if tipo == 'correctivo' else 'regular'
-            chromebook.save()
-            
-            messages.success(request, f'{chromebook.codigo} enviado a mantenimiento.')
-            return redirect('prestamos:lista_mantenimientos')
-            
-        except Chromebook.DoesNotExist:
-            messages.error(request, 'Chromebook no encontrado.')
-    
+                # Fecha vacía o inválida → hoy.
+                if not fecha_inicio:
+                    fecha_inicio = timezone.localdate()
+
+                # La garantía manda sobre el costo: si el equipo está en garantía vigente,
+                # el mantenimiento no tiene costo (0) y queda marcado en garantía,
+                # independientemente de lo que llegue del formulario.
+                if chromebook.en_garantia_vigente:
+                    en_garantia = True
+                    costo = 0
+                else:
+                    en_garantia = False
+
+                # Crear mantenimiento
+                from .models import Mantenimiento
+                Mantenimiento.objects.create(
+                    chromebook=chromebook,
+                    tipo=tipo,
+                    descripcion_problema=descripcion_problema,
+                    tecnico=tecnico,
+                    costo=costo,
+                    en_garantia=en_garantia,
+                    fecha_inicio=fecha_inicio,
+                    estado='en_proceso',
+                    registrado_por=request.user
+                )
+
+                # Actualizar estado y condición del Chromebook.
+                # Correctivo = algo se dañó -> 'malo'; Preventivo = revisión -> 'regular'.
+                # Al finalizar el mantenimiento la condición vuelve a 'bueno'.
+                chromebook.estado = 'mantenimiento'
+                chromebook.condicion = 'malo' if tipo == 'correctivo' else 'regular'
+                chromebook.save()
+
+                messages.success(request, f'{chromebook.codigo} enviado a mantenimiento.')
+                return redirect('prestamos:lista_mantenimientos')
+
+            except Chromebook.DoesNotExist:
+                messages.error(request, 'Chromebook no encontrado.')
+
     chromebooks = Chromebook.objects.filter(estado__in=['disponible', 'prestado'])
     
     contexto = {

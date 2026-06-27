@@ -54,8 +54,8 @@ class LockActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 repeatOnLifecycle(Lifecycle.State.STARTED) {
                     while (true) {
-                        if (prestamoCerrado()) { irEspera(); break }
-                        delay(10000L)
+                        if (debeDesbloquear()) { irEspera(); break }
+                        delay(2500L)
                     }
                 }
             }
@@ -68,12 +68,21 @@ class LockActivity : AppCompatActivity() {
         if (prefs.kioskoEstricto) fijarPantalla()
     }
 
-    /** True si el servidor ya no reporta un préstamo activo para este equipo. */
-    private suspend fun prestamoCerrado(): Boolean = try {
-        val api = ApiClient.crear(prefs.servidorUrl)
-        val r = api.estado(prefs.codigoEquipo, prefs.apiKey)
+    /**
+     * Decide, según el servidor, si la Chromebook debe SALIR del bloqueo:
+     *  - préstamo devuelto/cerrado → vuelve a Espera (Disponible);
+     *  - préstamo activo, SIN bloqueo remoto y con tiempo vigente → reanuda la
+     *    sesión (cubre el desbloqueo desde el dashboard y la extensión de tiempo).
+     * Si el bloqueo es por tiempo vencido (sin tiempo) o sigue bloqueado en el
+     * sistema, permanece bloqueada.
+     */
+    private suspend fun debeDesbloquear(): Boolean = try {
+        val r = ApiClient.crear(prefs.servidorUrl).estado(prefs.codigoEquipo, prefs.apiKey)
         val p = r.prestamo
-        p == null || p.estado != "activo"
+        when {
+            p == null || p.estado != "activo" -> true
+            else -> !p.bloqueado && p.fin_ms > System.currentTimeMillis()
+        }
     } catch (_: Exception) {
         false
     }

@@ -1,14 +1,19 @@
 package com.crai.chromebook.ui
 
+import android.animation.ObjectAnimator
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.crai.chromebook.R
 import com.crai.chromebook.api.ApiClient
 import com.crai.chromebook.data.Prefs
 import com.crai.chromebook.databinding.ActivityEsperaBinding
@@ -28,7 +33,7 @@ class EsperaActivity : AppCompatActivity() {
 
     private lateinit var b: ActivityEsperaBinding
     private val prefs by lazy { Prefs(this) }
-    private val intervaloMs = 8000L
+    private val intervaloMs = 2500L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +50,7 @@ class EsperaActivity : AppCompatActivity() {
 
         recargar()
         pedirPermisoOverlay()
+        animarPulso()
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -107,6 +113,7 @@ class EsperaActivity : AppCompatActivity() {
             }
             // Equipo libre.
             b.txtEstado.text = traducirEstado(r.estado_equipo)
+            pintarDot(r.estado_equipo)
             b.txtSub.text = "Esperando una reserva desde el sistema…"
             b.txtConexion.text = "Conectado · ${hora()}"
         } catch (e: Exception) {
@@ -120,6 +127,31 @@ class EsperaActivity : AppCompatActivity() {
         "mantenimiento" -> "En mantenimiento"
         "prestado" -> "Prestado"
         else -> "Disponible"
+    }
+
+    /** Pinta el punto de estado: verde disponible, ámbar reservado, rojo ocupado. */
+    private fun pintarDot(estado: String?) {
+        val color = when (estado) {
+            "reservado" -> R.color.ambar
+            "prestado", "mantenimiento" -> R.color.rojo
+            else -> R.color.verde
+        }
+        b.dot.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, color))
+    }
+
+    /** Pulso animado detrás del icono (sensación de "en línea / disponible"). */
+    private fun animarPulso() {
+        val v: View = b.pulse
+        listOf(
+            ObjectAnimator.ofFloat(v, View.SCALE_X, 1f, 1.7f),
+            ObjectAnimator.ofFloat(v, View.SCALE_Y, 1f, 1.7f),
+            ObjectAnimator.ofFloat(v, View.ALPHA, 0.5f, 0f)
+        ).forEach {
+            it.duration = 1700
+            it.repeatCount = ObjectAnimator.INFINITE
+            it.repeatMode = ObjectAnimator.RESTART
+            it.start()
+        }
     }
 
     private fun irSesion(p: com.crai.chromebook.api.PrestamoDto) {

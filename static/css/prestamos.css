@@ -408,34 +408,83 @@
 
 .prestamo-item {
     background: var(--blanco);
-    border-radius: 10px;
-    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    padding: 0.7rem 0.85rem;
     border-left: 4px solid var(--borde);
-    margin-bottom: 0.5rem;
-    transition: all 0.2s;
+    margin-bottom: 0.55rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 1px 3px rgba(20, 30, 70, 0.05);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    /* Entrada escalonada (solo se reproduce cuando la lista cambia) */
+    opacity: 0;
+    animation: phEntrar 0.45s ease forwards;
+    animation-delay: calc(var(--d, 0) * 55ms);
+}
+
+@keyframes phEntrar {
+    from { opacity: 0; transform: translateY(10px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .prestamo-item:hover {
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    transform: translateX(3px);
+    box-shadow: 0 6px 16px rgba(20, 30, 70, 0.12);
 }
 
-.prestamo-item.activo {
-    border-left-color: var(--exito);
-}
+.prestamo-item.activo { border-left-color: var(--exito); }
+.prestamo-item.proximo { border-left-color: var(--advertencia); }
+.prestamo-item.vencido { border-left-color: var(--error); }
 
-.prestamo-item.proximo {
-    border-left-color: var(--advertencia);
+/* Avatar con iniciales */
+.ph-avatar {
+    width: 40px; height: 40px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a73e8, #1557b0);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
 }
+.prestamo-item.activo .ph-avatar { background: linear-gradient(135deg, #1f8a4c, #2e9e5b); }
+.prestamo-item.vencido .ph-avatar { background: linear-gradient(135deg, #c0392b, #e74c3c); }
+.prestamo-item.proximo .ph-avatar { background: linear-gradient(135deg, #d98a00, #e08600); }
 
-.prestamo-item.vencido {
-    border-left-color: var(--error);
+.ph-info { flex: 1; min-width: 0; }
+.ph-top { display: flex; align-items: center; gap: 0.4rem; }
+.ph-nombre {
+    font-size: 0.88rem;
+    color: #2b2f4a;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.ph-id { font-size: 0.68rem; color: #98a0bb; font-weight: 700; }
+.ph-sub { font-size: 0.74rem; color: #8a90a8; margin-top: 1px; }
+.ph-sub i { font-size: 0.72rem; }
+.ph-punto { margin: 0 0.25rem; opacity: 0.5; }
 
-.prestamo-item-contenido {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* Pastilla de estado */
+.ph-estado {
+    flex-shrink: 0;
+    font-size: 0.66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.28em 0.6em;
+    border-radius: 20px;
+    color: #fff;
 }
+.ph-activo { background: #2e9e5b; }
+.ph-reservado { background: #1a73e8; }
+.ph-vencido { background: #e74c3c; }
+
+.prestamos-hoy-vacio {
+    display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+    color: #98a0bb; font-size: 0.85rem; padding: 1.6rem 0;
+}
+.prestamos-hoy-vacio i { font-size: 1.6rem; opacity: 0.6; }
 
 /* Badge estado */
 .badge-estado {

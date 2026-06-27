@@ -106,11 +106,18 @@ def portal_estudiante(request):
     """Portal principal del estudiante con datos reales"""
     actividad, disponibles, total_chromebooks = construir_actividad(request.user)
 
+    numero_wa = getattr(settings, 'WHATSAPP_NUMERO', '') or ''
+    whatsapp_url = (
+        f'https://wa.me/{numero_wa}?text=Hola,%20soy%20estudiante%20de%20la%20UNEMI'
+        if numero_wa else ''
+    )
+
     contexto = {
         'titulo_pagina': 'Portal Estudiante - CRAI UNEMI',
         'total_chromebooks': total_chromebooks,
         'disponibles': disponibles,
         'actividad': actividad,
+        'whatsapp_url': whatsapp_url,
     }
     return render(request, 'estudiantes/portal.html', contexto)
 

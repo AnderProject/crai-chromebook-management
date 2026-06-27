@@ -177,14 +177,14 @@
                                             {% else %}<span class="badge bg-danger">Malo</span>{% endif %}
                                         </td>
                                         <td>
-                                            <button class="btn btn-sm btn-outline-primary me-1" title="Ver detalle" onclick="verDetalleChromebook('{{ cb.id }}')">
+                                            <button class="btn btn-sm btn-outline-primary btn-accion me-1" title="Ver detalle" onclick="verDetalleChromebook('{{ cb.id }}')">
                                                 <i class="bi bi-eye"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-warning me-1" title="Editar" onclick="editarChromebook('{{ cb.id }}')">
+                                            <button class="btn btn-sm btn-outline-warning btn-accion me-1" title="Editar" onclick="editarChromebook('{{ cb.id }}')">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
                                             {% if cb.estado_efectivo == 'disponible' %}
-                                            <a href="{% url 'prestamos:lista_prestamos' %}" class="btn btn-sm btn-outline-success" title="Prestar equipo">
+                                            <a href="{% url 'prestamos:lista_prestamos' %}" class="btn btn-sm btn-outline-success btn-accion" title="Prestar equipo">
                                                 <i class="bi bi-journal-plus"></i>
                                             </a>
                                             {% endif %}

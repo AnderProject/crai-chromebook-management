@@ -1,22 +1,24 @@
 {% if prestamos_hoy %}
     {% for p in prestamos_hoy %}
-    <div class="prestamo-item {% if p.estado == 'activo' %}activo{% elif p.estado == 'vencido' %}vencido{% else %}proximo{% endif %}">
-        <div class="prestamo-item-contenido">
-            <div>
-                <span class="badge bg-light text-dark me-2">#{{ p.id|stringformat:"03d" }}</span>
-                <strong class="small">{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong>
-                <div class="small text-muted mt-1">
-                    {{ p.chromebook.codigo }}
-                    <span class="mx-1">•</span>
-                    {{ p.fecha_prestamo|date:"H:i" }} - {{ p.fecha_devolucion|date:"H:i" }}
-                    <span class="badge {% if p.estado == 'activo' %}bg-success{% elif p.estado == 'reservado' %}bg-primary{% else %}bg-danger{% endif %} ms-1 badge-estado">{{ p.estado }}</span>
-                </div>
+    <div class="prestamo-item {% if p.estado == 'activo' %}activo{% elif p.estado == 'vencido' %}vencido{% else %}proximo{% endif %}" style="--d: {{ forloop.counter0 }};">
+        <div class="ph-avatar">{{ p.estudiante.first_name|first|upper }}{{ p.estudiante.last_name|first|upper }}</div>
+        <div class="ph-info">
+            <div class="ph-top">
+                <strong class="ph-nombre">{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong>
+                <span class="ph-id">#{{ p.id|stringformat:"03d" }}</span>
+            </div>
+            <div class="ph-sub">
+                <i class="bi bi-laptop"></i> {{ p.chromebook.codigo }}
+                <span class="ph-punto">•</span>
+                <i class="bi bi-clock"></i> {{ p.fecha_prestamo|date:"H:i" }}–{{ p.fecha_devolucion|date:"H:i" }}
             </div>
         </div>
+        <span class="ph-estado ph-{{ p.estado }}">{{ p.estado }}</span>
     </div>
     {% endfor %}
 {% else %}
-    <div class="text-center text-muted small py-3">
-        <i class="bi bi-inbox"></i> No hay préstamos activos hoy
+    <div class="prestamos-hoy-vacio">
+        <i class="bi bi-inbox"></i>
+        <span>No hay préstamos activos hoy</span>
     </div>
 {% endif %}
