@@ -351,30 +351,38 @@
 <!-- MODAL: EVIDENCIA DE DEVOLUCIÓN (QR) -->
 <div class="modal fade" id="modalQREvidenciaDev" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-            <div class="modal-body text-center p-4">
-                <h5 class="fw-bold mb-1"><i class="bi bi-camera text-warning"></i> Evidencia de Devolución</h5>
-                <p class="text-muted small mb-2" id="devEquipoTexto">Toma una foto del equipo antes de devolverlo</p>
-                <p class="text-muted small mb-3">Escanea el QR con tu celular para tomar la foto del equipo</p>
-                <div id="qrContainerDev" style="background: #f8f9fa; padding: 1rem; border-radius: 12px; display: inline-block;">
-                    <img id="qrImagenDev" src="" alt="QR" style="width: 200px; height: 200px;">
+        <div class="modal-content mp">
+            <div class="mp-header">
+                <h5 class="mp-title"><i class="bi bi-camera"></i>Evidencia de devolución</h5>
+                <button type="button" class="mp-close" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="mp-body text-center">
+                <p class="mp-evidencia-nota" id="devEquipoTexto">Toma una foto del equipo antes de devolverlo</p>
+                <p class="mp-evidencia-nota">Escanea el QR con tu celular para tomar la foto del equipo</p>
+
+                <div id="qrContainerDev" class="mp-qr-box" style="display: inline-block;">
+                    <img id="qrImagenDev" src="" alt="QR">
                 </div>
-                <div id="vistaPreviaContainerDev" style="display: none; margin-top: 1rem;">
-                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
-                    <p class="small text-success fw-bold mt-2">¡Foto recibida correctamente!</p>
+
+                <div id="vistaPreviaContainerDev" class="mp-preview" style="display: none;">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 3.2rem;"></i>
+                    <p class="small text-success fw-bold mt-2 mb-0">¡Foto recibida correctamente!</p>
                 </div>
-                <p class="small text-warning mt-2"><i class="bi bi-clock"></i> El QR se renueva automáticamente</p>
-                <p class="small mt-2" id="estadoEvidenciaDev">Esperando foto...</p>
-                <button class="btn btn-warning w-100 mt-2" onclick="confirmarDevolucionFinal()" id="btnConfirmarDev" disabled>
-                    <i class="bi bi-check-lg me-1"></i>Confirmar devolución
+
+                <p class="mp-evidencia-nota"><i class="bi bi-clock"></i> El QR se renueva automáticamente</p>
+                <p class="mp-estado" id="estadoEvidenciaDev">Esperando foto...</p>
+
+                <button class="mp-btn mp-btn-success mp-btn-full" onclick="confirmarDevolucionFinal()" id="btnConfirmarDev" disabled>
+                    <i class="bi bi-check-lg"></i>Confirmar devolución
                 </button>
-                <button class="btn btn-link btn-sm text-muted w-100 mt-1" onclick="devolverSinEvidencia()">
-                    Devolver sin evidencia
+                <button class="mp-btn mp-btn-soft mp-btn-full" style="margin-top: 0.6rem;" onclick="devolverSinEvidencia()">
+                    <i class="bi bi-box-arrow-in-left"></i>Devolver sin evidencia
                 </button>
             </div>
         </div>
     </div>
 </div>
+
 
 
 <!-- MODAL: EVIDENCIA (WEBCAM / QR) -->
@@ -491,12 +499,12 @@
 
             <!-- Footer -->
             <div class="detalle-modal-footer">
-                <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
-                    <i class="bi bi-x-lg me-1"></i>Cerrar
+                <button class="mp-btn mp-btn-soft" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i>Cerrar
                 </button>
-                <button class="btn btn-sm btn-bloquear-cb" id="btnBloquearChromebook" style="display:none;"
+                <button class="mp-btn btn-bloquear-cb" id="btnBloquearChromebook" style="display:none;"
                         onclick="alternarBloqueoChromebook()">
-                    <i class="bi bi-lock-fill me-1" id="btnBloquearIcono"></i><span id="btnBloquearTexto">Bloquear Chromebook</span>
+                    <i class="bi bi-lock-fill" id="btnBloquearIcono"></i><span id="btnBloquearTexto">Bloquear Chromebook</span>
                 </button>
             </div>
         </div>
