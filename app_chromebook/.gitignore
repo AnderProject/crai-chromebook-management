@@ -9,3 +9,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+# APK de distribucion (binario grande, se regenera con gradlew assembleDebug)
+*.apk
