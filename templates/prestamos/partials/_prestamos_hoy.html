@@ -1,7 +1,7 @@
 {% if prestamos_hoy %}
     {% for p in prestamos_hoy %}
     <div class="prestamo-item {% if p.estado == 'activo' %}activo{% elif p.estado == 'vencido' %}vencido{% else %}proximo{% endif %}" style="--d: {{ forloop.counter0 }};">
-        <div class="ph-avatar">{{ p.estudiante.first_name|first|upper }}{{ p.estudiante.last_name|first|upper }}</div>
+        {% include 'prestamos/partials/_avatar.html' with foto=p.estudiante.perfil.foto nombre=p.estudiante.first_name apellido=p.estudiante.last_name clase='ph-avatar' %}
         <div class="ph-info">
             <div class="ph-top">
                 <strong class="ph-nombre">{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong>

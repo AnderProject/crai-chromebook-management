@@ -26,9 +26,11 @@
                     <li class="nav-item dropdown me-3">
                         <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-bell fs-5"></i>
+                            {% if total_notificaciones %}
                             <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill notificacion-badge">
                                 {{ total_notificaciones }}
                             </span>
+                            {% endif %}
                         </a>
                         <div class="dropdown-menu dropdown-menu-end p-2 shadow" style="width: 300px;">
                             <h6 class="dropdown-header fw-semibold"><i class="bi bi-bell"></i> Notificaciones</h6>
@@ -50,7 +52,7 @@
                                 <div class="dropdown-item small text-muted text-center">No hay notificaciones</div>
                             {% endif %}
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item small text-center text-primary" href="#">Ver todas las notificaciones</a>
+                            <a class="dropdown-item small text-center text-primary fw-semibold" href="#" data-bs-toggle="modal" data-bs-target="#modalNotificaciones">Ver todas las notificaciones</a>
                         </div>
                     </li>
                     
@@ -511,6 +513,51 @@
     </div>
 </div>
 
+<!-- ===== Modal: Todas las notificaciones ===== -->
+<div class="modal fade" id="modalNotificaciones" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content notif-modal">
+            <div class="notif-modal-header">
+                <div class="notif-modal-titulo">
+                    <span class="notif-modal-icono"><i class="bi bi-bell-fill"></i></span>
+                    <div>
+                        <h5>Notificaciones</h5>
+                        <small>Historial de avisos del sistema</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="notif-modal-body">
+                {% if notificaciones_todas %}
+                    {% for notif in notificaciones_todas %}
+                    <div class="notif-item {% if not notif.leida %}notif-no-leida{% endif %}">
+                        <span class="notif-item-icono notif-{{ notif.tipo }}">
+                            {% if notif.tipo == 'prestamo' %}<i class="bi bi-laptop"></i>
+                            {% elif notif.tipo == 'vencimiento' %}<i class="bi bi-exclamation-triangle"></i>
+                            {% elif notif.tipo == 'reserva' %}<i class="bi bi-calendar-check"></i>
+                            {% else %}<i class="bi bi-bell"></i>{% endif %}
+                        </span>
+                        <div class="notif-item-cuerpo">
+                            <div class="notif-item-top">
+                                <strong>{{ notif.titulo }}</strong>
+                                <span class="notif-item-fecha">{{ notif.fecha_envio|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            <p class="notif-item-msg">{{ notif.mensaje }}</p>
+                        </div>
+                        {% if not notif.leida %}<span class="notif-item-punto" title="No leida"></span>{% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="notif-vacio">
+                        <i class="bi bi-bell-slash"></i>
+                        <p>No hay notificaciones</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts_extra %}
@@ -518,4 +565,5 @@
 <script src="{% static 'js/reservaciones_dashboard.js' %}"></script>
 <script src="{% static 'js/devolucion.js' %}"></script>
 <script src="{% static 'js/realtime.js' %}"></script>
+<script src="{% static 'js/notificaciones.js' %}"></script>
 {% endblock %}

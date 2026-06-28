@@ -87,7 +87,8 @@ def dashboard(request):
         'total_estudiantes': total_estudiantes,
         'ultimos_prestamos': ultimos_prestamos,
         'notificaciones': notificaciones,
-        'total_notificaciones': Notificacion.objects.count(),
+        'notificaciones_todas': Notificacion.objects.all().order_by('-fecha_envio')[:50],
+        'total_notificaciones': Notificacion.objects.filter(leida=False).count(),
         'reservas_hoy': reservas_hoy,
         'reservas_pendientes': reservas_pendientes,
         'primer_nombre': primer_nombre,
@@ -154,10 +155,23 @@ def api_prestamos_hoy(request):
     hoy = timezone.localtime().date()
     prestamos_hoy = Prestamo.objects.filter(
         fecha_prestamo__date=hoy
-    ).select_related('estudiante', 'chromebook').order_by('-fecha_prestamo')
+    ).select_related('estudiante', 'estudiante__perfil', 'chromebook').order_by('-fecha_prestamo')
     total_hoy = prestamos_hoy.count()
     html = render_to_string('prestamos/partials/_prestamos_hoy.html', {'prestamos_hoy': prestamos_hoy})
     return JsonResponse({'html': html, 'total_hoy': total_hoy})
+
+
+@login_required
+def marcar_notificaciones_leidas(request):
+    """Marca todas las notificaciones no leidas como leidas.
+
+    Se llama al abrir el modal "Ver todas las notificaciones"; asi el numerito
+    rojo de la campana se sincroniza (queda en 0)."""
+    from .models import Notificacion
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=405)
+    Notificacion.objects.filter(leida=False).update(leida=True)
+    return JsonResponse({'ok': True, 'total': 0})
 
 
 @login_required
@@ -1479,7 +1493,7 @@ def registro_rapido(request):
     # y el dashboard): una reserva pendiente, sea de hoy o de otro día, ya descuenta.
     disponibles = _disponibles_inventario()
     disponibles_manana = _disponibles_efectivos(hoy + timedelta(days=1))
-    prestamos_hoy = Prestamo.objects.filter(fecha_prestamo__date=hoy).select_related('estudiante', 'chromebook').order_by('-fecha_prestamo')
+    prestamos_hoy = Prestamo.objects.filter(fecha_prestamo__date=hoy).select_related('estudiante', 'estudiante__perfil', 'chromebook').order_by('-fecha_prestamo')
     total_hoy = prestamos_hoy.count()
 
     return render(request, 'prestamos/registro_rapido/registro_rapido.html', {
