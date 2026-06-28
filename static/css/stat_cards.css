@@ -1,0 +1,77 @@
+/* ==========================================
+   EFECTO HOVER UNIFICADO PARA TARJETAS ESTADÍSTICAS - CRAI UNEMI
+   Al pasar el cursor, la tarjeta se tiñe sutilmente con SU color de acento
+   (el mismo color de su barra/ícono), manteniendo el estilo limpio.
+   Se detecta el color con :has(), así no hace falta tocar el HTML de cada card.
+   Aplica a: dashboard, inventario, mantenimiento y KPIs de reportes.
+   ========================================== */
+
+.dashboard-stat-card,
+.chromebook-stat-card,
+.mantenimiento-stat-card,
+.reporte-kpi {
+    transition: transform 0.25s ease, box-shadow 0.25s ease,
+                border-color 0.25s ease, background 0.25s ease;
+}
+
+/* ---- AZUL ---- */
+.dashboard-stat-card:has(.bg-azul):hover,
+.chromebook-stat-card:has(.bg-azul):hover,
+.mantenimiento-stat-card:has(.bg-azul):hover,
+.reporte-kpi:has(.kpi-azul):hover {
+    border-color: #1a73e8 !important;
+    background: linear-gradient(135deg, #ffffff 0%, #eaf2ff 100%) !important;
+    box-shadow: 0 12px 30px rgba(26, 115, 232, 0.20) !important;
+}
+
+/* ---- VERDE ---- */
+.dashboard-stat-card:has(.bg-verde):hover,
+.chromebook-stat-card:has(.bg-verde):hover,
+.mantenimiento-stat-card:has(.bg-verde):hover,
+.reporte-kpi:has(.kpi-verde):hover {
+    border-color: #34a853 !important;
+    background: linear-gradient(135deg, #ffffff 0%, #ecf8ef 100%) !important;
+    box-shadow: 0 12px 30px rgba(52, 168, 83, 0.20) !important;
+}
+
+/* ---- NARANJA ---- */
+.dashboard-stat-card:has(.bg-naranja):hover,
+.chromebook-stat-card:has(.bg-naranja):hover,
+.mantenimiento-stat-card:has(.bg-naranja):hover,
+.reporte-kpi:has(.kpi-naranja):hover {
+    border-color: #ff9800 !important;
+    background: linear-gradient(135deg, #ffffff 0%, #fff6e8 100%) !important;
+    box-shadow: 0 12px 30px rgba(255, 152, 0, 0.20) !important;
+}
+
+/* ---- ROJO ---- */
+.dashboard-stat-card:has(.bg-rojo):hover,
+.chromebook-stat-card:has(.bg-rojo):hover,
+.mantenimiento-stat-card:has(.bg-rojo):hover,
+.reporte-kpi:has(.kpi-rojo):hover {
+    border-color: #ea4335 !important;
+    background: linear-gradient(135deg, #ffffff 0%, #fdeeec 100%) !important;
+    box-shadow: 0 12px 30px rgba(234, 67, 53, 0.20) !important;
+}
+
+/* ---- CYAN ---- */
+.dashboard-stat-card:has(.bg-cyan):hover,
+.reporte-kpi:has(.kpi-cyan):hover {
+    border-color: #00bcd4 !important;
+    background: linear-gradient(135deg, #ffffff 0%, #e6fafd 100%) !important;
+    box-shadow: 0 12px 30px rgba(0, 188, 212, 0.20) !important;
+}
+
+/* ---- MORADO / PENDIENTE ---- */
+.chromebook-stat-card:has(.bg-pendiente):hover,
+.reporte-kpi:has(.kpi-morado):hover {
+    border-color: #7c4dff !important;
+    background: linear-gradient(135deg, #ffffff 0%, #f3eeff 100%) !important;
+    box-shadow: 0 12px 30px rgba(124, 77, 255, 0.20) !important;
+}
+
+/* Los KPIs de reportes no tienen borde por defecto: se lo damos para que el
+   tinte del hover tenga un marco coherente con las demás tarjetas. */
+.reporte-kpi {
+    border: 1px solid #eef0f5;
+}

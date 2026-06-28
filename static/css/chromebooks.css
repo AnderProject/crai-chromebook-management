@@ -206,20 +206,20 @@ td .badge.bg-pendiente {
 }
 
 /* ========== CONDICIÓN ========== */
-/* Bueno */
-td .badge.bg-info {
-    background-color: #28a745 !important;
-    animation: reboteVerde 0.6s ease, brilloVerde 2s ease-in-out 0.6s infinite;
-}
+/* Condición (Bueno/Regular/Malo) reutiliza las MISMAS clases que Estado
+   (bg-success/bg-warning/bg-danger) para que coincidan en color y estilo,
+   siguiendo la lógica: Bueno=verde, Regular=ámbar, Malo=rojo. */
 
-/* Regular */
-td .badge.bg-warning {
-    animation: reboteNaranja 0.6s ease, brilloNaranja 2s ease-in-out 0.6s infinite;
-}
-
-/* Malo */
-td .badge.bg-danger {
-    animation: reboteRojo 0.6s ease, brilloRojo 1.5s ease-in-out 0.6s infinite;
+/* Tamaño uniforme para TODOS los badges de la tabla (Estado y Condición),
+   con un ancho mínimo para que las palabras cortas no se vean más pequeñas. */
+td .badge {
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 0.42em 0.85em;
+    border-radius: 8px;
+    letter-spacing: 0.2px;
+    min-width: 92px;
+    text-align: center;
 }
 
 /* ========== HOVER EN FILAS ========== */
@@ -280,3 +280,107 @@ td .badge.bg-danger {
 .btn-codigo-reservacion.text-decoration-none:hover {
     color: white !important;
 }   
+
+/* ==========================================
+   INDICADOR DE CONEXIÓN DEL KIOSKO (En línea / Desconectado)
+   ========================================== */
+
+/* Pill por fila, junto al código del equipo */
+.cb-conexion {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: 0.55rem;
+    padding: 0.12rem 0.55rem 0.12rem 0.4rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    vertical-align: middle;
+    border: 1px solid transparent;
+    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+.cb-conexion-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* En línea: verde con latido */
+.cb-conexion.en-linea {
+    background: #e6f4ea;
+    color: #1e7e34;
+    border-color: #b7e1c4;
+}
+.cb-conexion.en-linea .cb-conexion-dot {
+    background: #34a853;
+    box-shadow: 0 0 0 0 rgba(52, 168, 83, 0.55);
+    animation: cbPulso 1.8s infinite;
+}
+
+/* Desconectado: gris apagado */
+.cb-conexion.desconectado {
+    background: #f1f3f5;
+    color: #98a2b3;
+    border-color: #e4e7ec;
+}
+.cb-conexion.desconectado .cb-conexion-dot {
+    background: #c2c8d0;
+}
+
+@keyframes cbPulso {
+    0%   { box-shadow: 0 0 0 0 rgba(52, 168, 83, 0.5); }
+    70%  { box-shadow: 0 0 0 7px rgba(52, 168, 83, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(52, 168, 83, 0); }
+}
+
+/* Resumen en el encabezado: "● N en línea" */
+.cb-conexion-resumen {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: 0.75rem;
+    padding: 0.1rem 0.7rem;
+    border-radius: 999px;
+    background: #e6f4ea;
+    color: #1e7e34;
+    font-size: 0.78rem;
+}
+.cb-conexion-resumen-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #34a853;
+    animation: cbPulso 1.8s infinite;
+}
+
+/* Banner dentro del modal de detalle */
+.cb-conexion-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+.cb-conexion-banner .cb-conexion-dot {
+    width: 10px;
+    height: 10px;
+}
+.cb-conexion-banner.en-linea {
+    background: #e6f4ea;
+    color: #1e7e34;
+}
+.cb-conexion-banner.en-linea .cb-conexion-dot {
+    background: #34a853;
+    animation: cbPulso 1.8s infinite;
+}
+.cb-conexion-banner.desconectado {
+    background: #f1f3f5;
+    color: #6b7280;
+}
+.cb-conexion-banner.desconectado .cb-conexion-dot {
+    background: #c2c8d0;
+}

@@ -49,7 +49,21 @@ function verDetalleChromebook(id) {
                 
                 var estadoClass = d.estado === 'disponible' ? 'success' : (d.estado === 'prestado' ? 'warning' : 'danger');
                 document.getElementById('detalleEstadoBadge').innerHTML = '<span class="badge bg-' + estadoClass + ' px-3 py-2">' + d.estado.toUpperCase() + '</span>';
-                
+
+                // Banner de conexión del kiosko
+                var conexion = document.getElementById('detalleConexion');
+                if (conexion) {
+                    if (d.en_linea) {
+                        conexion.className = 'cb-conexion-banner en-linea mt-3';
+                        conexion.innerHTML = '<span class="cb-conexion-dot"></span>' +
+                            '<span><i class="bi bi-wifi me-1"></i>Equipo en línea</span>';
+                    } else {
+                        conexion.className = 'cb-conexion-banner desconectado mt-3';
+                        conexion.innerHTML = '<span class="cb-conexion-dot"></span>' +
+                            '<span><i class="bi bi-wifi-off me-1"></i>Desconectado · ' + (d.ultima_conexion || 'Nunca') + '</span>';
+                    }
+                }
+
                 var modal = new bootstrap.Modal(document.getElementById('modalDetalleChromebook'));
                 modal.show();
             }
@@ -72,7 +86,16 @@ function editarChromebook(id) {
                 document.getElementById('editMarca').value = d.marca;
                 document.getElementById('editModelo').value = d.modelo;
                 document.getElementById('editSerie').value = d.serie;
-                document.getElementById('editEstado').value = d.estado;
+                // "Mantenimiento" no es una opción asignable; si el equipo ya está en
+                // mantenimiento, se inyecta la opción solo para mostrar su estado.
+                var selEstado = document.getElementById('editEstado');
+                if (d.estado === 'mantenimiento' && !selEstado.querySelector('option[value="mantenimiento"]')) {
+                    var opt = document.createElement('option');
+                    opt.value = 'mantenimiento';
+                    opt.textContent = 'Mantenimiento';
+                    selEstado.appendChild(opt);
+                }
+                selEstado.value = d.estado;
                 document.getElementById('editCondicion').value = d.condicion;
                 document.getElementById('editNotas').value = d.notas || '';
 

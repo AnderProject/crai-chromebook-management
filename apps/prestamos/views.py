@@ -174,6 +174,9 @@ def api_chromebooks_estado(request):
     en_mantenimiento = sum(1 for cb in chromebooks if cb.estado_efectivo == 'mantenimiento')
     pendiente_reserva = sum(1 for cb in chromebooks if cb.estado_efectivo == 'pendiente_reserva')
     estados = {cb.codigo: cb.estado_efectivo for cb in chromebooks}
+    # Conexión del kiosko por equipo (para el indicador en vivo "En línea / Desconectado")
+    conexiones = {cb.codigo: cb.esta_en_linea for cb in chromebooks}
+    conectados = sum(1 for v in conexiones.values() if v)
 
     return JsonResponse({
         'contadores': {
@@ -182,8 +185,10 @@ def api_chromebooks_estado(request):
             'prestados': prestados,
             'en_mantenimiento': en_mantenimiento,
             'pendiente_reserva': pendiente_reserva,
+            'conectados': conectados,
         },
         'estados': estados,
+        'conexiones': conexiones,
     })
 
 
@@ -1086,6 +1091,11 @@ def api_kiosko_estado(request, codigo):
         chromebook = Chromebook.objects.get(codigo=codigo)
     except Chromebook.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Chromebook no registrada'}, status=404)
+
+    # Latido de conexión: cada consulta de la app marca el equipo como "en línea".
+    # Se usa .update() para no disparar el auto_now de 'actualizado' ni señales.
+    from django.utils import timezone as _tz
+    Chromebook.objects.filter(pk=chromebook.pk).update(ultimo_heartbeat=_tz.now())
 
     prestamo = (Prestamo.objects
                 .select_related('estudiante')
@@ -2649,6 +2659,8 @@ def api_detalle_chromebook(request, id):
                 'tiene_garantia': cb.tiene_garantia,
                 'fecha_fin_garantia': cb.fecha_fin_garantia.strftime('%Y-%m-%d') if cb.fecha_fin_garantia else '',
                 'en_garantia_vigente': cb.en_garantia_vigente,
+                'en_linea': cb.esta_en_linea,
+                'ultima_conexion': cb.ultima_conexion_humana,
             }
         })
     except Chromebook.DoesNotExist:
@@ -2675,6 +2687,16 @@ def api_editar_chromebook(request, id):
                     'success': False,
                     'message': 'Este equipo está en mantenimiento. Finaliza su mantenimiento '
                                'desde la sección Mantenimiento para volverlo a disponible.',
+                })
+
+            # Tampoco se puede ENVIAR a mantenimiento desde el inventario: eso debe
+            # hacerse desde la sección Mantenimiento (crea el registro con su problema,
+            # costo y fechas). Evita equipos "en mantenimiento" sin registro asociado.
+            if nuevo_estado == 'mantenimiento' and estado_anterior != 'mantenimiento':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Para enviar un equipo a mantenimiento, regístralo desde la '
+                               'sección Mantenimiento (así se guarda el problema, costo y fechas).',
                 })
 
             cb.marca = data.get('marca', cb.marca)

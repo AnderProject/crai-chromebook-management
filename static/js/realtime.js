@@ -90,6 +90,25 @@ function pollChromebooks() {
     craiObtener('/prestamos/api/chromebooks-estado/')
         .then(function (data) {
             actualizarContadores(data.contadores);
+
+            // Indicador de conexión del kiosko por equipo (En línea / Desconectado)
+            if (data.conexiones) {
+                Object.keys(data.conexiones).forEach(function (codigo) {
+                    var pill = document.querySelector('[data-conexion="' + codigo + '"]');
+                    if (!pill) return;
+                    var enLinea = !!data.conexiones[codigo];
+                    var yaEnLinea = pill.classList.contains('en-linea');
+                    if (enLinea === yaEnLinea) return; // sin cambios, no tocar
+                    pill.classList.toggle('en-linea', enLinea);
+                    pill.classList.toggle('desconectado', !enLinea);
+                    var txt = pill.querySelector('.cb-conexion-txt');
+                    if (txt) { txt.textContent = enLinea ? 'En línea' : 'Desconectado'; }
+                    pill.title = enLinea
+                        ? 'La app kiosko de este equipo está conectada al sistema'
+                        : 'Sin conexión con la app kiosko';
+                });
+            }
+
             if (!data.estados) return;
             Object.keys(data.estados).forEach(function (codigo) {
                 var estado = data.estados[codigo];

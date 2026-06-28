@@ -55,7 +55,13 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2 class="fw-bold mb-1"><i class="bi bi-laptop me-2 text-primary"></i>Inventario de Chromebooks</h2>
-                        <p class="texto-gris mb-0">Gestión de equipos disponibles</p>
+                        <p class="texto-gris mb-0">
+                            Gestión de equipos disponibles
+                            <span class="cb-conexion-resumen" title="Equipos con la app kiosko conectada al sistema en este momento">
+                                <span class="cb-conexion-resumen-dot"></span>
+                                <strong data-stat="conectados">0</strong>&nbsp;en línea
+                            </span>
+                        </p>
                     </div>
                     <a href="{% url 'prestamos:agregar_chromebook' %}" class="btn-codigo-reservacion text-decoration-none">
                         <span class="btn-codigo-icono"><i class="bi bi-plus-circle"></i></span>
@@ -161,7 +167,15 @@
                                 {% if chromebooks %}
                                     {% for cb in chromebooks %}
                                     <tr data-codigo="{{ cb.codigo|lower }}" data-marca="{{ cb.marca|lower }}" data-modelo="{{ cb.modelo|lower }}" data-estado="{{ cb.estado_efectivo|lower }}">
-                                        <td><strong>{{ cb.codigo }}</strong></td>
+                                        <td>
+                                            <strong>{{ cb.codigo }}</strong>
+                                            <span class="cb-conexion {% if cb.esta_en_linea %}en-linea{% else %}desconectado{% endif %}"
+                                                  data-conexion="{{ cb.codigo }}"
+                                                  title="{% if cb.esta_en_linea %}La app kiosko de este equipo está conectada al sistema{% else %}Sin conexión con la app kiosko{% endif %}">
+                                                <span class="cb-conexion-dot"></span>
+                                                <span class="cb-conexion-txt">{% if cb.esta_en_linea %}En línea{% else %}Desconectado{% endif %}</span>
+                                            </span>
+                                        </td>
                                         <td>{{ cb.marca }}</td>
                                         <td>{{ cb.modelo }}</td>
                                         <td><small class="text-muted">{{ cb.serie }}</small></td>
@@ -172,7 +186,7 @@
                                             {% else %}<span class="badge bg-danger">Mantenimiento</span>{% endif %}
                                         </td>
                                         <td>
-                                            {% if cb.condicion == 'bueno' %}<span class="badge bg-info">Bueno</span>
+                                            {% if cb.condicion == 'bueno' %}<span class="badge bg-success">Bueno</span>
                                             {% elif cb.condicion == 'regular' %}<span class="badge bg-warning">Regular</span>
                                             {% else %}<span class="badge bg-danger">Malo</span>{% endif %}
                                         </td>
@@ -219,6 +233,7 @@
                     <h5 class="fw-bold mt-3" id="detalleCodigoImg">-</h5>
                     <p class="text-muted small mb-2" id="detalleMarcaModelo">-</p>
                     <span id="detalleEstadoBadge"></span>
+                    <div id="detalleConexion" class="cb-conexion-banner mt-3"></div>
                 </div>
                 <div class="pb-3">
                     <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
@@ -264,7 +279,9 @@
                             <select id="editEstado" class="form-select">
                                 <option value="disponible">Disponible</option>
                                 <option value="prestado">Prestado</option>
-                                <option value="mantenimiento">Mantenimiento</option>
+                                <!-- "Mantenimiento" NO se asigna desde aquí: debe registrarse en la
+                                     sección Mantenimiento (crea el registro, costo y fecha). La opción
+                                     se inyecta solo para MOSTRAR equipos que ya están en mantenimiento. -->
                             </select>
                         </div>
                         <div class="col-md-4">

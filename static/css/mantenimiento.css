@@ -489,3 +489,12 @@
     pointer-events: none;
     opacity: 0.95;
 }
+
+
+/* Fila de botones de acción de la tabla: alineados y con separación uniforme.
+   Usa los .btn-accion globales (38x38) para que Editar y Finalizar queden parejos. */
+.acciones-fila {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}

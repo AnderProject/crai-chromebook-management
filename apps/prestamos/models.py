@@ -133,6 +133,11 @@ class Chromebook(models.Model):
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
     foto = models.ImageField(upload_to='chromebooks/', blank=True, null=True, verbose_name='Foto del equipo')
+    ultimo_heartbeat = models.DateTimeField(null=True, blank=True, verbose_name='Última conexión del kiosko')
+
+    # Segundos de margen para considerar el equipo "en línea". La app kiosko hace
+    # polling cada ~8-12s; con 60s damos holgura para reintentos/latencia.
+    HEARTBEAT_UMBRAL_SEG = 60
 
     class Meta:
         verbose_name = 'Chromebook'
@@ -141,6 +146,34 @@ class Chromebook(models.Model):
 
     def __str__(self):
         return f'{self.codigo} - {self.marca} {self.modelo}'
+
+    @property
+    def esta_en_linea(self):
+        """True si la app kiosko de este equipo contactó al servidor hace poco.
+
+        Se basa en ``ultimo_heartbeat``, que se actualiza en cada consulta de la
+        app al endpoint del kiosko. Si nunca ha contactado o pasó el umbral, se
+        considera desconectado.
+        """
+        if not self.ultimo_heartbeat:
+            return False
+        from django.utils import timezone
+        return (timezone.now() - self.ultimo_heartbeat).total_seconds() <= self.HEARTBEAT_UMBRAL_SEG
+
+    @property
+    def ultima_conexion_humana(self):
+        """Texto amigable de cuándo fue la última conexión del kiosko."""
+        if not self.ultimo_heartbeat:
+            return 'Nunca'
+        from django.utils import timezone
+        seg = (timezone.now() - self.ultimo_heartbeat).total_seconds()
+        if seg < 60:
+            return 'Hace un momento'
+        if seg < 3600:
+            return f'Hace {int(seg // 60)} min'
+        if seg < 86400:
+            return f'Hace {int(seg // 3600)} h'
+        return f'Hace {int(seg // 86400)} d'
 
     @property
     def en_garantia_vigente(self):
