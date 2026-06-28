@@ -1200,24 +1200,40 @@ def lista_chromebooks(request):
 def _marcar_pendiente_reserva(chromebooks):
     """Asigna ``estado_efectivo`` a cada Chromebook de la lista.
 
-    Una reserva pendiente no aparta un equipo concreto, solo consume un cupo del día.
-    Para reflejarlo en el inventario, marcamos como 'pendiente_reserva' tantos equipos
-    'disponible' como reservas pendientes vigentes existan (de cualquier fecha). El resto
-    conserva su estado real. Devuelve el nº de equipos marcados.
+    Si la reserva apartó un equipo CONCRETO (elegido en recepción), se marca ESE equipo
+    como 'pendiente_reserva'. Las reservas sin equipo fijo (portal/WhatsApp) solo consumen
+    un cupo del día, así que marcan los primeros equipos libres restantes. Devuelve el nº
+    de equipos marcados.
     """
     from .models import Reserva
 
     _expirar_reservas_vencidas()
-    n_reservas = Reserva.objects.filter(estado='pendiente').count()
+    pendientes = Reserva.objects.filter(estado='pendiente')
 
     for cb in chromebooks:
         cb.estado_efectivo = cb.estado
 
-    libres = [cb for cb in chromebooks if cb.estado == 'disponible']
-    marcar = min(n_reservas, len(libres))
-    for cb in libres[:marcar]:
+    por_id = {cb.id: cb for cb in chromebooks}
+    marcadas = set()
+    sin_equipo = 0
+
+    # 1) Reservas con equipo específico apartado → marcamos ESE equipo.
+    for r in pendientes:
+        if r.chromebook_id:
+            cb = por_id.get(r.chromebook_id)
+            if cb and cb.estado == 'disponible' and cb.id not in marcadas:
+                cb.estado_efectivo = 'pendiente_reserva'
+                marcadas.add(cb.id)
+        else:
+            sin_equipo += 1
+
+    # 2) Reservas sin equipo fijo → consumen cupo de los primeros libres restantes.
+    libres = [cb for cb in chromebooks if cb.estado == 'disponible' and cb.id not in marcadas]
+    for cb in libres[:sin_equipo]:
         cb.estado_efectivo = 'pendiente_reserva'
-    return marcar
+        marcadas.add(cb.id)
+
+    return len(marcadas)
 
 
 @login_required
@@ -1285,6 +1301,10 @@ def agregar_mantenimiento(request):
             messages.error(request, 'Selecciona un Chromebook válido.')
         elif not tipo:
             messages.error(request, 'Selecciona el tipo de mantenimiento.')
+        elif not tecnico:
+            messages.error(request, 'Indica el nombre del técnico.')
+        elif not descripcion_problema:
+            messages.error(request, 'Describe el problema o el motivo del mantenimiento.')
         else:
             try:
                 chromebook = Chromebook.objects.get(id=int(chromebook_id))
@@ -1774,8 +1794,18 @@ def confirmar_prestamo(request):
             if not ventana_ok:
                 return JsonResponse({'success': False, 'message': ventana_msg})
 
-            chromebook = Chromebook.objects.filter(estado='disponible').first()
-            
+            # Si la reserva apartó un equipo específico (elegido en recepción), se entrega
+            # ESE mismo. Las reservas del portal/WhatsApp no fijan equipo: cae a la primera
+            # disponible, como antes.
+            chromebook = reserva.chromebook
+            if chromebook and chromebook.estado != 'disponible':
+                return JsonResponse({'success': False, 'message': (
+                    f'El Chromebook {chromebook.codigo} apartado para esta reserva ya no está '
+                    f'disponible ({chromebook.get_estado_display()}). Asigna otro desde inventario.'
+                )})
+            if not chromebook:
+                chromebook = Chromebook.objects.filter(estado='disponible').first()
+
             if not chromebook:
                 return JsonResponse({'success': False, 'message': 'No hay Chromebooks disponibles.'})
             
@@ -2113,6 +2143,30 @@ def api_registrar_prestamo(request):
                 'message': 'No quedan Chromebooks disponibles para esa fecha. Elige otro día.',
             })
 
+        # Equipo específico elegido en recepción: lo apartamos para ESTA reserva, de modo
+        # que sea el mismo que se entregue al confirmar (y no "la primera disponible").
+        chromebook_reserva = None
+        if chromebook_id:
+            try:
+                chromebook_reserva = Chromebook.objects.get(id=chromebook_id)
+            except Chromebook.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'Chromebook no encontrado.'})
+            if chromebook_reserva.estado == 'mantenimiento':
+                return JsonResponse({'success': False, 'message': 'Ese Chromebook está en mantenimiento; elige otro.'})
+            # No permitir apartar el MISMO equipo si ya tiene préstamo/reserva en ese horario.
+            choca_prestamo = Prestamo.objects.filter(
+                chromebook=chromebook_reserva, estado__in=['reservado', 'activo', 'vencido'],
+                fecha_prestamo__lt=fin, fecha_devolucion__gt=inicio,
+            ).exists()
+            choca_reserva = Reserva.objects.filter(
+                chromebook=chromebook_reserva, estado__in=['pendiente', 'confirmada'],
+                fecha_uso=inicio.date(), hora_inicio__lt=fin.time(), hora_fin__gt=inicio.time(),
+            ).exists()
+            if choca_prestamo or choca_reserva:
+                return JsonResponse({'success': False, 'message': (
+                    f'El Chromebook {chromebook_reserva.codigo} ya está apartado en ese horario. Elige otro equipo.'
+                )})
+
         while True:
             codigo = ''.join(random.choices(string.digits, k=6))
             if not Reserva.objects.filter(codigo_verificacion=codigo).exists():
@@ -2120,6 +2174,7 @@ def api_registrar_prestamo(request):
 
         Reserva.objects.create(
             estudiante=estudiante, carrera=estudiante.carrera,
+            chromebook=chromebook_reserva,
             fecha_uso=inicio.date(), hora_inicio=inicio.time(), hora_fin=fin.time(),
             estado='pendiente', codigo_verificacion=codigo,
             motivo='Reserva registrada en recepción',

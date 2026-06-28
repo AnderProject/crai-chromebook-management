@@ -178,6 +178,13 @@ class Reserva(models.Model):
     hora_inicio = models.TimeField(verbose_name='Hora de Inicio')
     hora_fin = models.TimeField(verbose_name='Hora de Fin')
     cantidad_solicitada = models.IntegerField(default=1, verbose_name='Cantidad Solicitada')
+    # Equipo específico apartado cuando la reserva se crea en recepción eligiendo una
+    # Chromebook. Las reservas del portal/WhatsApp no eligen equipo (queda en null y al
+    # confirmar se asigna la primera disponible).
+    chromebook = models.ForeignKey(
+        Chromebook, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='reservas', verbose_name='Chromebook asignado'
+    )
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente', verbose_name='Estado')
     motivo = models.TextField(blank=True, null=True, verbose_name='Motivo')
     codigo_verificacion = models.CharField(max_length=6, unique=True, verbose_name='Código de Verificación')

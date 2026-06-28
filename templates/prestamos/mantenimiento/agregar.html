@@ -5,8 +5,8 @@
 
 {% block estilos_extra %}
 <link href="{% static 'css/base.css' %}" rel="stylesheet">
-<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
-<link href="{% static 'css/mantenimiento.css' %}" rel="stylesheet">
+<link href="{% static 'css/dashboard.css' %}?v={% now 'U' %}" rel="stylesheet">
+<link href="{% static 'css/mantenimiento.css' %}?v={% now 'U' %}" rel="stylesheet">
 {% endblock %}
 
 {% block contenido %}
@@ -65,7 +65,7 @@
 
                         <!-- Equipo -->
                         <div class="mant-campo">
-                            <label class="mant-label"><i class="bi bi-laptop"></i> Chromebook</label>
+                            <label class="mant-label"><i class="bi bi-laptop"></i> Chromebook <span class="mant-req">*</span></label>
                             <div class="mant-select-wrap">
                                 <select name="chromebook_id" id="mantChromebook" class="mant-select" required onchange="aplicarGarantiaEquipo()">
                                     <option value="">Selecciona un equipo…</option>
@@ -103,10 +103,10 @@
 
                             <!-- Técnico -->
                             <div class="mant-campo">
-                                <label class="mant-label"><i class="bi bi-person-gear"></i> Técnico</label>
+                                <label class="mant-label"><i class="bi bi-person-gear"></i> Técnico <span class="mant-req">*</span></label>
                                 <div class="mant-input-wrap">
                                     <i class="bi bi-person mant-input-icono"></i>
-                                    <input type="text" name="tecnico" class="mant-input mant-input-con-icono" placeholder="Nombre del técnico">
+                                    <input type="text" name="tecnico" class="mant-input mant-input-con-icono" placeholder="Nombre del técnico" required>
                                 </div>
                             </div>
 
@@ -122,7 +122,7 @@
 
                             <!-- Fecha de inicio -->
                             <div class="mant-campo">
-                                <label class="mant-label"><i class="bi bi-calendar-event"></i> Fecha de inicio</label>
+                                <label class="mant-label"><i class="bi bi-calendar-event"></i> Fecha de inicio <span class="mant-req">*</span></label>
                                 <div class="mant-input-wrap">
                                     <i class="bi bi-calendar3 mant-input-icono"></i>
                                     <input type="date" name="fecha_inicio" class="mant-input mant-input-con-icono" required value="{% now 'Y-m-d' %}">
@@ -132,8 +132,8 @@
 
                         <!-- Descripción -->
                         <div class="mant-campo">
-                            <label class="mant-label"><i class="bi bi-card-text"></i> Descripción del problema</label>
-                            <textarea name="descripcion_problema" class="mant-textarea" rows="4" placeholder="Describe el problema o el motivo de la revisión del equipo…"></textarea>
+                            <label class="mant-label"><i class="bi bi-card-text"></i> Descripción del problema <span class="mant-req">*</span></label>
+                            <textarea name="descripcion_problema" class="mant-textarea" rows="4" placeholder="Describe el problema o el motivo de la revisión del equipo…" required></textarea>
                         </div>
 
                         <div class="mant-form-acciones">

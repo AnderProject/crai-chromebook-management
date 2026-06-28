@@ -201,14 +201,22 @@
     box-shadow: 0 8px 25px rgba(0,0,0,0.08);
 }
 
-.accion-card.destacada {
-    border-color: var(--primario);
-    background: linear-gradient(135deg, #fafbff, #f0f3ff);
-}
-
+/* Cada tarjeta se ve igual por defecto; al pasar el cursor resalta con SU color:
+   Reservar = azul, Mis Reservas = verde, Soporte = naranja. */
 .accion-card.destacada:hover {
-    border-color: var(--primario-oscuro);
-    box-shadow: 0 8px 25px rgba(26,35,126,0.12);
+    border-color: var(--primario);
+    background: linear-gradient(135deg, #fafbff, #eef2ff);
+    box-shadow: 0 8px 25px rgba(26, 35, 126, 0.14);
+}
+.accion-card.accion-verde:hover {
+    border-color: #34a853;
+    background: linear-gradient(135deg, #fafffb, #ecf8ef);
+    box-shadow: 0 8px 25px rgba(52, 168, 83, 0.16);
+}
+.accion-card.accion-naranja:hover {
+    border-color: #f59e0b;
+    background: linear-gradient(135deg, #fffdf7, #fff4e2);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.16);
 }
 
 .accion-icono {

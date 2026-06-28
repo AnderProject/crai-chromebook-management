@@ -4,7 +4,7 @@
 
 {% block estilos_extra %}
 <link href="{% static 'css/base.css' %}" rel="stylesheet">
-<link href="{% static 'css/portal.css' %}" rel="stylesheet">
+<link href="{% static 'css/portal.css' %}?v={% now 'U' %}" rel="stylesheet">
 {% endblock %}
 
 {% block titulo %}Portal - CRAI UNEMI{% endblock %}

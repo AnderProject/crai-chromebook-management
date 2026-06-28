@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block estilos_extra %}
-<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+<link href="{% static 'css/dashboard.css' %}?v={% now 'U' %}" rel="stylesheet">
 <link href="{% static 'css/modales_prestamo.css' %}" rel="stylesheet">
 {% endblock %}
 

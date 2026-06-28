@@ -314,6 +314,9 @@
 }
 .mant-label i { color: #3949ab; }
 
+/* Asterisco de campo obligatorio */
+.mant-req { color: #e53935; font-weight: 800; margin-left: 0.1rem; }
+
 /* Inputs y textarea */
 .mant-input,
 .mant-textarea,
