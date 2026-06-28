@@ -94,14 +94,17 @@ WSGI_APPLICATION = 'proyecto_crai.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# Los datos de conexión se leen del .env para que el proyecto sea portable
+# (cada equipo puede tener su propia contraseña de PostgreSQL). Los valores por
+# defecto corresponden a la configuración de desarrollo original.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'crai_unemi',
-        'USER': 'postgres',
-        'PASSWORD': '1508',        # ← Tu contraseña
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.environ.get('DB_NAME', 'crai_unemi'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', '1508'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
