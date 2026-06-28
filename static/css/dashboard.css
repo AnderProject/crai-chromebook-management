@@ -1066,21 +1066,38 @@ tr:hover .badge-estado {
 .aviso-crai {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    margin-top: 0.5rem;
-    padding: 0.35rem 0.8rem;
-    border-radius: 20px;
-    background: #fff8e1;
+    gap: 0.55rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #fff8e1, #fff3cd);
     border: 1px solid #ffe082;
     color: #8d6e00;
-    font-size: 0.74rem;
-    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(141, 110, 0, 0.10);
     animation: avisoCraiIn 0.4s ease;
 }
 
-.aviso-crai i {
-    font-size: 0.85rem;
+.aviso-crai > i {
+    font-size: 1.15rem;
+    color: #c79100;
     animation: avisoCraiTic 2s steps(1) infinite;
+}
+
+.aviso-crai-txt {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    text-align: left;
+}
+
+.aviso-crai-txt strong {
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.aviso-crai-txt small {
+    font-size: 0.68rem;
+    font-weight: 500;
+    opacity: 0.8;
 }
 
 @keyframes avisoCraiIn {

@@ -93,15 +93,21 @@
                     <h2 class="fw-bold texto-oscuro mb-0">
                         <i class="bi bi-speedometer2 me-2 text-primary"></i>Panel de Control
                     </h2>
-                    <div class="btn-toolbar flex-column align-items-end">
+                    <div class="btn-toolbar align-items-center gap-3 flex-wrap">
+                        {% if not crai_abierto %}
+                        <span class="aviso-crai">
+                            <i class="bi bi-clock-history"></i>
+                            <span class="aviso-crai-txt">
+                                <strong>Fuera de horario</strong>
+                                <small>CRAI · {{ crai_horario }}</small>
+                            </span>
+                        </span>
+                        {% endif %}
                         <button type="button" class="btn-codigo-reservacion"
                                 {% if crai_abierto %}data-bs-toggle="modal" data-bs-target="#modalCodigoReservacion"{% else %}disabled title="Disponible solo en horario CRAI ({{ crai_horario }})"{% endif %}>
-                        <span class="btn-codigo-icono"><i class="bi bi-qr-code-scan"></i></span>
-                        <span class="btn-codigo-texto"><strong>Ingresar Código</strong><small>de Reservación</small></span>
-                    </button>
-                    {% if not crai_abierto %}
-                        <span class="aviso-crai"><i class="bi bi-clock-history"></i>Fuera de horario CRAI · {{ crai_horario }}</span>
-                    {% endif %}
+                            <span class="btn-codigo-icono"><i class="bi bi-qr-code-scan"></i></span>
+                            <span class="btn-codigo-texto"><strong>Ingresar Código</strong><small>de Reservación</small></span>
+                        </button>
                     </div>
                 </div>
                 <div class="row g-3 mb-4">

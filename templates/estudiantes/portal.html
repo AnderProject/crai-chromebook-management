@@ -76,33 +76,19 @@
                 </div>
             </a>
             
-            <!-- Soporte -->
-            <a href="{% url 'autenticacion:soporte' %}" class="accion-card">
+            <!-- Soporte (abre modal con contacto + WhatsApp) -->
+            <button type="button" class="accion-card" onclick="abrirModalSoporte()">
                 <div class="accion-icono bg-advertencia">
                     <i class="bi bi-headset"></i>
                 </div>
                 <div class="accion-info">
                     <h4>Soporte Chatbot IA</h4>
-                    <p>Contacta al equipo del CRAI</p>
+                    <p>Contacto del CRAI y reserva por WhatsApp</p>
                 </div>
                 <div class="accion-flecha">
                     <i class="bi bi-chevron-right"></i>
                 </div>
-            </a>
-
-            <!-- Bot de WhatsApp -->
-            <a href="{{ whatsapp_url|default:'#' }}" {% if whatsapp_url %}target="_blank" rel="noopener"{% endif %} class="accion-card">
-                <div class="accion-icono bg-whatsapp">
-                    <i class="bi bi-whatsapp"></i>
-                </div>
-                <div class="accion-info">
-                    <h4>Reserva por WhatsApp</h4>
-                    <p>Chatea con el bot del CRAI desde tu celular</p>
-                </div>
-                <div class="accion-flecha">
-                    <i class="bi bi-chevron-right"></i>
-                </div>
-            </a>
+            </button>
 
         </div>
         
@@ -118,7 +104,49 @@
         </div>
         
     </main>
-    
+
+    <!-- ========================================== -->
+    <!-- MODAL DE SOPORTE                            -->
+    <!-- ========================================== -->
+    <div class="soporte-modal-overlay" id="soporteModal" onclick="if(event.target===this)cerrarModalSoporte()">
+        <div class="soporte-modal">
+            <button class="soporte-modal-cerrar" onclick="cerrarModalSoporte()" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+            <div class="soporte-modal-header">
+                <div class="soporte-modal-icono"><i class="bi bi-headset"></i></div>
+                <div>
+                    <h4>Centro de Soporte</h4>
+                    <p>Estamos para ayudarte</p>
+                </div>
+            </div>
+            <div class="soporte-modal-grid">
+                <div class="soporte-item">
+                    <div class="soporte-item-ico"><i class="bi bi-envelope-fill"></i></div>
+                    <div class="soporte-item-txt"><span>Correo</span><strong>soporte.crai@unemi.edu.ec</strong></div>
+                </div>
+                <div class="soporte-item">
+                    <div class="soporte-item-ico"><i class="bi bi-telephone-fill"></i></div>
+                    <div class="soporte-item-txt"><span>Teléfono</span><strong>(04) 2-715-081 Ext. 1234</strong></div>
+                </div>
+                <div class="soporte-item">
+                    <div class="soporte-item-ico"><i class="bi bi-clock-fill"></i></div>
+                    <div class="soporte-item-txt"><span>Horario</span><strong>Lun a Vie · 08:00–18:00</strong></div>
+                </div>
+                <div class="soporte-item">
+                    <div class="soporte-item-ico"><i class="bi bi-geo-alt-fill"></i></div>
+                    <div class="soporte-item-txt"><span>Ubicación</span><strong>Edificio CRAI, Planta Baja</strong></div>
+                </div>
+            </div>
+            <a href="{{ whatsapp_url|default:'#' }}" {% if whatsapp_url %}target="_blank" rel="noopener"{% endif %} class="soporte-whatsapp-btn{% if not whatsapp_url %} disabled{% endif %}">
+                <i class="bi bi-whatsapp"></i>
+                <span class="soporte-whatsapp-txt">
+                    <strong>Reserva por WhatsApp</strong>
+                    <small>Chatea con el bot del CRAI desde tu celular</small>
+                </span>
+                <i class="bi bi-chevron-right arrow"></i>
+            </a>
+        </div>
+    </div>
+
     <!-- ========================================== -->
     <!-- CHATBOT FLOTANTE CON IA                     -->
     <!-- ========================================== -->
@@ -183,4 +211,15 @@
 
 {% block scripts_extra %}
 <script src="{% static 'js/chatbot.js' %}"></script>
+<script>
+    function abrirModalSoporte() {
+        document.getElementById('soporteModal').classList.add('visible');
+    }
+    function cerrarModalSoporte() {
+        document.getElementById('soporteModal').classList.remove('visible');
+    }
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') cerrarModalSoporte();
+    });
+</script>
 {% endblock %}

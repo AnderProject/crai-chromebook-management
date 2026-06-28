@@ -1964,6 +1964,50 @@ def _disponibles_efectivos(fecha=None):
     return max(0, fisicos - reservas)
 
 
+def _proximo_dia_habil(desde=None):
+    """Próximo día hábil (lunes a viernes) estrictamente DESPUÉS de ``desde`` (hoy por defecto)."""
+    from datetime import timedelta
+    d = (desde or timezone.localdate()) + timedelta(days=1)
+    while d.weekday() >= 5:   # 5=sábado, 6=domingo
+        d += timedelta(days=1)
+    return d
+
+
+def _dias_validos_reserva():
+    """Fechas en las que se puede reservar: hoy (si es día hábil) y el próximo día hábil.
+
+    El CRAI atiende de lunes a viernes. Si hoy o mañana caen en fin de semana, la
+    reserva se permite para el siguiente día hábil (típicamente el lunes).
+    """
+    hoy = timezone.localdate()
+    dias = []
+    if hoy.weekday() < 5:
+        dias.append(hoy)
+    dias.append(_proximo_dia_habil(hoy))
+    return dias
+
+
+def _disponibles_en_franja(fecha, hora_inicio, hora_fin):
+    """Chromebooks libres en una franja horaria [hora_inicio, hora_fin) de una fecha.
+
+    A diferencia de ``_disponibles_efectivos`` (que cuenta por día), aquí la capacidad
+    son los equipos OPERATIVOS (todo lo que no está en mantenimiento, porque un equipo
+    prestado hoy puede estar libre en la franja pedida) y se descuentan solo las
+    reservas vigentes de ESA fecha cuyo horario SE SOLAPA con la franja. Así dos
+    reservas en horas distintas no compiten por el mismo cupo.
+    """
+    from .models import Chromebook, Reserva
+    capacidad = Chromebook.objects.exclude(estado='mantenimiento').count()
+    # Solapan si: inicio_existente < fin_pedido  Y  fin_existente > inicio_pedido.
+    solapadas = Reserva.objects.filter(
+        estado__in=['pendiente', 'confirmada'],
+        fecha_uso=fecha,
+        hora_inicio__lt=hora_fin,
+        hora_fin__gt=hora_inicio,
+    ).count()
+    return max(0, capacidad - solapadas)
+
+
 def _disponibles_inventario():
     """Chromebooks disponibles 'ahora mismo', descontando TODAS las reservas pendientes.
 

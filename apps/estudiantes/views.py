@@ -603,14 +603,19 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
         contexto_usuario = (f'[Usuario: {nombre_completo} (Cédula: {cedula})] '
                             if cedula else '[Usuario no identificado] ')
 
-        # Damos al agente la fecha Y hora actuales para que pueda razonar (p. ej.
-        # no aceptar una hora que ya pasó hoy). El horario del CRAI es 08:00–17:00.
+        # Damos al agente la fecha/hora actuales y las FECHAS exactas reservables
+        # (hoy si es hábil + el próximo día hábil), para que no razone con un
+        # "hoy o mañana" genérico —que rechazaría un lunes pedido un sábado—.
         ahora = timezone.localtime()
         dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
+        from apps.prestamos.views import _dias_validos_reserva
+        validos = _dias_validos_reserva()
+        validos_str = ' o '.join(f'{dias[d.weekday()]} {d:%Y-%m-%d}' for d in validos)
         contexto_tiempo = (
             f'[Ahora es {dias[ahora.weekday()]} {ahora:%Y-%m-%d} a las {ahora:%H:%M}. '
-            f'Horario del CRAI: 08:00 a 17:00. No ofrezcas ni aceptes horas que ya '
-            f'pasaron hoy; si piden una, dilo y sugiere una hora más tarde o mañana.] '
+            f'El CRAI atiende de 08:00 a 17:00, de lunes a viernes (cerrado sábado y '
+            f'domingo). Las ÚNICAS fechas reservables son: {validos_str}. No ofrezcas ni '
+            f'aceptes otra fecha, ni horas que ya pasaron hoy.] '
         )
         payload = {
             'chatInput': f'{contexto_tiempo}{contexto_usuario}{(mensaje_raw or "").strip()}',
@@ -657,48 +662,65 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
                     hora_inicio_dt = datetime.strptime(hora_inicio, '%H:%M').time()
                     hora_fin_dt = datetime.strptime(hora_fin, '%H:%M').time()
 
-                    from apps.prestamos.views import MAX_RESERVAS_VIGENTES, _disponibles_efectivos
+                    from apps.prestamos.views import (
+                        MAX_RESERVAS_VIGENTES, _disponibles_en_franja,
+                        _proximo_dia_habil, _dias_validos_reserva,
+                    )
                     vigentes = Reserva.objects.filter(
                         estudiante=estudiante,
                         estado__in=['pendiente', 'confirmada']
                     ).count()
 
+                    dias_validos = _dias_validos_reserva()
+                    DIAS_ES = ['lunes', 'martes', 'miércoles', 'jueves',
+                               'viernes', 'sábado', 'domingo']
+                    def _et(d):  # etiqueta "lunes 30/06"
+                        return f'{DIAS_ES[d.weekday()]} {d:%d/%m}'
+
+                    # El estudiante elige la duración que quiera; el único límite es que
+                    # toda la reserva caiga dentro del horario del CRAI (08:00–17:00).
                     if hora_fin_dt <= hora_inicio_dt or hora_inicio_dt < dtime(8, 0) or hora_fin_dt > dtime(17, 0):
                         respuesta = (
                             'El horario de reservas es de 08:00 a 17:00 y la hora de fin '
-                            'debe ser mayor que la de inicio. Intenta con otro horario.'
+                            'debe ser mayor que la de inicio. ¿Probamos con otro horario?'
                         )
-                    elif fecha_dt > timezone.localdate() + timedelta(days=1):
+                    elif fecha_dt.weekday() >= 5:
+                        prox = _proximo_dia_habil()
                         respuesta = (
-                            'Solo puedes reservar para hoy o para mañana '
-                            '(máximo un día de anticipación).'
+                            'El CRAI atiende de lunes a viernes. '
+                            f'¿Te reservo para el {_et(prox)}?'
                         )
-                    elif fecha_dt < timezone.localdate() or (
-                        fecha_dt == timezone.localdate()
-                        and timezone.make_aware(datetime.combine(fecha_dt, hora_inicio_dt)) < timezone.localtime() - timedelta(minutes=2)
-                    ):
+                    elif fecha_dt not in dias_validos:
+                        opciones = ' o '.join(_et(d) for d in dias_validos)
+                        respuesta = (
+                            f'Solo puedes reservar para hoy o el próximo día hábil ({opciones}).'
+                        )
+                    elif (fecha_dt == timezone.localdate()
+                          and timezone.make_aware(datetime.combine(fecha_dt, hora_inicio_dt))
+                              < timezone.localtime() - timedelta(minutes=2)):
                         ahora_local = timezone.localtime()
                         # Siguiente hora en punto a partir de ahora.
-                        prox = (ahora_local + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
-                        if prox.date() == timezone.localdate() and prox.time() < dtime(17, 0):
+                        prox_hora = (ahora_local + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+                        if prox_hora.time() < dtime(17, 0):
                             respuesta = (
                                 f'Esa hora ya pasó (ahora son las {ahora_local:%H:%M}). '
-                                f'¿Te reservo desde las {prox:%H:%M}? También puedes elegir otro día.'
+                                f'¿Te reservo desde las {prox_hora:%H:%M}? También puedes elegir otro día.'
                             )
                         else:
+                            prox_dia = _proximo_dia_habil()
                             respuesta = (
                                 f'Ya terminó el horario de hoy (son las {ahora_local:%H:%M} y '
-                                f'cerramos a las 17:00). ¿Reservamos para mañana?'
+                                f'cerramos a las 17:00). ¿Reservamos para el {_et(prox_dia)}?'
                             )
                     elif vigentes >= MAX_RESERVAS_VIGENTES:
                         respuesta = (
                             f'Ya tienes {MAX_RESERVAS_VIGENTES} reservas activas. Espera a que se completen '
                             'o cancela alguna antes de reservar otra.'
                         )
-                    elif _disponibles_efectivos(fecha_dt) <= 0:
+                    elif _disponibles_en_franja(fecha_dt, hora_inicio_dt, hora_fin_dt) <= 0:
                         respuesta = (
-                            'No quedan Chromebooks disponibles para esa fecha. '
-                            'Prueba con otro día.'
+                            f'Justo en ese horario ({hora_inicio}–{hora_fin}) ya no quedan '
+                            'Chromebooks libres. ¿Probamos con otra hora u otro día?'
                         )
                     else:
                         while True:

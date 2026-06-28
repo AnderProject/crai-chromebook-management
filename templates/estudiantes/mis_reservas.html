@@ -15,7 +15,7 @@
         <a href="{% url 'estudiantes:portal_estudiante' %}" class="btn-volver"><i class="bi bi-arrow-left"></i></a>
         <span class="navbar-titulo">Mis Reservas</span>
         <div class="navbar-derecha">
-            <div class="navbar-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+            {% if user.perfil.foto %}<div class="navbar-avatar"><img src="{{ user.perfil.foto.url }}" alt="Foto de perfil" class="avatar-img"></div>{% else %}<div class="navbar-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>{% endif %}
             <a href="{% url 'autenticacion:cerrar_sesion' %}" class="btn-logout-nav" title="Cerrar sesión">
                 <i class="bi bi-box-arrow-right"></i>
             </a>
@@ -41,8 +41,13 @@
         </div>
         
         {% if reservas %}
-        <!-- GRID HORIZONTAL -->
-        <div class="reservas-grid" id="reservasGrid">
+        <div class="reservas-panel">
+            <div class="reservas-panel-head">
+                <h6><i class="bi bi-collection"></i> Tus reservas</h6>
+                <span class="reservas-panel-count">{{ total_reservas }}</span>
+            </div>
+            <div class="reservas-scroll" id="reservasScroll">
+            <div class="reservas-grid" id="reservasGrid">
             {% for r in reservas %}
             <div class="reserva-card-compact 
                 {% if r.estado == 'pendiente' %}borde-pendiente
@@ -118,15 +123,10 @@
                 
             </div>
             {% endfor %}
-        </div>
-        
-        <!-- Paginación -->
-        <div class="paginacion" id="paginacionReservas">
-            <button class="btn-pag" onclick="cambiarPagina('anterior')" id="btnAnterior"><i class="bi bi-chevron-left"></i></button>
-            <div class="pag-nums" id="paginasNumeros"></div>
-            <button class="btn-pag" onclick="cambiarPagina('siguiente')" id="btnSiguiente"><i class="bi bi-chevron-right"></i></button>
-        </div>
-        
+            </div>
+            </div><!-- /reservas-scroll -->
+        </div><!-- /reservas-panel -->
+
         {% else %}
         <div class="estado-vacio">
             <div class="vacio-icono"><i class="bi bi-inbox"></i></div>

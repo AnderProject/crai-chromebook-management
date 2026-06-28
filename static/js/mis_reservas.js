@@ -1,54 +1,9 @@
-var paginaActual = 1;
-var tarjetasPorPagina = 6;
-
+// Las reservas ahora se muestran todas y se deslizan con scroll dentro del panel
+// (.reservas-scroll), sin paginación.
 document.addEventListener('DOMContentLoaded', function() {
-    inicializarPaginacion();
     actualizarProgresos();
     setInterval(actualizarProgresos, 30000);
 });
-
-function inicializarPaginacion() {
-    var tarjetas = document.querySelectorAll('.reserva-card-compact');
-    var totalPaginas = Math.ceil(tarjetas.length / tarjetasPorPagina);
-    
-    if (totalPaginas <= 1) {
-        document.getElementById('paginacionReservas').style.display = 'none';
-        return;
-    }
-    
-    var numsHtml = '';
-    for (var i = 1; i <= totalPaginas; i++) {
-        numsHtml += '<button class="btn-pag' + (i === 1 ? ' activo' : '') + '" onclick="irPagina(' + i + ')">' + i + '</button>';
-    }
-    document.getElementById('paginasNumeros').innerHTML = numsHtml;
-    mostrarPagina(1);
-}
-
-function mostrarPagina(pagina) {
-    var tarjetas = document.querySelectorAll('.reserva-card-compact');
-    var inicio = (pagina - 1) * tarjetasPorPagina;
-    var fin = inicio + tarjetasPorPagina;
-    
-    tarjetas.forEach(function(t, i) {
-        t.style.display = (i >= inicio && i < fin) ? 'flex' : 'none';
-    });
-    paginaActual = pagina;
-    
-    document.querySelectorAll('.pag-nums .btn-pag').forEach(function(b) { b.classList.remove('activo'); });
-    var botones = document.querySelectorAll('.pag-nums .btn-pag');
-    if (botones[pagina - 1]) botones[pagina - 1].classList.add('activo');
-    
-    document.getElementById('btnAnterior').disabled = pagina <= 1;
-    document.getElementById('btnSiguiente').disabled = pagina >= Math.ceil(tarjetas.length / tarjetasPorPagina);
-}
-
-function irPagina(p) { mostrarPagina(p); }
-
-function cambiarPagina(dir) {
-    var total = Math.ceil(document.querySelectorAll('.reserva-card-compact').length / tarjetasPorPagina);
-    if (dir === 'anterior' && paginaActual > 1) mostrarPagina(paginaActual - 1);
-    if (dir === 'siguiente' && paginaActual < total) mostrarPagina(paginaActual + 1);
-}
 
 // =============================================
 // CANCELAR RESERVA
