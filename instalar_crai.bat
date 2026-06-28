@@ -98,7 +98,7 @@ REM ---- 5) Datos de demo --------------------------------------------------
 echo.
 echo  [5/6] Cargando datos de demostracion...
 if exist "datos_demo.json" (
-    choice /c SN /n /m "        Cargar datos_demo.json (estudiantes, inventario, etc.)? (S/N): "
+    choice /c SN /n /m "        Cargar datos_demo.json con estudiantes, inventario, etc.? S/N: "
     if errorlevel 2 (
         echo        Omitido. Empezaras con la base vacia.
     ) else (
