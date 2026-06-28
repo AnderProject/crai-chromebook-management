@@ -457,26 +457,69 @@ def api_cancelar_reserva(request):
 # CHATBOT CON N8N
 # ==========================================
 
-def _formatear_reservas_chat(reservas, nombre=''):
-    """Da formato legible y bien estructurado a una lista de reservas para el chat.
+def _formatear_reservas_chat(activas, historial, nombre=''):
+    """Da formato legible a las reservas para el chat, separando activas e historial.
 
-    Cada reserva se muestra en su propio bloque (estado, código y fecha/horario),
-    separados por una línea en blanco para que no quede todo pegado.
+    Primero las reservas que el estudiante puede usar o cancelar (activas) y luego un
+    breve historial reciente, cada una en su propio bloque (estado, código y horario).
     """
     emojis = {'pendiente': '⏳', 'confirmada': '✅', 'cancelada': '❌',
               'completada': '✔️', 'vencida': '⌛'}
-    titulo = f'📋 *Tus reservas{(", " + nombre) if nombre else ""}*'
-    bloques = [titulo]
-    for r in reservas:
+
+    def bloque(r):
         e = emojis.get(r.estado, '📌')
         fecha = r.fecha_uso.strftime('%d/%m/%Y')
         horario = f'{r.hora_inicio.strftime("%H:%M")}–{r.hora_fin.strftime("%H:%M")}'
-        bloques.append(
-            f'{e} *{r.get_estado_display()}*\n'
-            f'🔑 Código: {r.codigo_verificacion}\n'
-            f'📅 {fecha}  ·  ⏰ {horario}'
-        )
-    return '\n\n'.join(bloques)
+        return (f'{e} *{r.get_estado_display()}*\n'
+                f'🔑 Código: {r.codigo_verificacion}\n'
+                f'📅 {fecha}  ·  ⏰ {horario}')
+
+    partes = [f'📋 *Tus reservas{(", " + nombre) if nombre else ""}*']
+    if activas:
+        partes.append('🟢 *Activas*')
+        partes.extend(bloque(r) for r in activas)
+    if historial:
+        partes.append('🕘 *Historial reciente*')
+        partes.extend(bloque(r) for r in historial)
+    return '\n\n'.join(partes)
+
+
+def _reservas_estudiante_chat(estudiante, nombre=''):
+    """Texto de 'Mis reservas': primero las activas (pendiente/confirmada), luego
+    un historial reciente (máx. 3). Devuelve un mensaje listo para el chat."""
+    from apps.prestamos.models import Reserva
+    activas = list(
+        Reserva.objects.filter(estudiante=estudiante,
+                               estado__in=['pendiente', 'confirmada'])
+        .order_by('fecha_uso', 'hora_inicio')
+    )
+    historial = list(
+        Reserva.objects.filter(estudiante=estudiante)
+        .exclude(estado__in=['pendiente', 'confirmada'])
+        .order_by('-fecha_uso', '-hora_inicio')[:3]
+    )
+    if not activas and not historial:
+        saludo = f', {nombre}' if nombre else ''
+        return f'Aún no tienes reservas{saludo}. ¿Te ayudo a crear una?'
+    return _formatear_reservas_chat(activas, historial, nombre)
+
+
+def _cancelar_reserva_por_codigo(estudiante, codigo):
+    """Cancela —o explica el estado de— una reserva por su código de 6 dígitos.
+
+    Consulta la BD real (no la deja en manos del AI). Devuelve el mensaje al usuario.
+    """
+    from apps.prestamos.models import Reserva
+    try:
+        reserva = Reserva.objects.get(codigo_verificacion=codigo, estudiante=estudiante)
+    except Reserva.DoesNotExist:
+        return f'No encontramos una reserva con código *{codigo}* en tu cuenta.'
+    if reserva.estado in ('pendiente', 'confirmada'):
+        reserva.estado = 'cancelada'
+        reserva.save(update_fields=['estado'])
+        return f'✅ Reserva *{codigo}* cancelada con éxito.'
+    return (f'La reserva *{codigo}* ya está {reserva.get_estado_display().lower()}, '
+            'así que no se puede cancelar.')
 
 
 def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
@@ -509,6 +552,11 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
     accion_realizada = None
     respuesta = ''
 
+    # Refrescamos el estado de las reservas antes de listar/cancelar para que una
+    # reserva ya caducada no se muestre como "pendiente" ni se intente cancelar.
+    from apps.prestamos.views import _expirar_reservas_vencidas
+    _expirar_reservas_vencidas()
+
     # --- Disponibilidad ---
     if any(p in mensaje for p in ['disponibilidad', 'disponible', 'cupo', 'hay chromebook']):
         from apps.prestamos.views import _disponibles_efectivos
@@ -526,12 +574,7 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
     # --- Mis reservas ---
     elif any(p in mensaje for p in ['mis reserva', 'mis reservacion', 'mis turno', 'código', 'codigo', 'mis prestamo', 'mis activo']):
         if estudiante:
-            reservas = Reserva.objects.filter(estudiante=estudiante).order_by('-fecha_uso')[:5]
-            if reservas:
-                respuesta = _formatear_reservas_chat(reservas, primer_nombre)
-            else:
-                saludo = f', {primer_nombre}' if primer_nombre else ''
-                respuesta = f'Aún no tienes reservas{saludo}. ¿Te ayudo a crear una?'
+            respuesta = _reservas_estudiante_chat(estudiante, primer_nombre)
         else:
             respuesta = 'No pudimos identificar tu perfil de estudiante.'
         accion_realizada = 'mis_reservas'
@@ -540,21 +583,19 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
     elif 'cancelar' in mensaje or 'anular' in mensaje:
         codigo_match = re.search(r'\b(\d{6})\b', mensaje)
         if codigo_match and estudiante:
-            codigo = codigo_match.group(1)
-            try:
-                reserva = Reserva.objects.get(codigo_verificacion=codigo, estudiante=estudiante)
-                if reserva.estado in ('pendiente', 'confirmada'):
-                    reserva.estado = 'cancelada'
-                    reserva.save(update_fields=['estado'])
-                    respuesta = f'✅ Reserva *{codigo}* cancelada con éxito.'
-                else:
-                    respuesta = f'La reserva *{codigo}* ya está {reserva.get_estado_display()}. No se puede cancelar.'
-            except Reserva.DoesNotExist:
-                respuesta = f'No encontramos una reserva con código *{codigo}* en tu cuenta.'
+            respuesta = _cancelar_reserva_por_codigo(estudiante, codigo_match.group(1))
         elif estudiante:
             respuesta = 'Para cancelar, dime el código de 6 dígitos de la reserva. Ej: "cancelar 123456"'
         else:
             respuesta = 'No pudimos identificar tu perfil de estudiante.'
+        accion_realizada = 'cancelar'
+
+    # --- Solo el código (6 dígitos) → tratamos como cancelación ---
+    # Cuando el bot pide "dame el código" y el estudiante responde solo con los 6
+    # dígitos, ese mensaje no trae la palabra "cancelar"; lo resolvemos aquí contra
+    # la BD en vez de mandarlo a n8n (que antes alucinaba "no encuentro la reserva").
+    elif estudiante and re.fullmatch(r'\d{6}', mensaje):
+        respuesta = _cancelar_reserva_por_codigo(estudiante, mensaje)
         accion_realizada = 'cancelar'
 
     # ========== Si no es keyword → va a n8n ==========
@@ -577,14 +618,14 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
         }
 
         try:
-            resp = requests.post(settings.N8N_CHATBOT_WEBHOOK_URL, json=payload, timeout=20)
+            resp = requests.post(settings.N8N_CHATBOT_WEBHOOK_URL, json=payload, timeout=30)
             resp.raise_for_status()
             resp_data = resp.json()
             respuesta = resp_data.get('output', '')
         except requests.RequestException:
-            respuesta = 'El servicio de chat no está disponible. Intenta más tarde.'
+            respuesta = 'Uy, me colgué un segundo 😅. ¿Me lo repites?'
         except (ValueError, KeyError, IndexError, TypeError):
-            respuesta = 'Recibí una respuesta inválida del asistente.'
+            respuesta = 'No te entendí bien. ¿Me lo dices de otra forma?'
 
         if not respuesta:
             respuesta = 'No entendí tu mensaje. ¿Puedes intentar de otra forma?'
@@ -685,25 +726,11 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
                 elif accion == 'cancelar' and estudiante:
                     codigo = accion_data.get('codigo', '')
                     if codigo:
-                        try:
-                            reserva = Reserva.objects.get(codigo_verificacion=codigo, estudiante=estudiante)
-                            if reserva.estado in ('pendiente', 'confirmada'):
-                                reserva.estado = 'cancelada'
-                                reserva.save(update_fields=['estado'])
-                                respuesta = f'✅ Reserva *{codigo}* cancelada con éxito.'
-                            else:
-                                respuesta = f'La reserva *{codigo}* ya está {reserva.get_estado_display()}.'
-                        except Reserva.DoesNotExist:
-                            respuesta = f'No encontramos una reserva con código *{codigo}* en tu cuenta.'
+                        respuesta = _cancelar_reserva_por_codigo(estudiante, codigo)
                     accion_realizada = 'cancelar'
 
                 elif accion == 'mis_reservas' and estudiante:
-                    reservas = Reserva.objects.filter(estudiante=estudiante).order_by('-fecha_uso')[:5]
-                    if reservas:
-                        respuesta = _formatear_reservas_chat(reservas, primer_nombre)
-                    else:
-                        saludo = f', {primer_nombre}' if primer_nombre else ''
-                        respuesta = f'Aún no tienes reservas{saludo}. ¿Te ayudo a crear una?'
+                    respuesta = _reservas_estudiante_chat(estudiante, primer_nombre)
                     accion_realizada = 'mis_reservas'
 
             except (ValueError, json.JSONDecodeError):
@@ -831,6 +858,60 @@ def _enviar_whatsapp(telefono, texto):
         return False, str(e)
 
 
+# Botones del menú principal de WhatsApp (id -> título). El título no debe pasar
+# de 20 caracteres (límite de la Cloud API).
+_WA_MENU_BOTONES = [
+    ('menu_reservar', '📅 Reservar'),
+    ('menu_mis', '📋 Mis reservas'),
+    ('menu_cancelar', '❌ Cancelar'),
+]
+
+# Lo que "escribe" cada botón al pulsarse (se procesa igual que un mensaje normal).
+_WA_MENU_INTENCIONES = {
+    'menu_reservar': 'quiero reservar un chromebook',
+    'menu_mis': 'mis reservas',
+    'menu_cancelar': 'cancelar',
+}
+
+
+def _enviar_whatsapp_menu(telefono, texto):
+    """Envía un mensaje interactivo con los 3 botones del menú principal.
+
+    El cuerpo (``texto``) es el mensaje que acompaña a los botones; sirve tanto para
+    el saludo ('¿En qué te ayudo?') como para un cierre tras una acción ('¿Algo más?').
+    """
+    import requests
+    token = settings.WHATSAPP_ACCESS_TOKEN
+    pnid = settings.WHATSAPP_PHONE_NUMBER_ID
+    if not token or not pnid:
+        return False, 'Falta WHATSAPP_ACCESS_TOKEN o WHATSAPP_PHONE_NUMBER_ID en .env'
+    url = f'https://graph.facebook.com/{settings.WHATSAPP_API_VERSION}/{pnid}/messages'
+    payload = {
+        'messaging_product': 'whatsapp',
+        'to': telefono,
+        'type': 'interactive',
+        'interactive': {
+            'type': 'button',
+            'body': {'text': (texto or '¿En qué te ayudo?')[:1024]},
+            'action': {'buttons': [
+                {'type': 'reply', 'reply': {'id': bid, 'title': titulo}}
+                for bid, titulo in _WA_MENU_BOTONES
+            ]},
+        },
+    }
+    try:
+        r = requests.post(
+            url, json=payload,
+            headers={'Authorization': f'Bearer {token}'},
+            timeout=15,
+        )
+        if r.status_code >= 400:
+            return False, r.text[:300]
+        return True, ''
+    except requests.RequestException as e:
+        return False, str(e)
+
+
 @csrf_exempt
 def webhook_whatsapp(request):
     """Webhook directo de WhatsApp Cloud API.
@@ -862,7 +943,7 @@ def webhook_whatsapp(request):
     except json.JSONDecodeError:
         return HttpResponse(status=200)  # 200 para que Meta no reintente
 
-    # Extraer el primer mensaje de texto del payload de Meta (defensivo).
+    # Extraer el primer mensaje del payload de Meta (texto o botón pulsado).
     telefono = mensaje_raw = msg_id = ''
     try:
         value = data['entry'][0]['changes'][0]['value']
@@ -871,8 +952,15 @@ def webhook_whatsapp(request):
             m = mensajes[0]
             msg_id = m.get('id', '')
             telefono = m.get('from', '')
-            if m.get('type') == 'text':
+            tipo = m.get('type')
+            if tipo == 'text':
                 mensaje_raw = (m.get('text') or {}).get('body', '')
+            elif tipo == 'interactive':
+                # El usuario pulsó un botón: lo traducimos a su intención de texto.
+                inter = m.get('interactive') or {}
+                resp_btn = inter.get('button_reply') or inter.get('list_reply') or {}
+                boton_id = resp_btn.get('id', '')
+                mensaje_raw = _WA_MENU_INTENCIONES.get(boton_id, resp_btn.get('title', ''))
     except (KeyError, IndexError, TypeError):
         pass
 
@@ -884,12 +972,49 @@ def webhook_whatsapp(request):
     if msg_id:
         _wa_mensajes_procesados.add(msg_id)
 
-    # Identificar por teléfono; si no, por cédula de 10 dígitos en el mensaje.
+    # Identificación SOLO por el número de WhatsApp: debe coincidir con el teléfono
+    # registrado en un perfil. Si el número no está registrado, no lo atendemos
+    # (el bot solo responde a estudiantes registrados en la base).
     estudiante, perfil = _buscar_estudiante_n8n(telefono=telefono)
-    if estudiante is None:
-        mm = re.search(r'\b(\d{10})\b', mensaje_raw)
-        if mm:
-            estudiante, perfil = _buscar_estudiante_n8n(cedula=mm.group(1))
+    if perfil is None:
+        aviso = ('Hola. Este número no está registrado en el CRAI UNEMI, así que no '
+                 'puedo atenderte por aquí. Si eres estudiante, acércate al CRAI para '
+                 'vincular tu número y luego escríbeme.')
+        _enviar_whatsapp(telefono, aviso)
+        ChatbotConversacion.objects.create(
+            usuario=None,
+            mensaje_usuario=mensaje_raw,
+            respuesta_bot=aviso,
+            canal='whatsapp',
+            intencion_detectada='no_registrado',
+        )
+        return HttpResponse(status=200)
+
+    primer_nombre = ''
+    if perfil is not None:
+        nombre = (f'{perfil.user.first_name} {perfil.user.last_name}'.strip()
+                  or perfil.user.username)
+        primer_nombre = nombre.split(' ')[0]
+
+    # --- Saludo / menú: mostramos el menú de botones (atajo, sin pasar por n8n) ---
+    norm = re.sub(r'[^0-9a-záéíóúñü ]', '', mensaje_raw.strip().lower()).strip()
+    MENU_TRIGGERS = {
+        'hola', 'holi', 'holaa', 'buenas', 'buenos dias', 'buenas tardes',
+        'buenas noches', 'hey', 'ola', 'menu', 'menú', 'opciones', 'ayuda',
+        'inicio', 'empezar', 'start',
+    }
+    if norm in MENU_TRIGGERS:
+        saludo = f'¡Hola {primer_nombre}! ' if primer_nombre else '¡Hola! '
+        cuerpo = f'{saludo}¿En qué te ayudo?'
+        _enviar_whatsapp_menu(telefono, cuerpo)
+        ChatbotConversacion.objects.create(
+            usuario=perfil.user if perfil else None,
+            mensaje_usuario=mensaje_raw,
+            respuesta_bot=cuerpo,
+            canal='whatsapp',
+            intencion_detectada='menu',
+        )
+        return HttpResponse(status=200)
 
     respuesta, accion = _procesar_chatbot(mensaje_raw, estudiante, perfil, telefono or 'wa-anon')
 
@@ -901,7 +1026,12 @@ def webhook_whatsapp(request):
         intencion_detectada=accion or 'conversacion',
     )
 
-    _enviar_whatsapp(telefono, respuesta)
+    # Tras completar una acción (reserva creada o cancelada, que empiezan con ✅),
+    # acompañamos la confirmación con el menú de botones a modo de "¿algo más?".
+    if respuesta.startswith('✅'):
+        _enviar_whatsapp_menu(telefono, respuesta)
+    else:
+        _enviar_whatsapp(telefono, respuesta)
     return HttpResponse(status=200)
 
 
