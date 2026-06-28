@@ -582,3 +582,5 @@
         text-align: center;
     }
 }
+/* ===== CRAI Paquete A: pantalla de reservar mas amplia ===== */
+.reservar-contenido { max-width: 1200px; }

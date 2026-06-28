@@ -166,3 +166,10 @@
     .fm-acciones { justify-content: stretch; }
     .fm-btn { flex: 1; justify-content: center; }
 }
+
+/* ===== CRAI Paquete C: boton Volver con diseno ===== */
+.fm-volver {
+    background: #eef1f8; border: 1px solid #e1e5f0;
+    padding: 0.5rem 0.95rem; border-radius: 10px;
+}
+.fm-volver:hover { background: #e4e8f5; border-color: #c7cfe6; }

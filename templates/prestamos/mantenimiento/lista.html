@@ -134,7 +134,7 @@
                                             {% if m.estado == 'en_proceso' %}
                                             <div class="acciones-fila">
                                                 <button class="btn btn-outline-warning btn-accion" title="Editar" onclick="editarMantenimiento('{{ m.id }}')"><i class="bi bi-pencil"></i></button>
-                                                <a href="{% url 'prestamos:finalizar_mantenimiento' m.id %}" class="btn btn-outline-success btn-accion" title="Finalizar mantenimiento"><i class="bi bi-check-lg"></i></a>
+                                                <a href="{% url 'prestamos:finalizar_mantenimiento' m.id %}" class="btn btn-outline-primary btn-accion" title="Finalizar mantenimiento"><i class="bi bi-check-lg"></i></a>
                                             </div>
                                             {% else %}
                                             <span class="text-muted small">—</span>

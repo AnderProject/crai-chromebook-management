@@ -56,7 +56,7 @@
                 {% else %}borde-cancelada{% endif %}">
                 
                 <div class="card-top">
-                    <span class="card-id">#{{ r.id|stringformat:"04d" }}</span>
+                    <span class="card-campo"><span class="card-campo-label">Código</span><span class="card-id">#{{ r.id|stringformat:"04d" }}</span></span>
                     <span class="card-estado-chip 
                         {% if r.estado == 'pendiente' %}chip-pendiente
                         {% elif r.estado == 'confirmada' %}chip-activa
@@ -67,9 +67,9 @@
                 </div>
                 
                 <div class="card-body-compact">
-                    <div class="card-line"><i class="bi bi-calendar3"></i> {{ r.fecha_uso|date:"d/m/Y" }}</div>
-                    <div class="card-line"><i class="bi bi-clock"></i> {{ r.hora_inicio|time:"H:i" }} - {{ r.hora_fin|time:"H:i" }}</div>
-                    <div class="card-line"><i class="bi bi-hourglass-split"></i> {{ r.calcular_duracion }}h</div>
+                    <div class="card-line"><i class="bi bi-calendar3"></i> <span class="card-line-txt"><span class="card-line-label">Fecha de uso</span><span class="card-line-valor">{{ r.fecha_uso|date:"d/m/Y" }}</span></span></div>
+                    <div class="card-line"><i class="bi bi-clock"></i> <span class="card-line-txt"><span class="card-line-label">Horario</span><span class="card-line-valor">{{ r.hora_inicio|time:"H:i" }} - {{ r.hora_fin|time:"H:i" }}</span></span></div>
+                    <div class="card-line"><i class="bi bi-hourglass-split"></i> <span class="card-line-txt"><span class="card-line-label">Tiempo de uso</span><span class="card-line-valor">{{ r.calcular_duracion }}h</span></span></div>
                 </div>
                 
                 {% if r.estado == 'pendiente' %}

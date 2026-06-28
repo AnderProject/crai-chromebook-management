@@ -162,6 +162,18 @@ def api_prestamos_hoy(request):
 
 
 @login_required
+def marcar_notificacion_leida(request, id):
+    """Marca UNA notificacion como leida (al hacer clic en ella) y devuelve
+    cuantas quedan sin leer, para sincronizar el numero de la campanita."""
+    from .models import Notificacion
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=405)
+    Notificacion.objects.filter(id=id, leida=False).update(leida=True)
+    total = Notificacion.objects.filter(leida=False).count()
+    return JsonResponse({'ok': True, 'total_no_leidas': total})
+
+
+@login_required
 def marcar_notificaciones_leidas(request):
     """Marca todas las notificaciones no leidas como leidas.
 

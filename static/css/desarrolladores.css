@@ -598,3 +598,9 @@ a.dev-chip:hover {
 @media (prefers-reduced-motion: reduce) {
     .dev-modal, .dev-bloque, .dev-modal-hero-deco { animation: none !important; transition: opacity 0.2s ease !important; }
 }
+
+/* ===== CRAI Paquete C: boton Volver con diseno ===== */
+.dev-volver {
+    background: #eef1f8; border: 1px solid #e1e5f0;
+    padding: 0.45rem 0.9rem; border-radius: 10px;
+}

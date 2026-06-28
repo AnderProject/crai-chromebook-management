@@ -114,8 +114,8 @@
 .mp-btn-primary { background: linear-gradient(135deg, #1a237e, #283593); color: #fff; }
 .mp-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(26, 35, 126, 0.3); }
 
-.mp-btn-success { background: linear-gradient(135deg, #2e7d32, #43a047); color: #fff; }
-.mp-btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(46, 125, 50, 0.3); }
+.mp-btn-success { background: linear-gradient(135deg, #1a73e8, #1557b0); color: #fff; }
+.mp-btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(26, 115, 232, 0.3); }
 
 .mp-btn-danger { background: linear-gradient(135deg, #c62828, #e53935); color: #fff; }
 .mp-btn-danger:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(198, 40, 40, 0.3); }

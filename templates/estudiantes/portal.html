@@ -136,7 +136,7 @@
                     <div class="soporte-item-txt"><span>Ubicación</span><strong>Edificio CRAI, Planta Baja</strong></div>
                 </div>
             </div>
-            <a href="{{ whatsapp_url|default:'#' }}" {% if whatsapp_url %}target="_blank" rel="noopener"{% endif %} class="soporte-whatsapp-btn{% if not whatsapp_url %} disabled{% endif %}">
+            <a href="https://wa.me/15556484657?text=Hola,%20soy%20estudiante%20de%20la%20UNEMI%20y%20quiero%20reservar%20un%20Chromebook" target="_blank" rel="noopener" class="soporte-whatsapp-btn">
                 <i class="bi bi-whatsapp"></i>
                 <span class="soporte-whatsapp-txt">
                     <strong>Reserva por WhatsApp</strong>
@@ -153,7 +153,8 @@
     <div class="chatbot-container" id="chatbotContainer">
         <!-- Botón flotante -->
         <button class="chatbot-btn" id="chatbotBtn" onclick="toggleChatbot()">
-            <i class="bi bi-robot"></i>
+            <i class="bi bi-robot chatbot-cara"></i>
+            <span class="chatbot-saludo">👋</span>
             <span class="chatbot-pulso"></span>
         </button>
         
@@ -162,7 +163,7 @@
             <div class="chatbot-header">
                 <div class="d-flex align-items-center gap-2">
                     <div class="chatbot-avatar">
-                        <i class="bi bi-robot"></i>
+                        <i class="bi bi-robot chatbot-cara"></i>
                     </div>
                     <div>
                         <strong>CRAI Assistant</strong>

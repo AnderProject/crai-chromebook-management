@@ -270,3 +270,21 @@
     .stats-row { grid-template-columns: 1fr; }
     .card-body-compact { flex-wrap: wrap; }
 }
+/* ===== CRAI Paquete A: Mis Reservas (etiquetas, tamano, hover) ===== */
+.reservas-contenido { max-width: 1180px; }
+.reservas-scroll { max-height: 560px; }
+
+.card-campo { display: inline-flex; flex-direction: column; gap: 0.1rem; }
+.card-campo-label, .card-line-label {
+    font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.4px;
+    color: #9aa0ad; font-weight: 700; line-height: 1;
+}
+.card-line { align-items: center; }
+.card-line-txt { display: inline-flex; flex-direction: column; line-height: 1.1; }
+.card-line-valor { font-size: 0.78rem; color: #444; font-weight: 600; }
+
+/* Hover con el color que combina con cada estado (igual que los iconos) */
+.reserva-card-compact.borde-pendiente:hover { border-color: rgba(251,188,4,0.45); box-shadow: 0 12px 24px rgba(251,188,4,0.18); }
+.reserva-card-compact.borde-activa:hover { border-color: rgba(52,168,83,0.45); box-shadow: 0 12px 24px rgba(52,168,83,0.18); }
+.reserva-card-compact.borde-completada:hover { border-color: rgba(26,115,232,0.45); box-shadow: 0 12px 24px rgba(26,115,232,0.18); }
+.reserva-card-compact.borde-cancelada:hover { box-shadow: 0 12px 24px rgba(0,0,0,0.12); }
