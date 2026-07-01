@@ -140,6 +140,7 @@ class Chromebook(models.Model):
     HEARTBEAT_UMBRAL_SEG = 60
 
     class Meta:
+        db_table = 'tb_chromebook'
         verbose_name = 'Chromebook'
         verbose_name_plural = 'Chromebooks'
         ordering = ['codigo']
@@ -283,6 +284,7 @@ class Prestamo(models.Model):
     qr_expiracion = models.DateTimeField(null=True, blank=True)
 
     class Meta:
+        db_table = 'tb_prestamo'
         verbose_name = 'Préstamo'
         verbose_name_plural = 'Préstamos'
         ordering = ['-fecha_prestamo']
