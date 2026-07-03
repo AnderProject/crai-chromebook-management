@@ -23,4 +23,9 @@
 
     <!-- Overlay de tiempo -->
     <string name="overlay_canal">Tiempo de sesión</string>
+
+    <!-- Pantalla de desconexión -->
+    <string name="desc_titulo">Sin conexión con el sistema</string>
+    <string name="desc_mensaje">Esta Chromebook no puede comunicarse con el CRAI.\nLa conexión se restablecerá automáticamente.</string>
+    <string name="desc_reintentando">Reintentando conexión…</string>
 </resources>

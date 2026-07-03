@@ -23,9 +23,13 @@ data class Reserva(
     val estado: EstadoReserva = EstadoReserva.ACTIVA,
     val sincronizada: Boolean = false
 ) {
-    val finPrevisto: Long get() = inicio + duracionMinutos * 60_000L
+    /** Sesión sin límite de tiempo (no vence por reloj). */
+    val ilimitada: Boolean get() = duracionMinutos <= 0
 
-    /** Milisegundos que faltan para vencer (0 si ya venció). */
+    val finPrevisto: Long
+        get() = if (ilimitada) Long.MAX_VALUE else inicio + duracionMinutos * 60_000L
+
+    /** Milisegundos que faltan para vencer (0 si ya venció; "infinito" si es ilimitada). */
     fun restanteMillis(ahora: Long = System.currentTimeMillis()): Long =
-        (finPrevisto - ahora).coerceAtLeast(0L)
+        if (ilimitada) Long.MAX_VALUE else (finPrevisto - ahora).coerceAtLeast(0L)
 }

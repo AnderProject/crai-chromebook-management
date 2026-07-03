@@ -12,6 +12,7 @@
         android:padding="32dp">
 
         <TextView
+            android:id="@+id/mantIcono"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="🛠️"
@@ -28,6 +29,7 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/mantTitulo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -37,6 +39,7 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/mantMensaje"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -68,5 +71,10 @@
         android:text="⚙"
         android:textColor="@color/blanco"
         android:textSize="18sp" />
+
+    <!-- Overlay de desconexión (encima de todo; se muestra/oculta en tiempo real) -->
+    <include
+        android:id="@+id/incDesconectado"
+        layout="@layout/view_desconectado" />
 
 </FrameLayout>

@@ -8,4 +8,11 @@
     <color name="verde">#2E9E5B</color>
     <color name="rojo">#C0392B</color>
     <color name="ambar">#E08600</color>
+
+    <!-- Pantalla de desconexión (estética oscura / cyber) -->
+    <color name="fondo_oscuro">#0B1220</color>
+    <color name="fondo_oscuro2">#16233A</color>
+    <color name="rojo_suave">#E5534B</color>
+    <color name="gris_claro">#AEB9CC</color>
+    <color name="cian">#3DD6C4</color>
 </resources>

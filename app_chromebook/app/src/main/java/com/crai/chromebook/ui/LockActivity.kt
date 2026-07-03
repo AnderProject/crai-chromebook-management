@@ -37,6 +37,7 @@ class LockActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         b = ActivityLockBinding.inflate(layoutInflater)
         setContentView(b.root)
+        entrarPantallaCompleta()
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         modoServidor = intent.getBooleanExtra(EXTRA_SERVIDOR, false)
@@ -44,6 +45,9 @@ class LockActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() { /* bloqueado */ }
         })
+
+        animarPop(b.lockIcono)
+        animarEntrada(b.lockTitulo, b.txtLockMsg)
 
         b.btnDesbloquear.setOnClickListener { pedirPin() }
 
@@ -64,8 +68,14 @@ class LockActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        entrarPantallaCompleta()
         // En modo estricto el bloqueo fija la pantalla para que no puedan escapar.
         if (prefs.kioskoEstricto) fijarPantalla()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) entrarPantallaCompleta()
     }
 
     /**
@@ -121,13 +131,11 @@ class LockActivity : AppCompatActivity() {
             }
         } else {
             val destino = if (prefs.modoAuto) EsperaActivity::class.java else LoginActivity::class.java
-            startActivity(Intent(this, destino))
-            finish()
+            irCon(destino)
         }
     }
 
     private fun irEspera() {
-        startActivity(Intent(this, EsperaActivity::class.java))
-        finish()
+        irCon(EsperaActivity::class.java)
     }
 }

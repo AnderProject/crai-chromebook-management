@@ -1,6 +1,5 @@
 package com.crai.chromebook.ui
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -27,6 +26,7 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         b = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(b.root)
+        entrarPantallaCompleta()
 
         b.btnIniciar.setOnClickListener { iniciar() }
         b.btnConfig.setOnClickListener {
@@ -34,6 +34,16 @@ class LoginActivity : AppCompatActivity() {
         }
 
         enrutar()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        entrarPantallaCompleta()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) entrarPantallaCompleta()
     }
 
     /** Decide a qué pantalla ir según el estado local y la configuración. */
@@ -66,7 +76,6 @@ class LoginActivity : AppCompatActivity() {
         Snackbar.make(b.root, msg, Snackbar.LENGTH_SHORT).show()
 
     private fun irA(clazz: Class<*>) {
-        startActivity(Intent(this, clazz))
-        finish()
+        irCon(clazz)
     }
 }

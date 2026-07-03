@@ -18,9 +18,14 @@ class Prefs(context: Context) {
 
     private val sp = context.getSharedPreferences("crai_kiosko", Context.MODE_PRIVATE)
 
+    /**
+     * Duración de la sesión manual (login de respaldo), en minutos.
+     * 0 = SIN LÍMITE (la sesión no vence por tiempo; "para siempre").
+     * En modo servidor el tiempo lo define la reserva de Django, no este valor.
+     */
     var duracionMinutos: Int
-        get() = sp.getInt("duracion", 60)
-        set(v) = sp.edit().putInt("duracion", v).apply()
+        get() = sp.getInt("duracion", 0)
+        set(v) = sp.edit().putInt("duracion", v.coerceAtLeast(0)).apply()
 
     var pinStaff: String
         get() = sp.getString("pin", "2468") ?: "2468"

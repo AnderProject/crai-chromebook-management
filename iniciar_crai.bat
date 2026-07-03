@@ -19,7 +19,9 @@ echo  =====================================================
 echo.
 
 REM ---- 1) n8n (tarda en arrancar, se lanza primero) ----
-start "n8n CRAI :5678" cmd /k "npx n8n"
+REM   n8n instalado global en Node 22 (via nvm). Se usa "n8n start" (NO "npx n8n":
+REM   npx descargaria la ultima version con el arbol de dependencias roto).
+start "n8n CRAI :5678" cmd /k "n8n start"
 
 REM ---- 2) Django en 0.0.0.0:8000 ----
 start "Django CRAI :8000" cmd /k "env\Scripts\python.exe manage.py runserver 0.0.0.0:8000"

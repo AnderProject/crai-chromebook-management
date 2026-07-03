@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Pantalla de "Desconectado": se muestra ENCIMA de la pantalla actual cuando la
+  app pierde conexión con el sistema (Django) y se oculta sola, en tiempo real,
+  al reconectar. Bloquea los toques de lo que hay debajo (clickable/focusable).
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_desconectado"
+    android:clickable="true"
+    android:focusable="true"
+    android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="40dp"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <!-- Ícono con anillo pulsante -->
+        <FrameLayout
+            android:layout_width="170dp"
+            android:layout_height="170dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <View
+                android:id="@+id/descPulse"
+                android:layout_width="170dp"
+                android:layout_height="170dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_ring_desc" />
+
+            <View
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                android:alpha="0.7"
+                android:background="@drawable/bg_ring_desc" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="📡"
+                android:textSize="66sp" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/txtDescTitulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:gravity="center"
+            android:letterSpacing="0.01"
+            android:text="@string/desc_titulo"
+            android:textColor="@color/blanco"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:text="@string/desc_mensaje"
+            android:textColor="@color/gris_claro"
+            android:textSize="16sp" />
+
+        <!-- Píldora "Reintentando" con punto de estado -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:background="@drawable/bg_pill"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="18dp"
+            android:paddingTop="9dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="9dp">
+
+            <View
+                android:id="@+id/descDot"
+                android:layout_width="11dp"
+                android:layout_height="11dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/dot_estado"
+                android:backgroundTint="@color/rojo_suave" />
+
+            <TextView
+                android:id="@+id/txtDescSub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/desc_reintentando"
+                android:textColor="@color/blanco"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

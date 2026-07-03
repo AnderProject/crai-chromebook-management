@@ -58,8 +58,8 @@ object ConfigDialog {
         val cCod = campo("CB-005", prefs.codigoEquipo)
         val titKey = etiqueta(context, "Clave del servidor (X-KIOSKO-KEY)")
         val cKey = campo("clave del servidor", prefs.apiKey)
-        val titDur = etiqueta(context, "Duración manual (minutos)")
-        val cDur = campo("60", prefs.duracionMinutos.toString(), numerico = true)
+        val titDur = etiqueta(context, "Duración manual en minutos (0 = sin límite)")
+        val cDur = campo("0 = sin límite", prefs.duracionMinutos.toString(), numerico = true)
         val titPin = etiqueta(context, "Nuevo PIN (opcional)")
         val cPin = campo("PIN", "", password = true)
 
@@ -95,7 +95,8 @@ object ConfigDialog {
                 prefs.servidorUrl = cUrl.text.toString()
                 prefs.codigoEquipo = cCod.text.toString()
                 cKey.text.toString().trim().takeIf { it.isNotEmpty() }?.let { prefs.apiKey = it }
-                cDur.text.toString().toIntOrNull()?.let { if (it in 1..600) prefs.duracionMinutos = it }
+                // 0 = sin límite; sin tope superior (antes estaba capado a 600).
+                cDur.text.toString().toIntOrNull()?.let { if (it >= 0) prefs.duracionMinutos = it }
                 val nuevoPin = cPin.text.toString().trim()
                 if (nuevoPin.length >= 4) prefs.pinStaff = nuevoPin
                 prefs.kioskoEstricto = chkEstricto.isChecked

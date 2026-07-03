@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fondo degradado oscuro para la pantalla de desconexión. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="115"
+        android:startColor="@color/fondo_oscuro"
+        android:centerColor="@color/fondo_oscuro2"
+        android:endColor="@color/fondo_oscuro"
+        android:type="linear" />
+</shape>

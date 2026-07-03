@@ -62,13 +62,28 @@ class SesionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         b = ActivitySesionBinding.inflate(layoutInflater)
         setContentView(b.root)
+        entrarPantallaCompleta()
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() { /* bloqueado */ }
         })
 
+        // Entrada animada: la foto "aparece" con rebote y el resto sube en cascada.
+        animarPop(b.imgFoto)
+        animarEntrada(b.txtNombre, b.txtCedula, b.txtLabelTiempo, b.txtContador, b.barra, b.btnDevolver)
+
         modoServidor = intent.getBooleanExtra(EXTRA_SERVIDOR, false)
         if (modoServidor) iniciarServidor() else iniciarLocal()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        entrarPantallaCompleta()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) entrarPantallaCompleta()
     }
 
     // ---------------- MODO SERVIDOR ----------------
@@ -154,14 +169,27 @@ class SesionActivity : AppCompatActivity() {
             b.txtCedula.text = r.cedula
             b.btnDevolver.setOnClickListener { confirmarDevolucion() }
 
+            // Sesión SIN LÍMITE (duración 0): no vence por tiempo; el contador
+            // muestra el tiempo transcurrido y se oculta la barra de progreso.
+            val ilimitada = r.duracionMinutos <= 0
+            if (ilimitada) {
+                b.txtLabelTiempo.text = "Tiempo de uso"
+                b.barra.visibility = View.GONE
+            }
+
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (true) {
-                    val restante = (finMs - System.currentTimeMillis()).coerceAtLeast(0)
-                    pintar(restante)
-                    if (restante <= 0L) {
-                        repo.vencer(r)
-                        irBloqueoLocal()
-                        break
+                    if (ilimitada) {
+                        val transcurrido = (System.currentTimeMillis() - r.inicio).coerceAtLeast(0)
+                        b.txtContador.text = formato(transcurrido)
+                    } else {
+                        val restante = (finMs - System.currentTimeMillis()).coerceAtLeast(0)
+                        pintar(restante)
+                        if (restante <= 0L) {
+                            repo.vencer(r)
+                            irBloqueoLocal()
+                            break
+                        }
                     }
                     delay(1000L)
                 }
@@ -203,13 +231,11 @@ class SesionActivity : AppCompatActivity() {
     }
 
     private fun irBloqueoLocal() {
-        startActivity(Intent(this, LockActivity::class.java)
+        irCon(Intent(this, LockActivity::class.java)
             .putExtra(LockActivity.EXTRA_SERVIDOR, false))
-        finish()
     }
 
     private fun irLogin() {
-        startActivity(Intent(this, LoginActivity::class.java))
-        finish()
+        irCon(LoginActivity::class.java)
     }
 }

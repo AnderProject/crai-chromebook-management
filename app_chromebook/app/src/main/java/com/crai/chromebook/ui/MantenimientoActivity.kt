@@ -1,6 +1,5 @@
 package com.crai.chromebook.ui
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -32,6 +31,7 @@ class MantenimientoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         b = ActivityMantenimientoBinding.inflate(layoutInflater)
         setContentView(b.root)
+        entrarPantallaCompleta()
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() { /* bloqueado */ }
@@ -41,6 +41,10 @@ class MantenimientoActivity : AppCompatActivity() {
         b.btnConfig.setOnClickListener {
             ConfigDialog.abrir(this, prefs) { /* al guardar, el polling decidirá */ }
         }
+
+        animarPop(b.mantIcono)
+        animarEntrada(b.txtCodigo, b.mantTitulo, b.mantMensaje, b.txtConexion)
+        animarPulsoInfinito(b.incDesconectado.descPulse)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -54,22 +58,31 @@ class MantenimientoActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        entrarPantallaCompleta()
         if (prefs.kioskoEstricto) fijarPantalla() else liberarPantalla()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) entrarPantallaCompleta()
     }
 
     private suspend fun sondear() {
         try {
             val api = ApiClient.crear(prefs.servidorUrl)
             val r = api.estado(prefs.codigoEquipo, prefs.apiKey)
+            // Conexión OK: oculta la pantalla de desconexión si estaba visible.
+            b.incDesconectado.root.ocultarConFade()
             // Si ya no está en mantenimiento, volvemos a la pantalla de Espera.
             if (r.estado_equipo != "mantenimiento") {
-                startActivity(Intent(this, EsperaActivity::class.java))
-                finish()
+                irCon(EsperaActivity::class.java)
                 return
             }
             b.txtConexion.text = "Conectado · ${hora()}"
         } catch (e: Exception) {
             b.txtConexion.text = "Sin conexión con el servidor · reintentando…"
+            b.incDesconectado.txtDescSub.text = "Último intento · ${hora()}"
+            b.incDesconectado.root.mostrarConFade()
         }
     }
 

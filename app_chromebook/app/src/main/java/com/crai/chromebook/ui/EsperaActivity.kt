@@ -39,6 +39,7 @@ class EsperaActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         b = ActivityEsperaBinding.inflate(layoutInflater)
         setContentView(b.root)
+        entrarPantallaCompleta()
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() { /* bloqueado */ }
@@ -51,6 +52,8 @@ class EsperaActivity : AppCompatActivity() {
         recargar()
         pedirPermisoOverlay()
         animarPulso()
+        animarPulsoDesc()
+        animarEntrada(b.iconoEspera, b.txtCodigo, b.pillEstado, b.txtSub, b.txtConexion)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -64,8 +67,14 @@ class EsperaActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        entrarPantallaCompleta()
         // Pantalla de espera fijada solo si el personal activó el modo estricto.
         if (prefs.kioskoEstricto) fijarPantalla() else liberarPantalla()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) entrarPantallaCompleta()
     }
 
     /**
@@ -100,6 +109,8 @@ class EsperaActivity : AppCompatActivity() {
         try {
             val api = ApiClient.crear(prefs.servidorUrl)
             val r = api.estado(prefs.codigoEquipo, prefs.apiKey)
+            // Conexión OK: si estaba la pantalla de desconexión, se oculta en el acto.
+            b.incDesconectado.root.ocultarConFade()
             val p = r.prestamo
             if (p != null && p.estado == "activo" && p.fin_ms > System.currentTimeMillis()) {
                 irSesion(p)
@@ -107,8 +118,7 @@ class EsperaActivity : AppCompatActivity() {
             }
             // Equipo en mantenimiento → pantalla dedicada.
             if (r.estado_equipo == "mantenimiento") {
-                startActivity(Intent(this, MantenimientoActivity::class.java))
-                finish()
+                irCon(MantenimientoActivity::class.java)
                 return
             }
             // Equipo libre.
@@ -117,7 +127,10 @@ class EsperaActivity : AppCompatActivity() {
             b.txtSub.text = "Esperando una reserva desde el sistema…"
             b.txtConexion.text = "Conectado · ${hora()}"
         } catch (e: Exception) {
+            // Sin conexión con el sistema: pantalla de desconexión (tiempo real).
             b.txtConexion.text = "Sin conexión con el servidor · reintentando…"
+            b.incDesconectado.txtDescSub.text = "Último intento · ${hora()}"
+            b.incDesconectado.root.mostrarConFade()
         }
     }
 
@@ -141,7 +154,15 @@ class EsperaActivity : AppCompatActivity() {
 
     /** Pulso animado detrás del icono (sensación de "en línea / disponible"). */
     private fun animarPulso() {
-        val v: View = b.pulse
+        pulsar(b.pulse)
+    }
+
+    /** Pulso rojo del anillo en la pantalla de desconexión. */
+    private fun animarPulsoDesc() {
+        pulsar(b.incDesconectado.descPulse)
+    }
+
+    private fun pulsar(v: View) {
         listOf(
             ObjectAnimator.ofFloat(v, View.SCALE_X, 1f, 1.7f),
             ObjectAnimator.ofFloat(v, View.SCALE_Y, 1f, 1.7f),
@@ -163,8 +184,7 @@ class EsperaActivity : AppCompatActivity() {
             putExtra(SesionActivity.EXTRA_FIN_MS, p.fin_ms)
             putExtra(SesionActivity.EXTRA_FOTO, p.foto_url)
         }
-        startActivity(i)
-        finish()
+        irCon(i)
     }
 
     private fun hora(): String =
