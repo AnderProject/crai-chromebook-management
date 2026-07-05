@@ -12,9 +12,10 @@ cd /d "%~dp0"
 echo.
 echo  =====================================================
 echo   Iniciando servicios CRAI...
-echo   - Django : http://localhost:8000
-echo   - ngrok  : https://immunize-bronco-graveyard.ngrok-free.dev
-echo   - n8n    : http://localhost:5678
+echo   - Django     : http://localhost:8000
+echo   - ngrok      : https://immunize-bronco-graveyard.ngrok-free.dev
+echo   - n8n        : http://localhost:5678
+echo   - Matriculas : http://localhost:8001
 echo  =====================================================
 echo.
 
@@ -25,6 +26,10 @@ start "n8n CRAI :5678" cmd /k "n8n start"
 
 REM ---- 2) Django en 0.0.0.0:8000 ----
 start "Django CRAI :8000" cmd /k "env\Scripts\python.exe manage.py runserver 0.0.0.0:8000"
+
+REM ---- 2b) API de Matriculas UNEMI (simulador) en el 8001 ----
+REM   Interfaz web para matricular estudiantes + API que consume el CRAI.
+start "API Matriculas :8001" cmd /k "env\Scripts\python.exe api_matriculas_unemi\manage.py runserver 8001"
 
 REM ---- Pequena espera para que Django levante antes del tunel ----
 timeout /t 3 /nobreak >nul
