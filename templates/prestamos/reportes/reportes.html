@@ -303,8 +303,8 @@
                         <div class="reporte-grid">
                             <div class="reporte-card reporte-col-4">
                                 <div class="reporte-mini-stat">
-                                    <div class="reporte-kpi-icono kpi-verde"><i class="bi bi-cash-coin"></i></div>
-                                    <div><span class="reporte-kpi-numero">${{ costo_total }}</span><span class="reporte-kpi-label">Costo total</span></div>
+                                    <div class="reporte-kpi-icono kpi-verde"><i class="bi bi-hourglass-split"></i></div>
+                                    <div><span class="reporte-kpi-numero">{{ mant_en_proceso }}</span><span class="reporte-kpi-label">En proceso</span></div>
                                 </div>
                                 <div class="reporte-mini-stat">
                                     <div class="reporte-kpi-icono kpi-azul"><i class="bi bi-hourglass-split"></i></div>
@@ -327,10 +327,10 @@
                                 <div class="reporte-card-header"><i class="bi bi-person-gear"></i><h5>Técnicos con más trabajos</h5></div>
                                 <div class="reporte-tabla-wrap">
                                     <table class="reporte-tabla">
-                                        <thead><tr><th>#</th><th>Técnico</th><th class="text-end">Trabajos</th><th class="text-end">Costo acumulado</th></tr></thead>
+                                        <thead><tr><th>#</th><th>Técnico</th><th class="text-end">Trabajos</th><th class="text-end">En proceso</th></tr></thead>
                                         <tbody>
                                             {% for t in tabla_tecnicos %}
-                                            <tr><td>{{ forloop.counter }}</td><td>{{ t.tecnico }}</td><td class="text-end">{{ t.total }}</td><td class="text-end">${{ t.costo }}</td></tr>
+                                            <tr><td>{{ forloop.counter }}</td><td>{{ t.tecnico }}</td><td class="text-end">{{ t.total }}</td><td class="text-end">{{ t.en_proceso }}</td></tr>
                                             {% empty %}
                                             <tr><td colspan="4" class="reporte-tabla-vacio">Sin técnicos registrados</td></tr>
                                             {% endfor %}

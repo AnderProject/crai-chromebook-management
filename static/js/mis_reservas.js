@@ -97,3 +97,22 @@ function actualizarProgresos() {
         }
     });
 }
+// ===== Filtros por estado en "Mis Reservas" =====
+(function () {
+    var cont = document.getElementById('reservasFiltros');
+    if (!cont) return;
+    var chips = cont.querySelectorAll('.filtro-chip');
+    var cards = document.querySelectorAll('.reserva-card-compact');
+
+    chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            chips.forEach(function (c) { c.classList.remove('activo'); });
+            chip.classList.add('activo');
+            var filtro = chip.getAttribute('data-filtro');
+            cards.forEach(function (card) {
+                var visible = filtro === 'todas' || card.getAttribute('data-estado') === filtro;
+                card.classList.toggle('filtro-oculta', !visible);
+            });
+        });
+    });
+})();

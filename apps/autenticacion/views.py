@@ -172,7 +172,8 @@ def _mensaje_intentos(request, bloqueada, restantes):
         messages.error(
             request,
             'Tu cuenta ha sido bloqueada por 3 intentos fallidos. '
-            'Desbloquéala desde "¿Olvidó su contraseña?" usando tu número de cédula.'
+            'Desbloquéala desde "¿Olvidó su contraseña?" eligiendo la opción '
+            '"Cuenta bloqueada" e ingresando tu número de cédula.'
         )
     elif restantes is not None:
         plural = 'intento' if restantes == 1 else 'intentos'
@@ -405,45 +406,70 @@ def pagina_login(request):
 # ==========================================
 
 def recuperar_contraseña(request):
-    """Vista para recuperar contraseña"""
-    
+    """Recuperación de contraseña con dos modos:
+
+    - NORMAL: el usuario ingresa su CORREO registrado (lo habitual).
+    - CUENTA BLOQUEADA: cuando la cuenta se bloqueó por intentos fallidos, se
+      pide la CÉDULA (dato que el usuario conoce con certeza y que además
+      desbloquea la cuenta al completar el cambio de contraseña).
+    El modo se elige con el interruptor de la página (o llegando con ?bloqueo=1).
+    """
+    import re as _re
+    from apps.prestamos.models import Usuario
+
     limpiar_mensajes(request)
-    formulario = FormularioRecuperarContraseña()
-    
+
+    # Modo inicial: por parámetro (?bloqueo=1) o el enviado en el POST.
+    modo_bloqueo = request.GET.get('bloqueo') == '1'
+
     if request.method == 'POST':
-        formulario = FormularioRecuperarContraseña(request.POST)
-        if formulario.is_valid():
-            cedula = formulario.cleaned_data['cedula']
-            from apps.prestamos.models import Usuario
+        modo_bloqueo = request.POST.get('modo') == 'bloqueo'
+        identificador = (request.POST.get('identificador') or '').strip()
+        user = None
 
-            perfil = Usuario.objects.filter(cedula=cedula).select_related('user').first()
-
-            if perfil is None:
-                messages.error(request, 'No existe ninguna cuenta con ese número de cédula.')
-            elif not perfil.user.email:
-                messages.error(request, 'Tu cuenta no tiene un correo registrado. Contacta al administrador.')
+        if modo_bloqueo:
+            # --- Cuenta bloqueada: se identifica por CÉDULA ---
+            if not (identificador.isdigit() and len(identificador) == 10):
+                messages.error(request, 'La cédula debe tener 10 dígitos.')
             else:
-                user = perfil.user
-                token = default_token_generator.make_token(user)
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-                enlace = f"http://{request.get_host()}/autenticacion/cambiar-contraseña/{uid}/{token}/"
+                perfil = Usuario.objects.filter(cedula=identificador).select_related('user').first()
+                if perfil is None:
+                    messages.error(request, 'No existe ninguna cuenta con ese número de cédula.')
+                elif not perfil.user.email:
+                    messages.error(request, 'Tu cuenta no tiene un correo registrado. Contacta al administrador.')
+                else:
+                    user = perfil.user
+        else:
+            # --- Caso normal: se identifica por CORREO ---
+            if not _re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', identificador):
+                messages.error(request, 'Ingresa un correo electrónico válido.')
+            else:
+                user = User.objects.filter(email__iexact=identificador, is_active=True).first()
+                if user is None:
+                    messages.error(request, 'No existe ninguna cuenta con ese correo electrónico.')
 
-                send_mail(
-                    'Recuperación de Contraseña - CRAI UNEMI',
-                    f'Hola {user.first_name or user.username}:\n\n'
-                    f'Para restablecer tu contraseña y desbloquear tu cuenta, haz clic aquí:\n\n{enlace}\n\n'
-                    f'Si no solicitaste esto, ignora este correo.',
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user.email],
-                    fail_silently=False,
-                )
-                return render(request, 'autenticacion/recuperar_contraseña.html', {
-                    'formulario': formulario,
-                    'enviado': True,
-                    'correo_enmascarado': _enmascarar_correo(user.email),
-                })
+        if user is not None:
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            enlace = f"http://{request.get_host()}/autenticacion/cambiar-contraseña/{uid}/{token}/"
 
-    return render(request, 'autenticacion/recuperar_contraseña.html', {'formulario': formulario})
+            send_mail(
+                'Recuperación de Contraseña - CRAI UNEMI',
+                f'Hola {user.first_name or user.username}:\n\n'
+                f'Para restablecer tu contraseña y desbloquear tu cuenta, haz clic aquí:\n\n{enlace}\n\n'
+                f'Si no solicitaste esto, ignora este correo.',
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+            return render(request, 'autenticacion/recuperar_contraseña.html', {
+                'enviado': True,
+                'correo_enmascarado': _enmascarar_correo(user.email),
+            })
+
+    return render(request, 'autenticacion/recuperar_contraseña.html', {
+        'modo_bloqueo': modo_bloqueo,
+    })
 
 
 def _enmascarar_correo(correo):

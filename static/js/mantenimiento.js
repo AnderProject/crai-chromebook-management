@@ -52,8 +52,7 @@ function editarMantenimiento(id) {
             document.getElementById('editMantId').value = d.id;
             document.getElementById('editMantChromebook').value = d.chromebook;
             document.getElementById('editMantTipo').value = d.tipo;
-            document.getElementById('editMantTecnico').value = d.tecnico;
-            document.getElementById('editMantCosto').value = d.costo;
+            document.getElementById('editMantTecnico').value = d.tecnico_id || '';
             document.getElementById('editMantGarantia').value = d.en_garantia ? '1' : '0';
             document.getElementById('editMantFechaInicio').value = d.fecha_inicio;
             document.getElementById('editMantProblema').value = d.descripcion_problema;
@@ -67,8 +66,7 @@ function guardarEdicionMantenimiento() {
     var id = document.getElementById('editMantId').value;
     var data = {
         tipo: document.getElementById('editMantTipo').value,
-        tecnico: document.getElementById('editMantTecnico').value,
-        costo: document.getElementById('editMantCosto').value,
+        tecnico_id: document.getElementById('editMantTecnico').value,
         en_garantia: document.getElementById('editMantGarantia').value === '1',
         fecha_inicio: document.getElementById('editMantFechaInicio').value,
         descripcion_problema: document.getElementById('editMantProblema').value

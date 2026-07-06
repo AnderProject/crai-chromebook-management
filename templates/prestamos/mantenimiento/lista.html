@@ -102,6 +102,30 @@
                     </div>
                 </div>
                 
+                <!-- Carga de trabajo del departamento de TICs -->
+                {% if tecnicos %}
+                <div class="tecnicos-carga mb-4">
+                    <div class="tecnicos-carga-head">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Departamento TICs · máquinas por técnico</span>
+                    </div>
+                    <div class="tecnicos-carga-lista">
+                        {% for t in tecnicos %}
+                        <div class="tecnico-chip {% if t.en_proceso >= limite_tecnico %}tecnico-chip-lleno{% elif t.en_proceso > 0 %}tecnico-chip-ocupado{% endif %}">
+                            <span class="tecnico-chip-avatar"><i class="bi bi-person-gear"></i></span>
+                            <span class="tecnico-chip-info">
+                                <strong>{{ t.nombre_completo }}</strong>
+                                <small>{{ t.especialidad|default:'Técnico de TICs' }}</small>
+                            </span>
+                            <span class="tecnico-chip-carga" title="Equipos en mantenimiento">
+                                {{ t.en_proceso }}<span class="tecnico-chip-max">/{{ limite_tecnico }}</span>
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
                 <!-- Búsqueda por código de máquina (automática) -->
                 <div class="barra-busqueda">
                     <div class="busqueda-input-wrap busqueda-compacta">
@@ -180,21 +204,22 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Técnico</label>
-                            <input type="text" id="editMantTecnico" class="form-control" placeholder="Nombre del técnico">
+                            <label class="form-label small fw-semibold">Técnico de TICs</label>
+                            <select id="editMantTecnico" class="form-select">
+                                <option value="">Selecciona un técnico…</option>
+                                {% for t in tecnicos %}
+                                <option value="{{ t.id }}">{{ t.nombre_completo }} — {{ t.en_proceso }}/{{ limite_tecnico }} equipos</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-semibold">Costo ($)</label>
-                            <input type="number" id="editMantCosto" class="form-control" step="0.01">
-                        </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label small fw-semibold">¿En garantía?</label>
                             <select id="editMantGarantia" class="form-select">
                                 <option value="0">No</option>
                                 <option value="1">Sí</option>
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label small fw-semibold">Fecha de Inicio</label>
                             <input type="date" id="editMantFechaInicio" class="form-control">
                         </div>

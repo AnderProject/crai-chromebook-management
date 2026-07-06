@@ -332,6 +332,48 @@ class Evidencia(models.Model):
         return f'Evidencia #{self.id} - {self.tipo}'
 
 
+class Tecnico(models.Model):
+    """Técnico del departamento de TICs.
+
+    No tiene acceso al sistema (no es un User): es un registro que administra
+    el Administrador desde Gestión de Personal. Al enviar un equipo a
+    mantenimiento se elige uno de estos técnicos, con un tope de
+    LIMITE_MANTENIMIENTOS trabajos en proceso a la vez.
+    """
+    LIMITE_MANTENIMIENTOS = 3
+
+    nombres = models.CharField(max_length=100)
+    apellidos = models.CharField(max_length=100)
+    cedula = models.CharField(max_length=10, unique=True)
+    telefono = models.CharField(max_length=10, blank=True, null=True)
+    correo = models.EmailField(blank=True, null=True)
+    especialidad = models.CharField(max_length=100, blank=True, null=True)
+    activo = models.BooleanField(default=True)
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'tb_tecnico'
+        verbose_name = 'Técnico'
+        verbose_name_plural = 'Técnicos'
+        ordering = ['apellidos', 'nombres']
+
+    def __str__(self):
+        return self.nombre_completo
+
+    @property
+    def nombre_completo(self):
+        return f'{self.nombres} {self.apellidos}'.strip()
+
+    @property
+    def en_proceso(self):
+        """Cuántas máquinas tiene este técnico en mantenimiento ahora mismo."""
+        return self.mantenimientos.filter(estado='en_proceso').count()
+
+    @property
+    def disponible(self):
+        return self.activo and self.en_proceso < self.LIMITE_MANTENIMIENTOS
+
+
 class Mantenimiento(models.Model):
     TIPOS = [
         ('preventivo', 'Preventivo'),
@@ -348,6 +390,11 @@ class Mantenimiento(models.Model):
     descripcion_problema = models.TextField(blank=True, null=True)
     descripcion_solucion = models.TextField(blank=True, null=True)
     tecnico = models.CharField(max_length=150, blank=True, null=True)
+    tecnico_asignado = models.ForeignKey(
+        Tecnico, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='mantenimientos',
+        help_text='Técnico de TICs responsable (el campo "tecnico" guarda el nombre por compatibilidad).'
+    )
     costo = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     en_garantia = models.BooleanField(default=False, verbose_name='¿En garantía?')
     fecha_inicio = models.DateField()

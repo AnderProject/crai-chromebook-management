@@ -288,3 +288,60 @@
 .reserva-card-compact.borde-activa:hover { border-color: rgba(52,168,83,0.45); box-shadow: 0 12px 24px rgba(52,168,83,0.18); }
 .reserva-card-compact.borde-completada:hover { border-color: rgba(26,115,232,0.45); box-shadow: 0 12px 24px rgba(26,115,232,0.18); }
 .reserva-card-compact.borde-cancelada:hover { box-shadow: 0 12px 24px rgba(0,0,0,0.12); }
+
+/* ===== Mis Reservas: detalle profesional (stats extra, filtros, codigo) ===== */
+.stats-row-5 { flex-wrap: wrap; }
+.stats-row-5 .stat-item { min-width: 150px; }
+
+.bg-danger-light { background: #fdecea; color: #ea4335; }
+.bg-muted-light  { background: #eef1f5; color: #5f6b7a; }
+
+.reservas-filtros {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin: 0 auto;
+}
+
+.filtro-chip {
+    border: 1px solid #dbe3ee;
+    background: #ffffff;
+    color: #5a6473;
+    border-radius: 999px;
+    padding: 0.28rem 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.16s ease;
+}
+
+.filtro-chip:hover { border-color: #1a73e8; color: #1a73e8; }
+
+.filtro-chip.activo {
+    background: #1a73e8;
+    border-color: #1a73e8;
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(26, 115, 232, 0.3);
+}
+
+.card-codigo-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: #1a73e8;
+    background: #eef4fd;
+    border-radius: 8px;
+    padding: 0.2rem 0.55rem;
+    letter-spacing: 0.08em;
+}
+
+/* Tarjeta oculta por el filtro activo */
+.reserva-card-compact.filtro-oculta { display: none; }
+
+@media (max-width: 720px) {
+    .reservas-panel-head { flex-wrap: wrap; gap: 0.5rem; }
+    .reservas-filtros { order: 3; width: 100%; margin: 0.3rem 0 0; }
+}

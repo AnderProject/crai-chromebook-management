@@ -24,7 +24,7 @@
                 <ul class="list-unstyled recuperar-pasos">
                     <li>
                         <span class="paso-num">1</span>
-                        <span>Ingresa tu número de cédula</span>
+                        <span>Ingresa tu correo (o tu cédula si la cuenta está bloqueada)</span>
                     </li>
                     <li>
                         <span class="paso-num">2</span>
@@ -80,9 +80,19 @@
                 <i class="bi bi-lock-fill"></i>
             </div>
             <h2 class="fw-bold text-center mb-1">Recuperar / Desbloquear</h2>
-            <p class="text-center text-muted small mb-4">
-                Ingresa tu número de cédula. Si coincide con una cuenta, enviaremos un enlace a tu correo registrado.
+            <p class="text-center text-muted small mb-3" id="recuperarDescripcion">
+                Ingresa tu correo registrado y te enviaremos un enlace para restablecer tu contraseña.
             </p>
+
+            <!-- Interruptor de modo: correo (normal) / cédula (cuenta bloqueada) -->
+            <div class="recuperar-modos" role="tablist" aria-label="Modo de recuperación">
+                <button type="button" class="recuperar-modo-btn" id="modoCorreoBtn" data-modo="correo">
+                    <i class="bi bi-envelope me-1"></i>Con mi correo
+                </button>
+                <button type="button" class="recuperar-modo-btn" id="modoBloqueoBtn" data-modo="bloqueo">
+                    <i class="bi bi-shield-lock me-1"></i>Cuenta bloqueada
+                </button>
+            </div>
 
             {% if messages %}
                 {% for message in messages %}
@@ -93,21 +103,21 @@
                 {% endfor %}
             {% endif %}
 
-            <form method="POST" id="formRecuperar" novalidate>
+            <form method="POST" id="formRecuperar" novalidate data-modo-inicial="{% if modo_bloqueo %}bloqueo{% else %}correo{% endif %}">
                 {% csrf_token %}
+                <input type="hidden" name="modo" id="inputModo" value="{% if modo_bloqueo %}bloqueo{% else %}correo{% endif %}">
                 <div class="mb-4">
-                    <label class="form-label fw-semibold small">
-                        <i class="bi bi-person-vcard me-1"></i>Número de Cédula
+                    <label class="form-label fw-semibold small" id="labelIdentificador">
+                        <i class="bi bi-envelope me-1"></i>Correo electrónico
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light"><i class="bi bi-person-badge"></i></span>
-                        {{ formulario.cedula }}
+                        <span class="input-group-text bg-light"><i class="bi bi-envelope" id="iconoIdentificador"></i></span>
+                        <input type="email" name="identificador" id="inputIdentificador" class="form-control"
+                               placeholder="tucorreo@unemi.edu.ec" autocomplete="email">
                     </div>
-                    {% if formulario.cedula.errors %}
-                    <div class="text-danger small mt-1">
-                        <i class="bi bi-exclamation-circle me-1"></i>{{ formulario.cedula.errors.0 }}
-                    </div>
-                    {% endif %}
+                    <small class="text-muted d-block mt-1" id="hintIdentificador">
+                        Usa el correo con el que está registrada tu cuenta.
+                    </small>
                 </div>
 
                 <button type="button" class="btn btn-primario w-100 py-2 fw-semibold" id="btnAbrirConfirmacion">
@@ -130,8 +140,8 @@
                     <i class="bi bi-envelope-arrow-up-fill"></i>
                 </div>
                 <h5 class="fw-bold mt-3 mb-1" id="modalConfirmarLabel">¿Confirmas el envío?</h5>
-                <p class="text-muted small mb-4">
-                    Se enviará un enlace de recuperación al correo registrado con tu número de cédula.
+                <p class="text-muted small mb-4" id="modalConfirmarTexto">
+                    Se enviará un enlace de recuperación a tu correo registrado.
                 </p>
                 <div class="d-flex gap-2 justify-content-center">
                     <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">
@@ -152,22 +162,78 @@
 {% if not enviado %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const btnAbrir    = document.getElementById('btnAbrirConfirmacion');
+    const btnAbrir     = document.getElementById('btnAbrirConfirmacion');
     const btnConfirmar = document.getElementById('btnConfirmarEnvio');
-    const form        = document.getElementById('formRecuperar');
-    const modalEl     = document.getElementById('modalConfirmarEnvio');
+    const form         = document.getElementById('formRecuperar');
+    const modalEl      = document.getElementById('modalConfirmarEnvio');
+
+    const btnCorreo  = document.getElementById('modoCorreoBtn');
+    const btnBloqueo = document.getElementById('modoBloqueoBtn');
+    const inputModo  = document.getElementById('inputModo');
+    const input      = document.getElementById('inputIdentificador');
+    const label      = document.getElementById('labelIdentificador');
+    const icono      = document.getElementById('iconoIdentificador');
+    const hint       = document.getElementById('hintIdentificador');
+    const descripcion = document.getElementById('recuperarDescripcion');
+    const modalTexto = document.getElementById('modalConfirmarTexto');
 
     if (!btnAbrir || !modalEl) return;
     const modal = new bootstrap.Modal(modalEl);
 
+    // ---- Cambio de modo: correo (normal) / cédula (cuenta bloqueada) ----
+    function aplicarModo(modo) {
+        inputModo.value = modo;
+        input.value = '';
+        input.classList.remove('is-invalid');
+        const esBloqueo = modo === 'bloqueo';
+
+        btnCorreo.classList.toggle('activo', !esBloqueo);
+        btnBloqueo.classList.toggle('activo', esBloqueo);
+
+        if (esBloqueo) {
+            label.innerHTML = '<i class="bi bi-person-vcard me-1"></i>Número de Cédula';
+            icono.className = 'bi bi-person-badge';
+            input.type = 'text';
+            input.placeholder = 'Tu cédula de 10 dígitos';
+            input.maxLength = 10;
+            input.inputMode = 'numeric';
+            input.autocomplete = 'off';
+            hint.textContent = 'Tu cuenta se bloqueó por intentos fallidos: identifícate con tu cédula y el enlace también la desbloqueará.';
+            descripcion.textContent = 'Cuenta bloqueada por intentos fallidos: ingresa tu cédula y te enviaremos el enlace a tu correo registrado.';
+            modalTexto.textContent = 'Se enviará un enlace de recuperación al correo registrado con tu número de cédula.';
+        } else {
+            label.innerHTML = '<i class="bi bi-envelope me-1"></i>Correo electrónico';
+            icono.className = 'bi bi-envelope';
+            input.type = 'email';
+            input.placeholder = 'tucorreo@unemi.edu.ec';
+            input.removeAttribute('maxlength');
+            input.inputMode = 'email';
+            input.autocomplete = 'email';
+            hint.textContent = 'Usa el correo con el que está registrada tu cuenta.';
+            descripcion.textContent = 'Ingresa tu correo registrado y te enviaremos un enlace para restablecer tu contraseña.';
+            modalTexto.textContent = 'Se enviará un enlace de recuperación a tu correo registrado.';
+        }
+    }
+
+    btnCorreo.addEventListener('click', function () { aplicarModo('correo'); });
+    btnBloqueo.addEventListener('click', function () { aplicarModo('bloqueo'); });
+    aplicarModo(form.getAttribute('data-modo-inicial') || 'correo');
+
+    // ---- Validación según el modo + confirmación ----
     btnAbrir.addEventListener('click', function () {
-        const cedula = form.querySelector('[name="cedula"]');
-        if (!cedula || cedula.value.trim().length !== 10 || !/^\d+$/.test(cedula.value.trim())) {
-            cedula.focus();
-            cedula.classList.add('is-invalid');
+        const valor = input.value.trim();
+        let valido;
+        if (inputModo.value === 'bloqueo') {
+            valido = valor.length === 10 && /^\d+$/.test(valor);
+        } else {
+            valido = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(valor);
+        }
+        if (!valido) {
+            input.focus();
+            input.classList.add('is-invalid');
             return;
         }
-        cedula.classList.remove('is-invalid');
+        input.classList.remove('is-invalid');
         modal.show();
     });
 

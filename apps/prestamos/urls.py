@@ -77,6 +77,7 @@ urlpatterns = [
     path('api/prestamos-hoy/', views.api_prestamos_hoy, name='api_prestamos_hoy'),
     path('notificaciones/marcar-leida/<int:id>/', views.marcar_notificacion_leida, name='marcar_notificacion_leida'),
     path('notificaciones/marcar-leidas/', views.marcar_notificaciones_leidas, name='marcar_notificaciones_leidas'),
+    path('notificaciones/detalle/<int:id>/', views.api_detalle_notificacion, name='api_detalle_notificacion'),
     path('api/chromebooks-estado/', views.api_chromebooks_estado, name='api_chromebooks_estado'),
     path('api/monitoreo/', views.api_monitoreo, name='api_monitoreo'),
     path('api/reportes-temporal/', views.api_reportes_temporal, name='api_reportes_temporal'),

@@ -265,3 +265,35 @@
         padding: 1.5rem 1rem;
     }
 }
+
+/* ===== Interruptor de modo: correo / cuenta bloqueada ===== */
+.recuperar-modos {
+    display: flex;
+    gap: 0.4rem;
+    background: #eef2f8;
+    border-radius: 12px;
+    padding: 0.3rem;
+    margin-bottom: 1.2rem;
+}
+
+.recuperar-modo-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    border-radius: 9px;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #5a6473;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+}
+
+.recuperar-modo-btn:hover { color: #1b4f9c; }
+
+.recuperar-modo-btn.activo {
+    background: #ffffff;
+    color: #1b4f9c;
+    box-shadow: 0 2px 8px rgba(20, 40, 80, 0.12);
+}

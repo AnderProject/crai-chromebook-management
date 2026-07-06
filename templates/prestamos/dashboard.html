@@ -90,7 +90,7 @@
         </div>
     </nav>
 
-    <!-- ===== Modal: Detalle de notificacion (Paquete C) ===== -->
+    <!-- ===== Modal: Detalle de notificacion ===== -->
     <div class="notifd-overlay" id="notifDetalleModal">
         <div class="notifd-card">
             <button class="notifd-cerrar" type="button" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
@@ -102,8 +102,50 @@
                 </div>
             </div>
             <div class="notifd-body">
-                <div class="notifd-fecha-row"><i class="bi bi-clock"></i> <span class="notifd-fecha">-</span></div>
+                <div class="notifd-meta">
+                    <span class="notifd-chip"><i class="bi bi-clock"></i> <span class="notifd-fecha">-</span></span>
+                    <span class="notifd-chip notifd-chip-leida"><i class="bi bi-check2-circle"></i> Leída</span>
+                </div>
                 <p class="notifd-msg">-</p>
+
+                <!-- Detalle de la reserva asociada (si la notificación la referencia) -->
+                <div class="notifd-reserva" id="notifdReserva" hidden>
+                    <div class="notifd-reserva-head">
+                        <i class="bi bi-calendar-check"></i>
+                        <span>Detalle de la reserva</span>
+                        <span class="notifd-reserva-estado" data-campo="estado">-</span>
+                    </div>
+                    <div class="notifd-codigo-wrap">
+                        <span class="notifd-codigo-label">Código de verificación</span>
+                        <span class="notifd-codigo" data-campo="codigo">------</span>
+                    </div>
+                    <div class="notifd-reserva-grid">
+                        <div class="notifd-dato">
+                            <i class="bi bi-person"></i>
+                            <div><small>Estudiante</small><strong data-campo="estudiante">-</strong></div>
+                        </div>
+                        <div class="notifd-dato">
+                            <i class="bi bi-credit-card-2-front"></i>
+                            <div><small>Cédula</small><strong data-campo="cedula">-</strong></div>
+                        </div>
+                        <div class="notifd-dato">
+                            <i class="bi bi-calendar-event"></i>
+                            <div><small>Fecha de uso</small><strong data-campo="fecha_uso">-</strong></div>
+                        </div>
+                        <div class="notifd-dato">
+                            <i class="bi bi-clock-history"></i>
+                            <div><small>Horario</small><strong data-campo="horario">-</strong></div>
+                        </div>
+                        <div class="notifd-dato">
+                            <i class="bi bi-laptop"></i>
+                            <div><small>Equipo</small><strong data-campo="equipo">-</strong></div>
+                        </div>
+                        <div class="notifd-dato">
+                            <i class="bi bi-mortarboard"></i>
+                            <div><small>Carrera</small><strong data-campo="carrera">-</strong></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -174,6 +174,64 @@ def marcar_notificacion_leida(request, id):
 
 
 @login_required
+def api_detalle_notificacion(request, id):
+    """Detalle de una notificación para el modal de la campanita.
+
+    Marca la notificación como leída, devuelve cuántas quedan sin leer (para el
+    numerito) y, si el mensaje referencia una reserva (por su código de 6
+    dígitos), incluye el detalle completo de esa reserva.
+    """
+    from .models import Notificacion, Reserva
+
+    notif = Notificacion.objects.filter(id=id).first()
+    if notif is None:
+        return JsonResponse({'ok': False, 'message': 'Notificación no encontrada.'}, status=404)
+
+    if not notif.leida:
+        notif.leida = True
+        notif.save(update_fields=['leida'])
+
+    # Si el mensaje menciona un código de reserva, adjuntamos su detalle.
+    # El código tiene 6 caracteres y puede ser numérico (123456) o alfanumérico
+    # (CLQ4LY); primero se busca junto a la palabra "Código" y si no, suelto.
+    reserva_data = None
+    texto = f'{notif.titulo} {notif.mensaje}'
+    m = (re.search(r'[Cc][oó]digo:?\s*([A-Za-z0-9]{6})\b', texto)
+         or re.search(r'\b(\d{6})\b', texto))
+    if m:
+        reserva = (Reserva.objects
+                   .filter(codigo_verificacion=m.group(1))
+                   .select_related('estudiante__usuario__user', 'estudiante__carrera', 'chromebook')
+                   .first())
+        if reserva:
+            est_user = reserva.estudiante.usuario.user
+            reserva_data = {
+                'codigo': reserva.codigo_verificacion,
+                'estado': reserva.get_estado_display(),
+                'estado_raw': reserva.estado,
+                'fecha_uso': reserva.fecha_uso.strftime('%d/%m/%Y'),
+                'horario': f'{reserva.hora_inicio.strftime("%H:%M")} – {reserva.hora_fin.strftime("%H:%M")}',
+                'estudiante': (est_user.get_full_name() or est_user.username),
+                'cedula': reserva.estudiante.usuario.cedula or '',
+                'carrera': reserva.estudiante.carrera.nombre if reserva.estudiante.carrera_id else '',
+                'equipo': reserva.chromebook.codigo if reserva.chromebook_id else 'Por asignar',
+                'creada': timezone.localtime(reserva.creado).strftime('%d/%m/%Y %H:%M') if reserva.creado else '',
+            }
+
+    return JsonResponse({
+        'ok': True,
+        'notif': {
+            'titulo': notif.titulo,
+            'mensaje': notif.mensaje,
+            'tipo': notif.tipo,
+            'fecha': timezone.localtime(notif.fecha_envio).strftime('%d/%m/%Y %H:%M'),
+        },
+        'reserva': reserva_data,
+        'total_no_leidas': Notificacion.objects.filter(leida=False).count(),
+    })
+
+
+@login_required
 def marcar_notificaciones_leidas(request):
     """Marca todas las notificaciones no leidas como leidas.
 
@@ -600,7 +658,7 @@ def reportes(request):
       - Temporal: préstamos por mes/semana, horas pico y día de la semana
       - Distribución: por carrera, semestre, facultad, marca, condición e inventario
       - Estudiantes: rankings (top, con vencidos, cumplidos, nuevos)
-      - Mantenimiento: por mes, tipo, costo, tiempo de reparación y técnicos
+      - Mantenimiento: por mes, tipo, tiempo de reparación y técnicos
       - Operativo: tablas de préstamos activos, vencidos, por vencer y devueltos hoy
     """
     from .models import Chromebook, Prestamo, Mantenimiento, Notificacion
@@ -792,7 +850,7 @@ def reportes(request):
     # MANTENIMIENTO
     # =====================================================================
     total_mantenimientos = Mantenimiento.objects.count()
-    costo_total = Mantenimiento.objects.aggregate(t=Sum('costo'))['t'] or 0
+    mant_en_proceso = Mantenimiento.objects.filter(estado='en_proceso').count()
 
     mant_mes_qs = (
         Mantenimiento.objects.filter(fecha_inicio__gte=hace_6_meses.date())
@@ -817,9 +875,12 @@ def reportes(request):
 
     tecnicos_qs = (
         Mantenimiento.objects.exclude(tecnico__isnull=True).exclude(tecnico='')
-        .values('tecnico').annotate(n=Count('id'), costo=Sum('costo')).order_by('-n')[:10]
+        .values('tecnico').annotate(
+            n=Count('id'),
+            en_proceso=Count('id', filter=Q(estado='en_proceso')),
+        ).order_by('-n')[:10]
     )
-    tabla_tecnicos = [{'tecnico': t['tecnico'], 'total': t['n'], 'costo': t['costo'] or 0}
+    tabla_tecnicos = [{'tecnico': t['tecnico'], 'total': t['n'], 'en_proceso': t['en_proceso']}
                       for t in tecnicos_qs]
 
     # =====================================================================
@@ -870,7 +931,7 @@ def reportes(request):
 
         # ---- Mantenimiento (stats) ----
         'total_mantenimientos': total_mantenimientos,
-        'costo_total': costo_total,
+        'mant_en_proceso': mant_en_proceso,
         'tiempo_reparacion': tiempo_reparacion,
 
         # ---- Tablas (render en servidor) ----
@@ -991,9 +1052,12 @@ def exportar_reportes(request):
 
     # ---- Mantenimiento: técnicos ----
     tecnicos = (Mantenimiento.objects.exclude(tecnico__isnull=True).exclude(tecnico='')
-                .values('tecnico').annotate(n=Count('id'), costo=Sum('costo')).order_by('-n')[:10])
-    hojas.append(('mantenimiento_tecnicos.csv', ['Técnico', 'Trabajos', 'Costo total'],
-                  [[t['tecnico'], t['n'], t['costo'] or 0] for t in tecnicos]))
+                .values('tecnico').annotate(
+                    n=Count('id'),
+                    en_proceso=Count('id', filter=Q(estado='en_proceso')),
+                ).order_by('-n')[:10])
+    hojas.append(('mantenimiento_tecnicos.csv', ['Técnico', 'Trabajos', 'En proceso'],
+                  [[t['tecnico'], t['n'], t['en_proceso']] for t in tecnicos]))
 
     # ---- Operativo: préstamos activos y vencidos ----
     activos = (Prestamo.objects.filter(estado='activo')
@@ -1299,19 +1363,24 @@ def agregar_chromebook(request):
 @login_required
 def lista_mantenimientos(request):
     """Lista de equipos en mantenimiento"""
-    from .models import Mantenimiento
-    
-    mantenimientos = Mantenimiento.objects.select_related('chromebook', 'registrado_por').all().order_by('-fecha_inicio')
-    
+    from .models import Mantenimiento, Tecnico
+
+    mantenimientos = Mantenimiento.objects.select_related('chromebook', 'registrado_por', 'tecnico_asignado').all().order_by('-fecha_inicio')
+
     en_proceso = mantenimientos.filter(estado='en_proceso').count()
     finalizados = mantenimientos.filter(estado='finalizado').count()
-    
+
+    # Carga de trabajo por técnico de TICs (cuántas máquinas tiene cada uno).
+    tecnicos = list(Tecnico.objects.filter(activo=True))
+
     contexto = {
         'titulo_pagina': 'Mantenimiento - CRAI UNEMI',
         'mantenimientos': mantenimientos,
         'en_proceso': en_proceso,
         'finalizados': finalizados,
         'total': mantenimientos.count(),
+        'tecnicos': tecnicos,
+        'limite_tecnico': Tecnico.LIMITE_MANTENIMIENTOS,
     }
     return render(request, 'prestamos/mantenimiento/lista.html', contexto)
 
@@ -1319,7 +1388,7 @@ def lista_mantenimientos(request):
 @login_required
 def agregar_mantenimiento(request):
     """Formulario para registrar un nuevo mantenimiento"""
-    from .models import Chromebook
+    from .models import Chromebook, Tecnico
     from django.contrib import messages
     from django.utils import timezone
 
@@ -1327,51 +1396,47 @@ def agregar_mantenimiento(request):
         chromebook_id = request.POST.get('chromebook_id', '').strip()
         tipo = request.POST.get('tipo', '').strip()
         descripcion_problema = request.POST.get('descripcion_problema', '').strip()
-        tecnico = request.POST.get('tecnico', '').strip()
-        costo = request.POST.get('costo', '').strip()
+        tecnico_id = request.POST.get('tecnico_id', '').strip()
         en_garantia = request.POST.get('en_garantia') == '1'
         fecha_inicio = request.POST.get('fecha_inicio', '').strip()
 
         # Validación de obligatorios: evita que el formulario en blanco rompa el servidor.
+        tecnico_obj = Tecnico.objects.filter(id=tecnico_id).first() if tecnico_id.isdigit() else None
         if not chromebook_id.isdigit():
             messages.error(request, 'Selecciona un Chromebook válido.')
         elif not tipo:
             messages.error(request, 'Selecciona el tipo de mantenimiento.')
-        elif not tecnico:
-            messages.error(request, 'Indica el nombre del técnico.')
+        elif tecnico_obj is None:
+            messages.error(request, 'Selecciona el técnico de TICs responsable.')
+        elif not tecnico_obj.activo:
+            messages.error(request, f'{tecnico_obj.nombre_completo} no está activo en el departamento de TICs.')
+        elif tecnico_obj.en_proceso >= Tecnico.LIMITE_MANTENIMIENTOS:
+            messages.error(request, (
+                f'{tecnico_obj.nombre_completo} ya tiene {tecnico_obj.en_proceso} equipos en mantenimiento '
+                f'(máximo {Tecnico.LIMITE_MANTENIMIENTOS}). Elige otro técnico o finaliza alguno de sus trabajos.'
+            ))
         elif not descripcion_problema:
             messages.error(request, 'Describe el problema o el motivo del mantenimiento.')
         else:
             try:
                 chromebook = Chromebook.objects.get(id=int(chromebook_id))
 
-                # Costo numérico tolerante (vacío → 0).
-                try:
-                    costo = float(costo) if costo else 0
-                except (ValueError, TypeError):
-                    costo = 0
-
                 # Fecha vacía o inválida → hoy.
                 if not fecha_inicio:
                     fecha_inicio = timezone.localdate()
 
-                # La garantía manda sobre el costo: si el equipo está en garantía vigente,
-                # el mantenimiento no tiene costo (0) y queda marcado en garantía,
-                # independientemente de lo que llegue del formulario.
-                if chromebook.en_garantia_vigente:
-                    en_garantia = True
-                    costo = 0
-                else:
-                    en_garantia = False
+                # La garantía se determina por el equipo, no por el formulario.
+                en_garantia = bool(chromebook.en_garantia_vigente)
 
-                # Crear mantenimiento
+                # Crear mantenimiento (el nombre del técnico se copia al campo de
+                # texto por compatibilidad con reportes e historial).
                 from .models import Mantenimiento
                 Mantenimiento.objects.create(
                     chromebook=chromebook,
                     tipo=tipo,
                     descripcion_problema=descripcion_problema,
-                    tecnico=tecnico,
-                    costo=costo,
+                    tecnico=tecnico_obj.nombre_completo,
+                    tecnico_asignado=tecnico_obj,
                     en_garantia=en_garantia,
                     fecha_inicio=fecha_inicio,
                     estado='en_proceso',
@@ -1385,17 +1450,19 @@ def agregar_mantenimiento(request):
                 chromebook.condicion = 'malo' if tipo == 'correctivo' else 'regular'
                 chromebook.save()
 
-                messages.success(request, f'{chromebook.codigo} enviado a mantenimiento.')
+                messages.success(request, f'{chromebook.codigo} enviado a mantenimiento con {tecnico_obj.nombre_completo}.')
                 return redirect('prestamos:lista_mantenimientos')
 
             except Chromebook.DoesNotExist:
                 messages.error(request, 'Chromebook no encontrado.')
 
     chromebooks = Chromebook.objects.filter(estado__in=['disponible', 'prestado'])
-    
+
     contexto = {
         'titulo_pagina': 'Agregar Mantenimiento - CRAI UNEMI',
         'chromebooks': chromebooks,
+        'tecnicos': Tecnico.objects.filter(activo=True),
+        'limite_tecnico': Tecnico.LIMITE_MANTENIMIENTOS,
     }
     return render(request, 'prestamos/mantenimiento/agregar.html', contexto)
 
@@ -1416,7 +1483,7 @@ def api_detalle_mantenimiento(request, id):
         'tipo': m.tipo,
         'descripcion_problema': m.descripcion_problema or '',
         'tecnico': m.tecnico or '',
-        'costo': str(m.costo),
+        'tecnico_id': m.tecnico_asignado_id or '',
         'en_garantia': m.en_garantia,
         'fecha_inicio': m.fecha_inicio.strftime('%Y-%m-%d') if m.fecha_inicio else '',
     }})
@@ -1438,8 +1505,23 @@ def api_editar_mantenimiento(request, id):
     data = json.loads(request.body)
     m.tipo = data.get('tipo', m.tipo)
     m.descripcion_problema = data.get('descripcion_problema', m.descripcion_problema)
-    m.tecnico = data.get('tecnico', m.tecnico)
-    m.costo = data.get('costo', m.costo) or 0
+
+    # Cambio de técnico: se valida el tope de trabajos en proceso del nuevo técnico.
+    from .models import Tecnico
+    tecnico_id = data.get('tecnico_id')
+    if tecnico_id:
+        nuevo = Tecnico.objects.filter(id=tecnico_id).first()
+        if nuevo is None:
+            return JsonResponse({'success': False, 'message': 'Técnico no encontrado.'})
+        if nuevo.id != m.tecnico_asignado_id and m.estado == 'en_proceso':
+            if nuevo.en_proceso >= Tecnico.LIMITE_MANTENIMIENTOS:
+                return JsonResponse({'success': False, 'message': (
+                    f'{nuevo.nombre_completo} ya tiene {nuevo.en_proceso} equipos en mantenimiento '
+                    f'(máximo {Tecnico.LIMITE_MANTENIMIENTOS}).'
+                )})
+        m.tecnico_asignado = nuevo
+        m.tecnico = nuevo.nombre_completo
+
     m.en_garantia = bool(data.get('en_garantia', m.en_garantia))
     fecha_inicio = data.get('fecha_inicio')
     if fecha_inicio:
@@ -2521,7 +2603,7 @@ def gestion_personal(request):
     """
     from django.contrib import messages
     from django.contrib.auth.models import Group
-    from .models import TipoUsuario
+    from .models import TipoUsuario, Tecnico
     from apps.prestamos.services.usuarios import generar_username, generar_username_unico
 
     if not _es_tics(request.user):
@@ -2530,6 +2612,46 @@ def gestion_personal(request):
 
     if request.method == 'POST':
         accion = request.POST.get('accion', 'crear')
+
+        # ---- Departamento TICs: registrar un técnico (sin acceso al sistema) ----
+        if accion == 'crear_tecnico':
+            nombres = (request.POST.get('tec_nombres') or '').strip()
+            apellidos = (request.POST.get('tec_apellidos') or '').strip()
+            cedula = (request.POST.get('tec_cedula') or '').strip()
+            telefono = (request.POST.get('tec_telefono') or '').strip()
+            correo = (request.POST.get('tec_correo') or '').strip()
+            especialidad = (request.POST.get('tec_especialidad') or '').strip()
+
+            if not nombres or not apellidos:
+                messages.error(request, 'Nombres y apellidos del técnico son obligatorios.')
+            elif not (cedula.isdigit() and len(cedula) == 10):
+                messages.error(request, 'La cédula del técnico debe tener 10 dígitos.')
+            elif Tecnico.objects.filter(cedula=cedula).exists():
+                messages.error(request, f'Ya existe un técnico con la cédula {cedula}.')
+            else:
+                Tecnico.objects.create(
+                    nombres=nombres, apellidos=apellidos, cedula=cedula,
+                    telefono=telefono[:10], correo=correo or None,
+                    especialidad=especialidad or None,
+                )
+                messages.success(request, f'Técnico registrado: {nombres} {apellidos} (Departamento TICs).')
+            return redirect('prestamos:gestion_personal')
+
+        # ---- Departamento TICs: eliminar un técnico ----
+        if accion == 'eliminar_tecnico':
+            tecnico = Tecnico.objects.filter(id=request.POST.get('tecnico_id')).first()
+            if tecnico is None:
+                messages.error(request, 'Técnico no encontrado.')
+            elif tecnico.en_proceso > 0:
+                messages.error(request, (
+                    f'{tecnico.nombre_completo} tiene {tecnico.en_proceso} equipos en mantenimiento. '
+                    f'Finaliza o reasigna esos trabajos antes de eliminarlo.'
+                ))
+            else:
+                nombre = tecnico.nombre_completo
+                tecnico.delete()
+                messages.success(request, f'Técnico eliminado: {nombre}.')
+            return redirect('prestamos:gestion_personal')
 
         # ---- Cambiar el rol de un usuario ya existente ----
         if accion == 'cambiar_rol':
@@ -2637,12 +2759,18 @@ def gestion_personal(request):
         p.rol_actual = 'Administrador' if 'Administrador' in nombres_grupos else 'Recepcionista'
         p.editable = (not p.is_superuser) and (p.id != request.user.id)
 
+    # Departamento TICs: técnicos registrados (con su carga de trabajo actual)
+    tecnicos = list(Tecnico.objects.all())
+
     contexto = {
         'titulo_pagina': 'Gestión de Personal - CRAI UNEMI',
         'personal': personal,
         'total_personal': len(personal),
         'total_admins': sum(1 for p in personal if p.rol_actual == 'Administrador'),
         'total_recep': sum(1 for p in personal if p.rol_actual == 'Recepcionista'),
+        'tecnicos': tecnicos,
+        'total_tecnicos': len(tecnicos),
+        'limite_tecnico': Tecnico.LIMITE_MANTENIMIENTOS,
     }
     return render(request, 'prestamos/personal/personal.html', contexto)
 
@@ -2707,7 +2835,7 @@ def api_editar_chromebook(request, id):
 
             # Un equipo en mantenimiento NO puede volverse disponible/prestado desde el
             # inventario: ese cambio debe hacerse finalizando el mantenimiento en su
-            # sección dedicada (así se registra solución, costo y fecha de fin).
+            # sección dedicada (así se registra la solución y la fecha de fin).
             if estado_anterior == 'mantenimiento' and nuevo_estado != 'mantenimiento':
                 return JsonResponse({
                     'success': False,
@@ -2717,12 +2845,12 @@ def api_editar_chromebook(request, id):
 
             # Tampoco se puede ENVIAR a mantenimiento desde el inventario: eso debe
             # hacerse desde la sección Mantenimiento (crea el registro con su problema,
-            # costo y fechas). Evita equipos "en mantenimiento" sin registro asociado.
+            # técnico y fechas). Evita equipos "en mantenimiento" sin registro asociado.
             if nuevo_estado == 'mantenimiento' and estado_anterior != 'mantenimiento':
                 return JsonResponse({
                     'success': False,
                     'message': 'Para enviar un equipo a mantenimiento, regístralo desde la '
-                               'sección Mantenimiento (así se guarda el problema, costo y fechas).',
+                               'sección Mantenimiento (así se guarda el problema, el técnico y las fechas).',
                 })
 
             cb.marca = data.get('marca', cb.marca)

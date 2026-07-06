@@ -46,32 +46,31 @@ def construir_actividad(user):
                 'dot': 'activo'
             })
         
-        # Últimas reservas
+        # Últimas reservas: se muestran TODOS los estados (pendiente, completada,
+        # vencida y cancelada) para que el historial del portal sea fiel.
+        ETIQUETA_RESERVA = {
+            'pendiente':  ('Reserva pendiente',  'Pendiente',  'bg-warning',   'pendiente'),
+            'confirmada': ('Reserva confirmada', 'Confirmada', 'bg-primary',   'activo'),
+            'completada': ('Reserva completada', 'Completada', 'bg-info',      'devuelto'),
+            'vencida':    ('Reserva vencida',    'Vencida',    'bg-danger',    'vencido'),
+            'cancelada':  ('Reserva cancelada',  'Cancelada',  'bg-secondary', 'devuelto'),
+        }
         ultimas_reservas = Reserva.objects.filter(
             estudiante=estudiante
-        ).order_by('-creado')[:3]
-        
+        ).order_by('-creado')[:5]
+
         for r in ultimas_reservas:
-            if r.estado == 'pendiente':
-                actividad.append({
-                    'tipo': 'reserva',
-                    'codigo': r.codigo_verificacion,
-                    'equipo': 'Reserva pendiente',
-                    'fecha': r.creado,
-                    'estado': 'Pendiente',
-                    'badge': 'bg-warning',
-                    'dot': 'pendiente'
-                })
-            elif r.estado == 'completada':
-                actividad.append({
-                    'tipo': 'reserva',
-                    'codigo': r.codigo_verificacion,
-                    'equipo': 'Reserva completada',
-                    'fecha': r.creado,
-                    'estado': 'Completada',
-                    'badge': 'bg-info',
-                    'dot': 'devuelto'
-                })
+            equipo, estado, badge, dot = ETIQUETA_RESERVA.get(
+                r.estado, (f'Reserva {r.estado}', r.estado.title(), 'bg-secondary', 'devuelto'))
+            actividad.append({
+                'tipo': 'reserva',
+                'codigo': r.codigo_verificacion,
+                'equipo': equipo,
+                'fecha': r.creado,
+                'estado': estado,
+                'badge': badge,
+                'dot': dot
+            })
         
         # Préstamos devueltos
         prestamos_devueltos = Prestamo.objects.filter(
@@ -384,28 +383,36 @@ def mis_reservas(request):
     total_reservas = 0
     activas = 0
     completadas = 0
-    
+    vencidas = 0
+    canceladas = 0
+
     try:
         perfil = PerfilUsuario.objects.get(user=request.user)
         estudiante = Estudiante.objects.get(usuario=perfil)
-        
+
+        # Incluye TODAS las reservas del estudiante, sin importar dónde se
+        # crearon (portal, chatbot, WhatsApp o recepción/administrador).
         reservas = Reserva.objects.filter(
             estudiante=estudiante
-        ).order_by('-fecha_uso', '-id')
-        
+        ).select_related('chromebook').order_by('-fecha_uso', '-id')
+
         total_reservas = reservas.count()
         activas = reservas.filter(estado='pendiente').count()
         completadas = reservas.filter(estado='completada').count()
-        
+        vencidas = reservas.filter(estado='vencida').count()
+        canceladas = reservas.filter(estado='cancelada').count()
+
     except (PerfilUsuario.DoesNotExist, Estudiante.DoesNotExist):
         pass
-    
+
     contexto = {
         'titulo_pagina': 'Mis Reservas - CRAI UNEMI',
         'reservas': reservas,
         'total_reservas': total_reservas,
         'activas': activas,
         'completadas': completadas,
+        'vencidas': vencidas,
+        'canceladas': canceladas,
     }
     return render(request, 'estudiantes/mis_reservas.html', contexto)
 

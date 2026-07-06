@@ -25,7 +25,7 @@
     <div class="reservas-contenido">
         
         <!-- Stats -->
-        <div class="stats-row">
+        <div class="stats-row stats-row-5">
             <div class="stat-item">
                 <div class="stat-icono bg-primary-light"><i class="bi bi-collection"></i></div>
                 <div class="stat-info"><span class="stat-numero">{{ total_reservas }}</span><span class="stat-etiqueta">Total</span></div>
@@ -38,26 +38,42 @@
                 <div class="stat-icono bg-success-light"><i class="bi bi-check-circle"></i></div>
                 <div class="stat-info"><span class="stat-numero">{{ completadas }}</span><span class="stat-etiqueta">Completadas</span></div>
             </div>
+            <div class="stat-item">
+                <div class="stat-icono bg-danger-light"><i class="bi bi-exclamation-triangle"></i></div>
+                <div class="stat-info"><span class="stat-numero">{{ vencidas }}</span><span class="stat-etiqueta">Vencidas</span></div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icono bg-muted-light"><i class="bi bi-x-circle"></i></div>
+                <div class="stat-info"><span class="stat-numero">{{ canceladas }}</span><span class="stat-etiqueta">Canceladas</span></div>
+            </div>
         </div>
-        
+
         {% if reservas %}
         <div class="reservas-panel">
             <div class="reservas-panel-head">
                 <h6><i class="bi bi-collection"></i> Tus reservas</h6>
+                <div class="reservas-filtros" id="reservasFiltros">
+                    <button type="button" class="filtro-chip activo" data-filtro="todas">Todas</button>
+                    <button type="button" class="filtro-chip" data-filtro="pendiente">Pendientes</button>
+                    <button type="button" class="filtro-chip" data-filtro="completada">Completadas</button>
+                    <button type="button" class="filtro-chip" data-filtro="vencida">Vencidas</button>
+                    <button type="button" class="filtro-chip" data-filtro="cancelada">Canceladas</button>
+                </div>
                 <span class="reservas-panel-count">{{ total_reservas }}</span>
             </div>
             <div class="reservas-scroll" id="reservasScroll">
             <div class="reservas-grid" id="reservasGrid">
             {% for r in reservas %}
-            <div class="reserva-card-compact 
+            <div class="reserva-card-compact
                 {% if r.estado == 'pendiente' %}borde-pendiente
                 {% elif r.estado == 'confirmada' %}borde-activa
                 {% elif r.estado == 'completada' %}borde-completada
-                {% else %}borde-cancelada{% endif %}">
-                
+                {% else %}borde-cancelada{% endif %}" data-estado="{{ r.estado }}">
+
                 <div class="card-top">
-                    <span class="card-campo"><span class="card-campo-label">Código</span><span class="card-id">#{{ r.id|stringformat:"04d" }}</span></span>
-                    <span class="card-estado-chip 
+                    <span class="card-campo"><span class="card-campo-label">Reserva</span><span class="card-id">#{{ r.id|stringformat:"04d" }}</span></span>
+                    <span class="card-codigo-mini" title="Código de verificación"><i class="bi bi-qr-code"></i> {{ r.codigo_verificacion }}</span>
+                    <span class="card-estado-chip
                         {% if r.estado == 'pendiente' %}chip-pendiente
                         {% elif r.estado == 'confirmada' %}chip-activa
                         {% elif r.estado == 'completada' %}chip-completada
@@ -65,11 +81,13 @@
                         {{ r.estado|title }}
                     </span>
                 </div>
-                
+
                 <div class="card-body-compact">
                     <div class="card-line"><i class="bi bi-calendar3"></i> <span class="card-line-txt"><span class="card-line-label">Fecha de uso</span><span class="card-line-valor">{{ r.fecha_uso|date:"d/m/Y" }}</span></span></div>
                     <div class="card-line"><i class="bi bi-clock"></i> <span class="card-line-txt"><span class="card-line-label">Horario</span><span class="card-line-valor">{{ r.hora_inicio|time:"H:i" }} - {{ r.hora_fin|time:"H:i" }}</span></span></div>
                     <div class="card-line"><i class="bi bi-hourglass-split"></i> <span class="card-line-txt"><span class="card-line-label">Tiempo de uso</span><span class="card-line-valor">{{ r.calcular_duracion }}h</span></span></div>
+                    <div class="card-line"><i class="bi bi-laptop"></i> <span class="card-line-txt"><span class="card-line-label">Equipo</span><span class="card-line-valor">{% if r.chromebook %}{{ r.chromebook.codigo }}{% else %}Se asigna al llegar{% endif %}</span></span></div>
+                    <div class="card-line"><i class="bi bi-calendar-plus"></i> <span class="card-line-txt"><span class="card-line-label">Creada</span><span class="card-line-valor">{{ r.creado|date:"d/m/Y H:i" }}</span></span></div>
                 </div>
                 
                 {% if r.estado == 'pendiente' %}

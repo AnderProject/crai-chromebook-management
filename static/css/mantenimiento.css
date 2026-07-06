@@ -498,3 +498,81 @@
     align-items: center;
     gap: 0.45rem;
 }
+
+/* ===== Departamento TICs: carga de trabajo por tecnico ===== */
+.tecnicos-carga {
+    background: #ffffff;
+    border: 1px solid #e8ecf3;
+    border-radius: 14px;
+    padding: 0.9rem 1.1rem;
+    box-shadow: 0 2px 10px rgba(20, 40, 80, 0.05);
+}
+
+.tecnicos-carga-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #5a6473;
+    margin-bottom: 0.7rem;
+}
+
+.tecnicos-carga-head i { color: #1b4f9c; }
+
+.tecnicos-carga-lista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.tecnico-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #f6f9ff;
+    border: 1px solid #dbe6f5;
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem 0.35rem 0.4rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tecnico-chip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(20, 40, 80, 0.10);
+}
+
+.tecnico-chip-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1b4f9c, #2e6fd0);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+}
+
+.tecnico-chip-info { display: flex; flex-direction: column; line-height: 1.15; }
+.tecnico-chip-info strong { font-size: 0.83rem; color: #1f2c3d; }
+.tecnico-chip-info small { font-size: 0.68rem; color: #7b8794; }
+
+.tecnico-chip-carga {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #2e9e5b;
+    margin-left: 0.2rem;
+}
+
+.tecnico-chip-max { font-size: 0.7rem; color: #9aa5b1; font-weight: 600; }
+
+.tecnico-chip-ocupado .tecnico-chip-carga { color: #e08600; }
+
+.tecnico-chip-lleno { background: #fdf2f2; border-color: #f2c9c5; }
+.tecnico-chip-lleno .tecnico-chip-carga { color: #c0392b; }
+.tecnico-chip-lleno .tecnico-chip-avatar { background: linear-gradient(135deg, #c0392b, #e5534b); }
+
+.mant-hint-alerta { color: #c0392b !important; font-weight: 600; }

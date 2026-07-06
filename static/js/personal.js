@@ -41,3 +41,17 @@ document.addEventListener('keydown', function (e) {
         });
     }
 });
+
+// Abre el modal de confirmación de eliminación de un técnico de TICs
+function abrirEliminarTecnico(tecnicoId, nombre, enProceso) {
+    document.getElementById('delTecnicoId').value = tecnicoId;
+    document.getElementById('delTecnicoNombre').textContent = nombre;
+    var texto = document.getElementById('delTecnicoTexto');
+    if (enProceso > 0) {
+        texto.innerHTML = '<strong>' + nombre + '</strong> tiene ' + enProceso +
+            ' equipo(s) en mantenimiento. Debes finalizar o reasignar esos trabajos antes de eliminarlo.';
+    } else {
+        texto.innerHTML = '¿Seguro que deseas eliminar a <strong>' + nombre + '</strong>? Esta acción no se puede deshacer.';
+    }
+    abrirModal('modalEliminarTecnico');
+}

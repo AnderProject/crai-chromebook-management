@@ -78,6 +78,10 @@
                         <div class="stat-mini-icono icono-recep"><i class="bi bi-person-badge"></i></div>
                         <div><span class="stat-mini-num">{{ total_recep }}</span><span class="stat-mini-lbl">Recepcionistas</span></div>
                     </div>
+                    <div class="stat-mini">
+                        <div class="stat-mini-icono icono-tecnico"><i class="bi bi-person-gear"></i></div>
+                        <div><span class="stat-mini-num">{{ total_tecnicos }}</span><span class="stat-mini-lbl">Técnicos TICs</span></div>
+                    </div>
                 </div>
 
                 <!-- Tabla -->
@@ -137,6 +141,70 @@
                     <div class="personal-vacio">
                         <i class="bi bi-people"></i>
                         <p>Aún no hay personal registrado.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- ===== Departamento TICs: técnicos de mantenimiento ===== -->
+                <div class="personal-header tics-header">
+                    <div>
+                        <h2 class="personal-titulo"><i class="bi bi-cpu me-2"></i>Departamento TICs</h2>
+                        <p class="personal-subtitulo">Técnicos de mantenimiento. No tienen acceso al sistema: se asignan a los mantenimientos (máximo {{ limite_tecnico }} equipos a la vez cada uno).</p>
+                    </div>
+                    <button type="button" class="btn-personal-nuevo" onclick="abrirModal('modalCrearTecnico')">
+                        <i class="bi bi-plus-lg me-1"></i>Agregar técnico
+                    </button>
+                </div>
+
+                <div class="personal-card">
+                    {% if tecnicos %}
+                    <div class="table-responsive">
+                        <table class="tabla-personal">
+                            <thead>
+                                <tr>
+                                    <th>Técnico</th>
+                                    <th>Cédula</th>
+                                    <th>Especialidad</th>
+                                    <th>Contacto</th>
+                                    <th>Máquinas en mantenimiento</th>
+                                    <th class="text-end">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in tecnicos %}
+                                <tr>
+                                    <td>
+                                        <div class="persona-cell">
+                                            <div class="persona-avatar avatar-tecnico">{{ t.nombres|first|upper }}{{ t.apellidos|first|upper }}</div>
+                                            <span>{{ t.nombre_completo }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-muted">{{ t.cedula }}</td>
+                                    <td class="small">{{ t.especialidad|default:"Técnico de TICs" }}</td>
+                                    <td class="small text-muted">
+                                        {{ t.telefono|default:"—" }}{% if t.correo %}<br>{{ t.correo }}{% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="carga-badge {% if t.en_proceso >= limite_tecnico %}carga-llena{% elif t.en_proceso > 0 %}carga-media{% else %}carga-libre{% endif %}">
+                                            <i class="bi bi-laptop me-1"></i>{{ t.en_proceso }} / {{ limite_tecnico }}
+                                            {% if t.en_proceso >= limite_tecnico %}· lleno{% elif t.en_proceso == 0 %}· libre{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn-eliminar" title="Eliminar técnico"
+                                                onclick="abrirEliminarTecnico('{{ t.id }}', '{{ t.nombre_completo }}', {{ t.en_proceso }})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="personal-vacio">
+                        <i class="bi bi-person-gear"></i>
+                        <p>Aún no hay técnicos registrados. Agrégalos para poder asignarles mantenimientos.</p>
                     </div>
                     {% endif %}
                 </div>
@@ -240,6 +308,72 @@
             <p class="editar-persona">¿Seguro que deseas eliminar a <strong id="delNombre"></strong>? Esta acción no se puede deshacer.</p>
             <div class="modal-personal-foot">
                 <button type="button" class="btn-modal-cancel" onclick="cerrarModal('modalEliminar')">Cancelar</button>
+                <button type="submit" class="btn-modal-danger"><i class="bi bi-trash me-1"></i>Sí, eliminar</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- ===== Modal: Registrar técnico de TICs ===== -->
+<div class="modal-personal" id="modalCrearTecnico">
+    <div class="modal-personal-card">
+        <div class="modal-personal-head">
+            <h5><i class="bi bi-person-gear me-2"></i>Nuevo técnico de TICs</h5>
+            <button type="button" class="modal-x" onclick="cerrarModal('modalCrearTecnico')"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'prestamos:gestion_personal' %}" class="modal-personal-body">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="crear_tecnico">
+            <div class="campo-grid">
+                <div class="campo">
+                    <label>Nombres</label>
+                    <input type="text" name="tec_nombres" placeholder="Ej: Carlos Andrés" required>
+                </div>
+                <div class="campo">
+                    <label>Apellidos</label>
+                    <input type="text" name="tec_apellidos" placeholder="Ej: Vera Mendoza" required>
+                </div>
+            </div>
+            <div class="campo-grid">
+                <div class="campo">
+                    <label>Cédula</label>
+                    <input type="text" name="tec_cedula" placeholder="10 dígitos" maxlength="10" pattern="\d{10}" required>
+                </div>
+                <div class="campo">
+                    <label>Teléfono <span class="opc">(opcional)</span></label>
+                    <input type="text" name="tec_telefono" placeholder="09XXXXXXXX" maxlength="10">
+                </div>
+            </div>
+            <div class="campo">
+                <label>Correo <span class="opc">(opcional)</span></label>
+                <input type="email" name="tec_correo" placeholder="tecnico@unemi.edu.ec">
+            </div>
+            <div class="campo">
+                <label>Especialidad <span class="opc">(opcional)</span></label>
+                <input type="text" name="tec_especialidad" placeholder="Ej: Hardware, Redes, Software…">
+            </div>
+            <p class="tics-nota"><i class="bi bi-info-circle me-1"></i>El técnico no tendrá usuario ni contraseña: solo se asigna a los mantenimientos.</p>
+            <div class="modal-personal-foot">
+                <button type="button" class="btn-modal-cancel" onclick="cerrarModal('modalCrearTecnico')">Cancelar</button>
+                <button type="submit" class="btn-modal-ok"><i class="bi bi-check2-circle me-1"></i>Registrar técnico</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== Modal: Eliminar técnico ===== -->
+<div class="modal-personal" id="modalEliminarTecnico">
+    <div class="modal-personal-card modal-sm">
+        <div class="modal-personal-head">
+            <h5 class="text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Eliminar técnico</h5>
+            <button type="button" class="modal-x" onclick="cerrarModal('modalEliminarTecnico')"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'prestamos:gestion_personal' %}" class="modal-personal-body">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="eliminar_tecnico">
+            <input type="hidden" name="tecnico_id" id="delTecnicoId">
+            <p class="editar-persona" id="delTecnicoTexto">¿Seguro que deseas eliminar a <strong id="delTecnicoNombre"></strong>?</p>
+            <div class="modal-personal-foot">
+                <button type="button" class="btn-modal-cancel" onclick="cerrarModal('modalEliminarTecnico')">Cancelar</button>
                 <button type="submit" class="btn-modal-danger"><i class="bi bi-trash me-1"></i>Sí, eliminar</button>
             </div>
         </form>

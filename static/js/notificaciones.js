@@ -6,7 +6,7 @@
     if (!modal) return;
 
     modal.addEventListener('shown.bs.modal', function () {
-        fetch('/notificaciones/marcar-leidas/', {
+        fetch('/prestamos/notificaciones/marcar-leidas/', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCSRFToken(),

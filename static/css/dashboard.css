@@ -1540,6 +1540,62 @@ tr:hover .badge-cancelable { transform: none; }
 .notifd-tipo { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; }
 .notifd-titulo { margin: 0.1rem 0 0; font-size: 1.15rem; font-weight: 700; }
 
-.notifd-body { padding: 1.3rem 1.5rem 1.6rem; }
-.notifd-fecha-row { display: flex; align-items: center; gap: 0.4rem; color: #8a93a6; font-size: 0.8rem; margin-bottom: 0.8rem; }
+.notifd-body { padding: 1.2rem 1.5rem 1.5rem; max-height: 70vh; overflow-y: auto; }
+
+.notifd-meta { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.85rem; flex-wrap: wrap; }
+.notifd-chip {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    background: #f1f4fa; color: #5a6473; border-radius: 999px;
+    padding: 0.28rem 0.75rem; font-size: 0.75rem; font-weight: 600;
+}
+.notifd-chip-leida { background: #e7f6ee; color: #1e7e46; }
+
 .notifd-msg { margin: 0; color: #3a4152; font-size: 0.95rem; line-height: 1.5; white-space: pre-line; }
+
+/* --- Detalle de la reserva asociada --- */
+.notifd-reserva {
+    margin-top: 1.1rem; border: 1px solid #e3eaf5; border-radius: 16px;
+    overflow: hidden; background: #fbfdff;
+    animation: notifdFade 0.25s ease;
+}
+.notifd-reserva-head {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.7rem 1rem; background: #eef4fd; color: #1b4f9c;
+    font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+}
+.notifd-reserva-head i { font-size: 0.95rem; }
+.notifd-reserva-estado {
+    margin-left: auto; padding: 0.2rem 0.7rem; border-radius: 999px;
+    font-size: 0.72rem; font-weight: 700; text-transform: none; letter-spacing: 0;
+    background: #e2e8f0; color: #475569;
+}
+.notifd-est-pendiente { background: #fdf3e3; color: #b26a00; }
+.notifd-est-ok        { background: #e7f6ee; color: #1e7e46; }
+.notifd-est-mal       { background: #fdecea; color: #b3261e; }
+
+.notifd-codigo-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 0.9rem 1rem 0.6rem;
+}
+.notifd-codigo-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8a93a6; }
+.notifd-codigo {
+    font-family: 'Courier New', monospace; font-size: 1.7rem; font-weight: 800;
+    letter-spacing: 0.35em; color: #1b4f9c; margin-top: 0.15rem;
+}
+
+.notifd-reserva-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem 0.9rem;
+    padding: 0.6rem 1rem 1rem;
+}
+.notifd-dato { display: flex; align-items: flex-start; gap: 0.55rem; min-width: 0; }
+.notifd-dato > i {
+    width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+    background: #eef4fd; color: #1b4f9c;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;
+}
+.notifd-dato small { display: block; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em; color: #9aa5b1; }
+.notifd-dato strong { display: block; font-size: 0.83rem; color: #1f2c3d; line-height: 1.25; word-break: break-word; }
+
+@media (max-width: 480px) {
+    .notifd-reserva-grid { grid-template-columns: 1fr; }
+}

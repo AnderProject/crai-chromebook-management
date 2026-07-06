@@ -453,3 +453,38 @@ body.modo-oscuro .campo select {
     border-color: #333355 !important;
     color: #e0e0e0 !important;
 }
+
+/* ===== Departamento TICs: tecnicos ===== */
+.tics-header { margin-top: 2.2rem; }
+
+.stat-mini-icono.icono-tecnico {
+    background: linear-gradient(135deg, #0e7490, #22b8cf);
+    color: #fff;
+}
+
+.persona-avatar.avatar-tecnico {
+    background: linear-gradient(135deg, #0e7490, #22b8cf);
+}
+
+.carga-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.carga-libre  { background: #e7f6ee; color: #1e7e46; }
+.carga-media  { background: #fdf3e3; color: #b26a00; }
+.carga-llena  { background: #fdecea; color: #b3261e; }
+
+.tics-nota {
+    font-size: 0.78rem;
+    color: #7b8794;
+    background: #f6f9ff;
+    border: 1px dashed #cfdcf0;
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    margin: 0.4rem 0 0;
+}
