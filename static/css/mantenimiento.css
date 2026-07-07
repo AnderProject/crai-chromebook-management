@@ -526,7 +526,14 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
+    /* Si hay muchos técnicos, se hace scroll DENTRO del mismo recuadro
+       (≈2 filas visibles) en vez de crecer y empujar la página. */
+    max-height: 148px;
+    overflow-y: auto;
+    padding-right: 0.3rem;
 }
+.tecnicos-carga-lista::-webkit-scrollbar { width: 7px; }
+.tecnicos-carga-lista::-webkit-scrollbar-thumb { background: #cfd8e6; border-radius: 4px; }
 
 .tecnico-chip {
     display: inline-flex;
