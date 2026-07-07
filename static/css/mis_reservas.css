@@ -68,10 +68,11 @@
    ========================================== */
 .reservas-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.8rem;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 1rem;
     padding: 0.2rem;
 }
+@media (max-width: 800px) { .reservas-grid { grid-template-columns: 1fr; } }
 
 /* Card rectangular limpia (panel de control) */
 .reserva-card-compact {
@@ -372,4 +373,152 @@
 @media (max-width: 720px) {
     .reservas-panel-head { flex-wrap: wrap; gap: 0.5rem; }
     .reservas-filtros { order: 3; width: 100%; margin: 0.3rem 0 0; }
+}
+
+/* ============================================================
+   NUEVO DISEÑO: BOLETO / TICKET DE RESERVA (mantiene los colores)
+   ============================================================ */
+.reserva-ticket {
+    --tk: #1a237e;
+    --tkbg: #e8eaf6;
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+    background: #fff;
+    border: 1px solid #eef0f5;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 3px 12px rgba(26, 35, 126, 0.06);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.reserva-ticket::before { content: none; }   /* anula el brillo 3D heredado */
+.reserva-ticket:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(26, 35, 126, 0.14);
+}
+
+/* Color por estado */
+.reserva-ticket.estado-pendiente  { --tk: #e08600; --tkbg: #fff5e0; }
+.reserva-ticket.estado-confirmada { --tk: #1e9e50; --tkbg: #e8f6ee; }
+.reserva-ticket.estado-completada { --tk: #1a73e8; --tkbg: #e8f0fe; }
+.reserva-ticket.estado-vencida    { --tk: #ea4335; --tkbg: #fdecea; }
+.reserva-ticket.estado-cancelada  { --tk: #7b8794; --tkbg: #eef1f5; }
+
+/* ---- Cuerpo del boleto ---- */
+.ticket-main {
+    flex: 1;
+    min-width: 0;
+    padding: 0.95rem 1.15rem 1.05rem;
+    border-left: 5px solid var(--tk);
+}
+
+.ticket-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.7rem;
+}
+.ticket-estado-chip {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    background: var(--tkbg); color: var(--tk);
+    font-size: 0.72rem; font-weight: 800;
+    padding: 0.3rem 0.7rem; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.3px;
+}
+.ticket-num { font-family: 'Courier New', monospace; font-size: 0.72rem; font-weight: 700; color: #b0b7c3; }
+
+/* Zona del código (como número de boleto) */
+.ticket-codigo-zone {
+    text-align: center;
+    padding: 0.35rem 0 0.65rem;
+    border-bottom: 1px dashed #e3e7f0;
+    margin-bottom: 0.7rem;
+}
+.ticket-codigo-label {
+    display: block;
+    font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #9aa0ad; font-weight: 700; margin-bottom: 0.15rem;
+}
+.ticket-codigo {
+    font-family: 'Courier New', monospace;
+    font-size: 1.65rem; font-weight: 800; letter-spacing: 0.28em;
+    color: var(--tk);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* Datos en dos columnas */
+.ticket-datos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem 0.8rem;
+}
+.ticket-dato { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
+.ticket-dato > i {
+    width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+    background: var(--tkbg); color: var(--tk);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem;
+}
+.ticket-dato small { display: block; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.04em; color: #9aa0ad; font-weight: 700; }
+.ticket-dato b { display: block; font-size: 0.82rem; color: #2b3648; font-weight: 700; line-height: 1.2; }
+
+/* ---- Talón (stub) con perforación ---- */
+.ticket-stub {
+    position: relative;
+    width: 132px; flex-shrink: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem;
+    padding: 1rem 0.7rem;
+    border-left: 2px dashed #d7dbe8;
+    background: linear-gradient(180deg, #ffffff, var(--tkbg));
+    text-align: center;
+}
+/* Muescas circulares (aspecto de boleto troquelado) */
+.ticket-stub::before,
+.ticket-stub::after {
+    content: '';
+    position: absolute;
+    left: -10px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #f5f6fa;   /* color del fondo de la página */
+}
+.ticket-stub::before { top: -9px; }
+.ticket-stub::after { bottom: -9px; }
+
+.ticket-stub-ico {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: #fff; border: 2px solid var(--tk); color: var(--tk);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 1.3rem;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+}
+.ticket-stub-label { font-size: 0.74rem; font-weight: 800; color: var(--tk); }
+
+.ticket-cancelar {
+    margin-top: 0.15rem;
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: #fff; color: #ea4335;
+    border: 1.5px solid #f2c4bf; border-radius: 999px;
+    padding: 0.28rem 0.7rem; font-size: 0.72rem; font-weight: 700; cursor: pointer;
+    transition: all 0.15s ease;
+}
+.ticket-cancelar:hover { background: #ea4335; color: #fff; border-color: #ea4335; box-shadow: 0 4px 10px rgba(234,67,53,0.3); }
+
+/* El progreso "en curso" dentro del talón */
+.ticket-stub .progreso-live { width: 100%; }
+
+/* Animación de entrada tipo boleto */
+.reserva-ticket { animation: ticketIn 0.4s ease both; }
+@keyframes ticketIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* Responsive: el talón pasa abajo con perforación horizontal */
+@media (max-width: 460px) {
+    .reserva-ticket { flex-direction: column; }
+    .ticket-stub {
+        width: 100%; flex-direction: row; justify-content: center; gap: 0.8rem;
+        border-left: none; border-top: 2px dashed #d7dbe8;
+    }
+    .ticket-stub::before { left: -9px; top: -10px; }
+    .ticket-stub::after { left: auto; right: -9px; top: -10px; bottom: auto; }
+    .ticket-stub .progreso-live { width: auto; flex: 1; }
 }

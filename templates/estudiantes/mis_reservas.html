@@ -64,81 +64,73 @@
             <div class="reservas-scroll" id="reservasScroll">
             <div class="reservas-grid" id="reservasGrid">
             {% for r in reservas %}
-            <div class="reserva-card-compact
-                {% if r.estado == 'pendiente' %}borde-pendiente
-                {% elif r.estado == 'confirmada' %}borde-activa
-                {% elif r.estado == 'completada' %}borde-completada
-                {% else %}borde-cancelada{% endif %}" data-estado="{{ r.estado }}">
+            <div class="reserva-ticket reserva-card-compact estado-{{ r.estado }}" data-estado="{{ r.estado }}">
 
-                <div class="card-top">
-                    <span class="card-campo"><span class="card-campo-label">Reserva</span><span class="card-id">#{{ r.id|stringformat:"04d" }}</span></span>
-                    <span class="card-codigo-mini" title="Código de verificación"><i class="bi bi-qr-code"></i> {{ r.codigo_verificacion }}</span>
-                    <span class="card-estado-chip
-                        {% if r.estado == 'pendiente' %}chip-pendiente
-                        {% elif r.estado == 'confirmada' %}chip-activa
-                        {% elif r.estado == 'completada' %}chip-completada
-                        {% else %}chip-cancelada{% endif %}">
-                        {{ r.estado|title }}
-                    </span>
-                </div>
-
-                <div class="card-body-compact">
-                    <div class="card-line"><i class="bi bi-calendar3"></i> <span class="card-line-txt"><span class="card-line-label">Fecha de uso</span><span class="card-line-valor">{{ r.fecha_uso|date:"d/m/Y" }}</span></span></div>
-                    <div class="card-line"><i class="bi bi-clock"></i> <span class="card-line-txt"><span class="card-line-label">Horario</span><span class="card-line-valor">{{ r.hora_inicio|time:"H:i" }} - {{ r.hora_fin|time:"H:i" }}</span></span></div>
-                    <div class="card-line"><i class="bi bi-hourglass-split"></i> <span class="card-line-txt"><span class="card-line-label">Tiempo de uso</span><span class="card-line-valor">{{ r.calcular_duracion }}h</span></span></div>
-                    <div class="card-line"><i class="bi bi-laptop"></i> <span class="card-line-txt"><span class="card-line-label">Equipo</span><span class="card-line-valor">{% if r.chromebook %}{{ r.chromebook.codigo }}{% else %}Se asigna al llegar{% endif %}</span></span></div>
-                    <div class="card-line"><i class="bi bi-calendar-plus"></i> <span class="card-line-txt"><span class="card-line-label">Creada</span><span class="card-line-valor">{{ r.creado|date:"d/m/Y H:i" }}</span></span></div>
-                </div>
-                
-                {% if r.estado == 'pendiente' %}
-                <div class="card-footer-compact">
-                    <div class="footer-icono-grande pendiente-icon">
-                        <i class="bi bi-hourglass-split"></i>
-                        <span>En espera</span>
+                <!-- Cuerpo del boleto -->
+                <div class="ticket-main">
+                    <div class="ticket-head">
+                        <span class="ticket-estado-chip">
+                            {% if r.estado == 'pendiente' %}<i class="bi bi-hourglass-split"></i> Pendiente
+                            {% elif r.estado == 'confirmada' %}<i class="bi bi-laptop"></i> En curso
+                            {% elif r.estado == 'completada' %}<i class="bi bi-check-circle-fill"></i> Completada
+                            {% elif r.estado == 'vencida' %}<i class="bi bi-exclamation-triangle-fill"></i> Vencida
+                            {% else %}<i class="bi bi-x-circle-fill"></i> Cancelada{% endif %}
+                        </span>
+                        <span class="ticket-num">RES-{{ r.id|stringformat:"04d" }}</span>
                     </div>
-                    <span class="codigo-txt">{{ r.codigo_verificacion }}</span>
-                    <button class="btn-cancelar-reserva" onclick="cancelarReserva({{ r.id }})" title="Cancelar reserva">
-                        <i class="bi bi-x-lg"></i>
+
+                    <div class="ticket-codigo-zone">
+                        <span class="ticket-codigo-label"><i class="bi bi-qr-code-scan"></i> Código de verificación</span>
+                        <span class="ticket-codigo">{{ r.codigo_verificacion }}</span>
+                    </div>
+
+                    <div class="ticket-datos">
+                        <div class="ticket-dato">
+                            <i class="bi bi-calendar3"></i>
+                            <div><small>Fecha de uso</small><b>{{ r.fecha_uso|date:"d/m/Y" }}</b></div>
+                        </div>
+                        <div class="ticket-dato">
+                            <i class="bi bi-clock"></i>
+                            <div><small>Horario</small><b>{{ r.hora_inicio|time:"H:i" }} – {{ r.hora_fin|time:"H:i" }}</b></div>
+                        </div>
+                        <div class="ticket-dato">
+                            <i class="bi bi-hourglass-split"></i>
+                            <div><small>Duración</small><b>{{ r.calcular_duracion }} h</b></div>
+                        </div>
+                        <div class="ticket-dato">
+                            <i class="bi bi-laptop"></i>
+                            <div><small>Equipo</small><b>{% if r.chromebook %}{{ r.chromebook.codigo }}{% else %}Al llegar{% endif %}</b></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Talón / acción del boleto -->
+                <div class="ticket-stub">
+                    {% if r.estado == 'pendiente' %}
+                    <div class="ticket-stub-ico"><i class="bi bi-hourglass-split"></i></div>
+                    <span class="ticket-stub-label">En espera</span>
+                    <button class="ticket-cancelar" onclick="cancelarReserva({{ r.id }})">
+                        <i class="bi bi-x-lg"></i> Cancelar
                     </button>
-                </div>
-                
-                {% elif r.estado == 'confirmada' %}
-                <div class="card-footer-compact">
-                    <div class="footer-icono-grande activa-icon">
-                        <i class="bi bi-laptop"></i>
-                        <span>En curso</span>
-                    </div>
+                    {% elif r.estado == 'confirmada' %}
+                    <div class="ticket-stub-ico"><i class="bi bi-laptop"></i></div>
+                    <span class="ticket-stub-label">En curso</span>
                     <div class="progreso-live" data-fecha="{{ r.fecha_uso|date:'Y-m-d' }}" data-inicio="{{ r.hora_inicio|time:'H:i' }}" data-fin="{{ r.hora_fin|time:'H:i' }}">
                         <div class="progreso-live-bar"><div class="progreso-live-fill" style="width: 0%;"></div></div>
                         <span class="progreso-live-time">--</span>
                     </div>
-                </div>
-                
-                {% elif r.estado == 'completada' %}
-                <div class="card-footer-compact done">
-                    <div class="footer-icono-grande completada-icon">
-                        <i class="bi bi-check-circle-fill"></i>
-                        <span>Completada</span>
-                    </div>
-                </div>
-                
-                {% elif r.estado == 'vencida' %}
-                <div class="card-footer-compact done" style="color: #ea4335;">
-                    <div class="footer-icono-grande vencida-icon">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                        <span>Vencida</span>
-                    </div>
+                    {% elif r.estado == 'completada' %}
+                    <div class="ticket-stub-ico"><i class="bi bi-check-circle-fill"></i></div>
+                    <span class="ticket-stub-label">Completada</span>
+                    {% elif r.estado == 'vencida' %}
+                    <div class="ticket-stub-ico"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    <span class="ticket-stub-label">Vencida</span>
+                    {% else %}
+                    <div class="ticket-stub-ico"><i class="bi bi-x-circle-fill"></i></div>
+                    <span class="ticket-stub-label">Cancelada</span>
+                    {% endif %}
                 </div>
 
-                {% else %}
-                <div class="card-footer-compact done" style="color: #ea4335;">
-                    <div class="footer-icono-grande vencida-icon">
-                        <i class="bi bi-x-circle-fill"></i>
-                        <span>Cancelada</span>
-                    </div>
-                </div>
-                {% endif %}
-                
             </div>
             {% endfor %}
             </div>
