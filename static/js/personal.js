@@ -16,7 +16,9 @@ function cerrarModal(id) {
 function abrirEditarRol(userId, nombre, rolActual) {
     document.getElementById('editUserId').value = userId;
     document.getElementById('editNombre').textContent = nombre;
-    document.getElementById('editRol').value = rolActual;
+    var sel = document.getElementById('editRol');
+    sel.value = rolActual;
+    sel.dispatchEvent(new Event('cs:refresh'));  // refresca el select animado
     abrirModal('modalEditarRol');
 }
 
