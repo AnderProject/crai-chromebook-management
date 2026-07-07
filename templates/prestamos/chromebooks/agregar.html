@@ -66,7 +66,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold">Marca <span class="text-danger">*</span></label>
-                                    <select name="marca" class="form-select" required>
+                                    <select name="marca" class="cselect" required data-allow-new="Marca">
                                         <option value="">Selecciona una marca...</option>
                                         <option value="HP">HP</option>
                                         <option value="Lenovo">Lenovo</option>
@@ -86,7 +86,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold">Estado</label>
-                                    <select name="estado" class="form-select">
+                                    <select name="estado" class="cselect">
                                         <option value="disponible">Disponible</option>
                                         <option value="prestado">Prestado</option>
                                         <option value="mantenimiento">Mantenimiento</option>
@@ -94,7 +94,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold">Condición</label>
-                                    <select name="condicion" class="form-select">
+                                    <select name="condicion" class="cselect">
                                         <option value="bueno">Bueno</option>
                                         <option value="regular">Regular</option>
                                         <option value="malo">Malo</option>
@@ -125,34 +125,35 @@
                                     <textarea name="notas" class="form-control" rows="2" placeholder="Observaciones adicionales..."></textarea>
                                 </div>
 
-                                <div class="col-md-4">
+                                <div class="col-md-8">
                                     <label class="form-label small fw-semibold">Foto del Equipo</label>
-                                    
+
                                     <!-- Input file oculto -->
                                     <input type="file" name="foto" id="inputFotoChromebook" accept="image/*" class="d-none" onchange="previsualizarFoto(event)">
-                                    
-                                    <!-- Botones de acción -->
-                                    <div class="d-flex gap-2">
-                                        <button type="button" class="btn btn-outline-primary btn-sm flex-grow-1" onclick="document.getElementById('inputFotoChromebook').click()">
-                                            <i class="bi bi-folder me-1"></i>Archivo
+
+                                    <!-- Selector de medios profesional -->
+                                    <div class="foto-picker">
+                                        <button type="button" class="foto-opcion" onclick="document.getElementById('inputFotoChromebook').click()">
+                                            <span class="foto-opcion-ico ico-archivo"><i class="bi bi-folder2-open"></i></span>
+                                            <span class="foto-opcion-txt"><strong>Subir archivo</strong><small>JPG, PNG o WEBP</small></span>
                                         </button>
-                                        <button type="button" class="btn btn-outline-primary btn-sm flex-grow-1" onclick="abrirCamara()">
-                                            <i class="bi bi-camera me-1"></i>Cámara
+                                        <button type="button" class="foto-opcion" onclick="abrirCamara()">
+                                            <span class="foto-opcion-ico ico-camara"><i class="bi bi-camera-fill"></i></span>
+                                            <span class="foto-opcion-txt"><strong>Usar cámara</strong><small>Toma la foto ahora</small></span>
                                         </button>
-                                        <button type="button" class="btn btn-outline-info btn-sm" onclick="generarQRFoto()">
-                                            <i class="bi bi-qr-code"></i>
+                                        <button type="button" class="foto-opcion" onclick="generarQRFoto()">
+                                            <span class="foto-opcion-ico ico-qr"><i class="bi bi-qr-code"></i></span>
+                                            <span class="foto-opcion-txt"><strong>Desde el celular</strong><small>Escanea un QR</small></span>
                                         </button>
                                     </div>
-                                    
+
                                     <!-- Vista previa -->
-                                    <div id="previewFoto" class="mt-2 text-center" style="display: none;">
-                                        <img id="imagenPreview" src="" alt="Preview" style="max-width: 200px; max-height: 150px; border-radius: 10px; border: 2px solid #e0e0e0;">
-                                        <button type="button" class="btn btn-sm btn-outline-danger mt-1" onclick="quitarFoto()">
-                                            <i class="bi bi-trash"></i> Quitar
+                                    <div id="previewFoto" class="foto-preview" style="display: none;">
+                                        <img id="imagenPreview" src="" alt="Vista previa del equipo">
+                                        <button type="button" class="foto-preview-quitar" onclick="quitarFoto()" title="Quitar foto">
+                                            <i class="bi bi-trash3"></i>
                                         </button>
                                     </div>
-                                    
-                                    <small class="text-muted">Formatos: JPG, PNG, WEBP</small>
                                 </div>
 
                                 <!-- MODAL QR PARA FOTO -->

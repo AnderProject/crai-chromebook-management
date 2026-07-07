@@ -389,6 +389,8 @@ class Mantenimiento(models.Model):
     tipo = models.CharField(max_length=20, choices=TIPOS)
     descripcion_problema = models.TextField(blank=True, null=True)
     descripcion_solucion = models.TextField(blank=True, null=True)
+    # Foto o video (opcional) que evidencia la reparación realizada.
+    evidencia_reparacion = models.FileField(upload_to='mantenimiento_evidencias/', blank=True, null=True)
     tecnico = models.CharField(max_length=150, blank=True, null=True)
     tecnico_asignado = models.ForeignKey(
         Tecnico, on_delete=models.SET_NULL, null=True, blank=True,

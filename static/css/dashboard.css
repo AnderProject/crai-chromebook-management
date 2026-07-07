@@ -1599,3 +1599,66 @@ tr:hover .badge-cancelable { transform: none; }
 @media (max-width: 480px) {
     .notifd-reserva-grid { grid-template-columns: 1fr; }
 }
+
+/* ===== Selector de foto del equipo (agregar Chromebook) ===== */
+.foto-picker {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.7rem;
+    margin-top: 0.2rem;
+}
+@media (max-width: 640px) { .foto-picker { grid-template-columns: 1fr; } }
+
+.foto-opcion {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    background: #fff;
+    border: 1.5px solid #e3eaf4;
+    border-radius: 12px;
+    padding: 0.7rem 0.85rem;
+    cursor: pointer;
+    text-align: left;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.foto-opcion:hover {
+    transform: translateY(-2px);
+    border-color: #bcd3f2;
+    box-shadow: 0 8px 18px rgba(20, 65, 123, 0.12);
+}
+
+.foto-opcion-ico {
+    width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.15rem; color: #fff;
+}
+.ico-archivo { background: linear-gradient(135deg, #1a73e8, #2b8bff); }
+.ico-camara  { background: linear-gradient(135deg, #34a853, #2ea866); }
+.ico-qr      { background: linear-gradient(135deg, #7e57c2, #9575cd); }
+
+.foto-opcion-txt { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.foto-opcion-txt strong { font-size: 0.82rem; color: #1f2c3d; }
+.foto-opcion-txt small { font-size: 0.68rem; color: #8a93a6; }
+
+.foto-preview {
+    position: relative;
+    display: inline-block;
+    margin-top: 0.9rem;
+}
+.foto-preview img {
+    max-width: 220px; max-height: 160px;
+    border-radius: 12px;
+    border: 1px solid #e3eaf4;
+    box-shadow: 0 6px 16px rgba(13, 44, 84, 0.12);
+    display: block;
+}
+.foto-preview-quitar {
+    position: absolute; top: -10px; right: -10px;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #ea4335; color: #fff; border: 2px solid #fff;
+    cursor: pointer; font-size: 0.8rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 8px rgba(234, 67, 53, 0.4);
+    transition: transform 0.15s ease;
+}
+.foto-preview-quitar:hover { transform: scale(1.1); }

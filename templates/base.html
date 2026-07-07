@@ -31,6 +31,9 @@
     <!-- Efecto hover unificado de tarjetas estadísticas -->
     <link href="{% static 'css/stat_cards.css' %}?v={% now 'U' %}" rel="stylesheet">
 
+    <!-- Selects desplegables animados (opt-in con la clase .cselect) -->
+    <link href="{% static 'css/custom_select.css' %}?v={% now 'U' %}" rel="stylesheet">
+
     {% block estilos_extra %}{% endblock %}
 </head>
 <body>
@@ -95,6 +98,9 @@
 
     <!-- Toast (confirmaciones) -->
     <script src="{% static 'js/toast.js' %}"></script>
+
+    <!-- Selects desplegables animados (.cselect) -->
+    <script src="{% static 'js/custom_select.js' %}?v={% now 'U' %}"></script>
 
     {% block scripts_extra %}{% endblock %}
 </body>

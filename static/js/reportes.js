@@ -32,6 +32,54 @@
         return out;
     }
 
+    // Aclara un color hex mezclándolo con blanco (para los degradados).
+    function aclarar(hex, amt) {
+        const h = hex.replace('#', '');
+        const r = parseInt(h.substring(0, 2), 16);
+        const g = parseInt(h.substring(2, 4), 16);
+        const b = parseInt(h.substring(4, 6), 16);
+        const m = (c) => Math.round(c + (255 - c) * amt);
+        return 'rgb(' + m(r) + ',' + m(g) + ',' + m(b) + ')';
+    }
+
+    // Degradado vertical para las barras (arriba más claro → base al fondo).
+    function degradadoBarra(base) {
+        return function (context) {
+            const chart = context.chart;
+            const area = chart.chartArea;
+            if (!area) return base;
+            const g = chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
+            g.addColorStop(0, aclarar(base, 0.35));
+            g.addColorStop(1, base);
+            return g;
+        };
+    }
+
+    // Sombra suave bajo barras/arcos/líneas (estilo Office, sin 3D que distorsione).
+    const sombraPlugin = {
+        id: 'sombraSuave',
+        beforeDatasetsDraw(chart) {
+            const ctx = chart.ctx;
+            ctx.save();
+            ctx.shadowColor = 'rgba(20, 40, 80, 0.20)';
+            ctx.shadowBlur = 9;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 4;
+        },
+        afterDatasetsDraw(chart) { chart.ctx.restore(); },
+    };
+
+    // Acorta nombres largos (p.ej. facultades) para que no desborden el gráfico.
+    function acortar(label, max) {
+        if (typeof label !== 'string') return label;
+        let t = label.replace(/^Facultad de (la |los |las )?/i, '').trim();
+        t = t.replace('Educación Comercial y Derecho', 'y Derecho')
+             .replace('Servicios Sociales', 'S. Sociales')
+             .replace('Ciencias Sociales', 'C. Sociales');
+        if (t.length > (max || 22)) t = t.substring(0, (max || 22) - 1).trim() + '…';
+        return t;
+    }
+
     function leerJSON(id) {
         const el = document.getElementById(id);
         if (!el) return null;
@@ -66,11 +114,14 @@
     }
 
     const graficos = [];
+    const graficoPorCanvas = {};
 
     function crearGrafico(canvasId, config) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
-        graficos.push(new Chart(canvas.getContext('2d'), config));
+        const g = new Chart(canvas.getContext('2d'), config);
+        graficos.push(g);
+        graficoPorCanvas[canvasId] = g;
     }
 
     function opcionesBase(extra) {
@@ -91,19 +142,28 @@
         const labels = leerJSON(labelsId) || [];
         const data = leerJSON(dataId) || [];
         if (manejarVacio(canvasId, data)) return;
+        const base = (opts && opts.color) || COLOR.azul;
         const config = {
             type: 'bar',
             data: {
-                labels: labels,
+                labels: (opts && opts.acortarLabels) ? labels.map((l) => acortar(l, 20)) : labels,
                 datasets: [{
                     label: etiqueta,
                     data: data,
-                    backgroundColor: (opts && opts.color) || COLOR.azul,
-                    borderRadius: 6,
+                    backgroundColor: degradadoBarra(base),
+                    hoverBackgroundColor: base,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    maxBarThickness: 46,
                 }],
             },
             options: opcionesBase(Object.assign({
-                plugins: { legend: { display: false } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: (opts && opts.labelsCompletos)
+                        ? { callbacks: { title: (items) => (labels[items[0].dataIndex] || '') } }
+                        : {},
+                },
                 scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
             }, (opts && opts.options) || {})),
         };
@@ -227,6 +287,7 @@
 
         Chart.defaults.color = '#6c757d';
         Chart.defaults.font.family = "'Segoe UI', sans-serif";
+        Chart.register(sombraPlugin);   // sombra suave en todos los gráficos
 
         // ---- TEMPORAL ----
         barras('chartPorMes', 'data-mes-data', 'data-mes-labels', 'Préstamos', { color: COLOR.primario });
@@ -243,7 +304,14 @@
             ['Disponibles', 'Prestados', 'Mantenimiento'],
             [COLOR.verde, COLOR.azul, COLOR.naranja], 'doughnut');
         barras('chartSemestre', 'data-semestre-data', 'data-semestre-labels', 'Préstamos', { color: COLOR.morado });
-        barras('chartFacultad', 'data-facultad-data', 'data-facultad-labels', 'Préstamos', { color: COLOR.cyan });
+        // Facultad: barras HORIZONTALES + nombres acortados (los largos desbordaban);
+        // el tooltip muestra el nombre completo.
+        barras('chartFacultad', 'data-facultad-data', 'data-facultad-labels', 'Préstamos', {
+            color: COLOR.cyan,
+            acortarLabels: true,
+            labelsCompletos: true,
+            options: { indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } },
+        });
         circular('chartCondicion', 'data-condicion-data',
             ['Bueno', 'Regular', 'Malo'],
             [COLOR.verde, COLOR.naranja, COLOR.rojo], 'pie');
@@ -258,6 +326,9 @@
             ['Preventivo', 'Correctivo'],
             [COLOR.verde, COLOR.rojo], 'doughnut');
 
+        // Botón de descarga (PNG) en cada tarjeta con gráfico.
+        agregarExportacion();
+
         // Chart.js no calcula bien el tamaño en pestañas ocultas (quedan en 0px).
         // Al mostrarse una pestaña, redimensionamos todos los gráficos.
         document.querySelectorAll('#reporteTabs button[data-bs-toggle="tab"]').forEach(function (btn) {
@@ -266,4 +337,41 @@
             });
         });
     });
+
+    // ---- Exportar cada gráfico como imagen PNG (fondo blanco) ----
+    function descargarGrafico(canvas, nombre) {
+        const chart = Chart.getChart(canvas);
+        if (!chart) return;
+        const src = chart.canvas;
+        const tmp = document.createElement('canvas');
+        tmp.width = src.width;
+        tmp.height = src.height;
+        const c = tmp.getContext('2d');
+        c.fillStyle = '#ffffff';
+        c.fillRect(0, 0, tmp.width, tmp.height);
+        c.drawImage(src, 0, 0);
+        const a = document.createElement('a');
+        a.href = tmp.toDataURL('image/png');
+        a.download = 'reporte_' + (nombre || 'grafico').replace(/[^\wáéíóúñ-]+/gi, '_').toLowerCase() + '.png';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+
+    function agregarExportacion() {
+        document.querySelectorAll('.reporte-card').forEach(function (card) {
+            const canvas = card.querySelector('canvas');
+            const header = card.querySelector('.reporte-card-header');
+            if (!canvas || !header || header.querySelector('.reporte-export')) return;
+            const h5 = header.querySelector('h5');
+            const titulo = h5 ? h5.textContent.trim() : 'grafico';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'reporte-export';
+            btn.title = 'Descargar como imagen';
+            btn.innerHTML = '<i class="bi bi-download"></i>';
+            btn.addEventListener('click', function () { descargarGrafico(canvas, titulo); });
+            header.appendChild(btn);
+        });
+    }
 })();

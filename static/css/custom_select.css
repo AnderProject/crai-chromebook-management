@@ -1,0 +1,125 @@
+/* ============================================================
+   Custom Select animado - CRAI UNEMI
+   ============================================================ */
+.cs-wrap { position: relative; width: 100%; }
+
+.cs-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    background: #fff;
+    border: 1.5px solid #d7deea;
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+    color: #1f2c3d;
+    cursor: pointer;
+    text-align: left;
+    min-height: 42px;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+.cs-btn:hover { border-color: #b9c4d6; }
+.cs-wrap.abierto .cs-btn {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.14);
+}
+
+.cs-btn-txt { display: inline-flex; align-items: center; gap: 0.55rem; min-width: 0; overflow: hidden; }
+.cs-btn-txt > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-btn.cs-vacio .cs-ph { color: #9aa5b1; }
+
+.cs-caret { color: #8a93a6; font-size: 0.8rem; transition: transform 0.22s ease; flex-shrink: 0; }
+.cs-wrap.abierto .cs-caret { transform: rotate(180deg); }
+
+/* Monograma / logo */
+.cs-logo {
+    width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+    color: #fff; font-size: 0.75rem; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.cs-logo-none { background: #eef1f6; color: #8a93a6; }
+.cs-logo-img { width: 26px; height: 26px; border-radius: 7px; object-fit: contain; background: #fff; flex-shrink: 0; }
+
+/* Panel desplegable (animado) */
+.cs-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 60;
+    background: #fff;
+    border: 1px solid #e3eaf4;
+    border-radius: 12px;
+    box-shadow: 0 14px 34px rgba(13, 44, 84, 0.16);
+    padding: 0.35rem;
+    max-height: 280px;
+    overflow-y: auto;
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+    transform-origin: top center;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.cs-wrap.abierto .cs-panel { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+.cs-panel::-webkit-scrollbar { width: 8px; }
+.cs-panel::-webkit-scrollbar-thumb { background: #d7dbe8; border-radius: 4px; }
+
+/* Opciones */
+.cs-opt {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background 0.12s ease;
+}
+.cs-opt:hover { background: #f2f6fd; }
+.cs-opt.sel { background: #e8f0fe; }
+.cs-opt-txt { flex: 1; font-size: 0.88rem; color: #24303f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-opt-check { color: #1a73e8; opacity: 0; font-size: 0.9rem; }
+.cs-opt.sel .cs-opt-check { opacity: 1; }
+
+/* Entrada por aparición escalonada */
+.cs-wrap.abierto .cs-opt { animation: csOptIn 0.22s ease both; }
+.cs-wrap.abierto .cs-opt:nth-child(1) { animation-delay: 0.01s; }
+.cs-wrap.abierto .cs-opt:nth-child(2) { animation-delay: 0.03s; }
+.cs-wrap.abierto .cs-opt:nth-child(3) { animation-delay: 0.05s; }
+.cs-wrap.abierto .cs-opt:nth-child(4) { animation-delay: 0.07s; }
+.cs-wrap.abierto .cs-opt:nth-child(5) { animation-delay: 0.09s; }
+.cs-wrap.abierto .cs-opt:nth-child(n+6) { animation-delay: 0.11s; }
+@keyframes csOptIn { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: none; } }
+
+/* Agregar nueva opción */
+.cs-add {
+    display: flex; align-items: center; gap: 0.4rem;
+    margin-top: 0.25rem;
+    padding: 0.55rem 0.6rem;
+    border-top: 1px dashed #e3eaf4;
+    color: #1a73e8;
+    font-weight: 700;
+    font-size: 0.83rem;
+    cursor: pointer;
+    border-radius: 9px;
+}
+.cs-add:hover { background: #eef4fd; }
+
+.cs-newbox { display: none; gap: 0.4rem; margin-top: 0.3rem; padding: 0.2rem; }
+.cs-newbox.visible { display: flex; }
+.cs-newinput {
+    flex: 1; border: 1.5px solid #cfdcf0; border-radius: 8px;
+    padding: 0.4rem 0.6rem; font-size: 0.85rem; outline: none;
+}
+.cs-newinput:focus { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,0.12); }
+.cs-newok {
+    border: none; background: #1a73e8; color: #fff; border-radius: 8px;
+    width: 38px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+}
+.cs-newok:hover { background: #1560c9; }
+
+/* Opción deshabilitada (p.ej. técnico lleno) */
+.cs-opt.cs-dis { opacity: 0.45; cursor: not-allowed; }
+.cs-opt.cs-dis:hover { background: transparent; }

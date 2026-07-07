@@ -310,11 +310,26 @@
 }
 
 .actividad-badge {
-    font-size: 0.75rem;
-    padding: 0.3em 0.8em;
-    border-radius: 12px;
-    font-weight: 500;
+    font-size: 0.72rem;
+    padding: 0.35em 0.85em;
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    white-space: nowrap;
+    border: 1px solid transparent;
 }
+
+/* Colores legibles por estado (fondo suave + texto fuerte, alto contraste).
+   Se sobreescriben las utilidades bg-* de Bootstrap (que dejaban texto ilegible). */
+.actividad-badge.bg-success   { background: #e6f4ea !important; color: #1a7431 !important; border-color: #b7e1c3; }
+.actividad-badge.bg-warning   { background: #fff4d6 !important; color: #9a6700 !important; border-color: #ffe2a3; }
+.actividad-badge.bg-info      { background: #e4f0fd !important; color: #0b5cad !important; border-color: #bcd9f7; }
+.actividad-badge.bg-primary   { background: #e4f0fd !important; color: #0b5cad !important; border-color: #bcd9f7; }
+.actividad-badge.bg-secondary { background: #eceff3 !important; color: #4a5563 !important; border-color: #d5dbe3; }
+.actividad-badge.bg-danger    { background: #fde7e5 !important; color: #b3261e !important; border-color: #f5c4bf; }
 
 /* ==========================================
    CHATBOT FLOTANTE

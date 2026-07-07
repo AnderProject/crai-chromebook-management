@@ -1543,6 +1543,10 @@ def finalizar_mantenimiento(request, id):
         
         if request.method == 'POST':
             mantenimiento.descripcion_solucion = request.POST.get('descripcion_solucion', '')
+            # Evidencia multimedia de la reparación (foto o video), opcional.
+            evidencia = request.FILES.get('evidencia_reparacion')
+            if evidencia:
+                mantenimiento.evidencia_reparacion = evidencia
             mantenimiento.fecha_fin = timezone.now().date()
             mantenimiento.estado = 'finalizado'
             mantenimiento.save()

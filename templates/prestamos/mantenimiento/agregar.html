@@ -66,15 +66,12 @@
                         <!-- Equipo -->
                         <div class="mant-campo">
                             <label class="mant-label"><i class="bi bi-laptop"></i> Chromebook <span class="mant-req">*</span></label>
-                            <div class="mant-select-wrap">
-                                <select name="chromebook_id" id="mantChromebook" class="mant-select" required onchange="aplicarGarantiaEquipo()">
-                                    <option value="">Selecciona un equipo…</option>
-                                    {% for cb in chromebooks %}
-                                    <option value="{{ cb.id }}" data-garantia="{% if cb.en_garantia_vigente %}1{% else %}0{% endif %}" data-fin="{{ cb.fecha_fin_garantia|date:'d/m/Y'|default:'' }}">{{ cb.codigo }} — {{ cb.marca }} {{ cb.modelo }} ({{ cb.estado|title }})</option>
-                                    {% endfor %}
-                                </select>
-                                <i class="bi bi-chevron-down mant-select-caret"></i>
-                            </div>
+                            <select name="chromebook_id" id="mantChromebook" class="cselect" required onchange="aplicarGarantiaEquipo()">
+                                <option value="">Selecciona un equipo…</option>
+                                {% for cb in chromebooks %}
+                                <option value="{{ cb.id }}" data-garantia="{% if cb.en_garantia_vigente %}1{% else %}0{% endif %}" data-fin="{{ cb.fecha_fin_garantia|date:'d/m/Y'|default:'' }}">{{ cb.codigo }} — {{ cb.marca }} {{ cb.modelo }} ({{ cb.estado|title }})</option>
+                                {% endfor %}
+                            </select>
                         </div>
 
                         <div class="mant-grid-2">
@@ -104,17 +101,14 @@
                             <!-- Técnico de TICs (registrado por el administrador) -->
                             <div class="mant-campo">
                                 <label class="mant-label"><i class="bi bi-person-gear"></i> Técnico de TICs <span class="mant-req">*</span></label>
-                                <div class="mant-select-wrap">
-                                    <select name="tecnico_id" id="mantTecnico" class="mant-select" required>
-                                        <option value="">Selecciona un técnico…</option>
-                                        {% for t in tecnicos %}
-                                        <option value="{{ t.id }}" {% if t.en_proceso >= limite_tecnico %}disabled{% endif %}>
-                                            {{ t.nombre_completo }} — {{ t.en_proceso }}/{{ limite_tecnico }} equipos{% if t.en_proceso >= limite_tecnico %} (lleno){% endif %}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                    <i class="bi bi-chevron-down mant-select-caret"></i>
-                                </div>
+                                <select name="tecnico_id" id="mantTecnico" class="cselect" required>
+                                    <option value="">Selecciona un técnico…</option>
+                                    {% for t in tecnicos %}
+                                    <option value="{{ t.id }}" {% if t.en_proceso >= limite_tecnico %}disabled{% endif %}>
+                                        {{ t.nombre_completo }} — {{ t.en_proceso }}/{{ limite_tecnico }} equipos{% if t.en_proceso >= limite_tecnico %} (lleno){% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
                                 {% if tecnicos %}
                                 <small class="mant-hint">Cada técnico puede tener hasta {{ limite_tecnico }} equipos en mantenimiento a la vez.</small>
                                 {% else %}

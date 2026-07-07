@@ -5,104 +5,119 @@
 
 {% block estilos_extra %}
 <link href="{% static 'css/base.css' %}" rel="stylesheet">
-<link href="{% static 'css/cambiar_contraseña.css' %}" rel="stylesheet">
+<link href="{% static 'css/recuperar.css' %}" rel="stylesheet">
+<link href="{% static 'css/cambiar_contraseña.css' %}?v={% now 'U' %}" rel="stylesheet">
 {% endblock %}
 
 {% block toast_messages %}{% endblock %}
 
 {% block contenido %}
-<div class="cambiar-contraseña-fondo">
-    <div class="row w-100 justify-content-center align-items-center">
-        <div class="col-md-6 col-lg-4">
-            <div class="cambiar-contraseña-card">
+<div class="recuperar-fondo">
+    <div class="recuperar-wrapper">
 
-                {% if cambio_exitoso %}
-                <!-- ===== ESTADO: ÉXITO (se abre como modal vía JS) ===== -->
-                <div class="text-center py-2">
-                    <div class="cambiar-exito-icono">
-                        <i class="bi bi-check-lg"></i>
+        <!-- Panel izquierdo informativo (marca UNEMI/CRAI) -->
+        <div class="recuperar-panel-info d-none d-lg-flex">
+            <div class="recuperar-info-contenido">
+                <div class="recuperar-marca">UNEMI</div>
+                <div class="recuperar-marca-sub">CRAI · Recursos para el Aprendizaje</div>
+                <div class="recuperar-info-icono mt-4">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <h3 class="fw-bold mt-3 mb-2">Crea tu nueva contraseña</h3>
+                <p class="opacity-75 mb-4">Elige una contraseña segura que no uses en otros sitios. Al guardarla, tu cuenta quedará desbloqueada.</p>
+                <ul class="list-unstyled recuperar-pasos">
+                    <li><span class="paso-num"><i class="bi bi-1-circle"></i></span><span>Escribe tu nueva contraseña</span></li>
+                    <li><span class="paso-num"><i class="bi bi-2-circle"></i></span><span>Confírmala para evitar errores</span></li>
+                    <li><span class="paso-num"><i class="bi bi-3-circle"></i></span><span>Inicia sesión con tus nuevas credenciales</span></li>
+                </ul>
+                <div class="recuperar-info-nota">
+                    <i class="bi bi-shield-check me-2"></i>
+                    Mínimo <strong>8 caracteres</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel derecho: formulario o éxito -->
+        <div class="recuperar-panel-form">
+
+            {% if cambio_exitoso %}
+            <!-- ===== ESTADO: ÉXITO ===== -->
+            <div class="recuperar-exito-estado">
+                <div class="recuperar-exito-circulo cambio-exito">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+                <h3 class="fw-bold mt-4 mb-2">¡Contraseña actualizada!</h3>
+                <p class="text-muted small mt-2 mb-4">
+                    Tu contraseña se cambió correctamente y tu cuenta quedó desbloqueada.<br>
+                    Ya puedes iniciar sesión con tus nuevas credenciales.
+                </p>
+                <a href="{% url 'autenticacion:seleccionar_perfil' %}" class="btn btn-primario px-5 py-2 fw-semibold">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Ir al inicio de sesión
+                </a>
+            </div>
+
+            {% else %}
+            <!-- ===== ESTADO: FORMULARIO ===== -->
+            <div class="recuperar-form-icono">
+                <i class="bi bi-key-fill"></i>
+            </div>
+            <h2 class="fw-bold text-center mb-1">Nueva Contraseña</h2>
+            <p class="text-center text-muted small mb-4">Crea una contraseña segura de mínimo 8 caracteres.</p>
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alerta-recuperar alerta-recuperar-{% if message.tags == 'error' %}error{% else %}exito{% endif %}">
+                    <i class="bi {% if message.tags == 'error' %}bi-exclamation-circle-fill{% else %}bi-check-circle-fill{% endif %} me-2"></i>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" id="formCambiarContrasena">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small"><i class="bi bi-lock-fill me-1"></i>Nueva Contraseña</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                        <input type="password" name="nueva_contraseña" id="nueva_contraseña"
+                               class="form-control" placeholder="Mínimo 8 caracteres" required autocomplete="new-password">
+                        <button class="btn btn-outline-secondary" type="button" id="btnTogglePass" title="Mostrar / ocultar">
+                            <i class="bi bi-eye-fill"></i>
+                        </button>
                     </div>
-                    <h3 class="fw-bold mt-4 mb-2" style="color: var(--exito);">¡Contraseña actualizada!</h3>
-                    <p class="text-muted mb-4">
-                        Tu contraseña ha sido cambiada exitosamente.<br>
-                        Ya puedes iniciar sesión con tus nuevas credenciales.
-                    </p>
-                    <a href="{% url 'autenticacion:seleccionar_perfil' %}" class="btn btn-cambiar px-5 py-2 fw-semibold">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>Ir al inicio de sesión
+                    <div class="fortaleza-wrap" id="fortalezaWrap">
+                        <div class="fortaleza-barras">
+                            <div class="fortaleza-barra" id="fb1"></div>
+                            <div class="fortaleza-barra" id="fb2"></div>
+                            <div class="fortaleza-barra" id="fb3"></div>
+                            <div class="fortaleza-barra" id="fb4"></div>
+                        </div>
+                        <span class="fortaleza-texto" id="fortalezaTexto"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small"><i class="bi bi-lock-fill me-1"></i>Confirmar Contraseña</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                        <input type="password" name="confirmar_contraseña" id="confirmar_contraseña"
+                               class="form-control" placeholder="Repite la contraseña" required autocomplete="new-password">
+                    </div>
+                    <div id="matchIndicador" class="small mt-1" style="display:none;"></div>
+                </div>
+
+                <div class="recuperar-acciones">
+                    <a href="{% url 'autenticacion:seleccionar_perfil' %}" class="btn btn-recuperar-volver py-2 fw-semibold">
+                        <i class="bi bi-arrow-left me-1"></i>Volver
                     </a>
-                </div>
-
-                {% else %}
-                <!-- ===== ESTADO: FORMULARIO ===== -->
-                <div class="text-center mb-4">
-                    <div class="cambiar-form-icono">
-                        <i class="bi bi-shield-lock-fill"></i>
-                    </div>
-                    <h2 class="fw-bold mt-3 mb-1">Nueva Contraseña</h2>
-                    <p class="text-muted small">Crea una contraseña segura de mínimo 8 caracteres</p>
-                </div>
-
-                {% if messages %}
-                    {% for message in messages %}
-                    <div class="alerta-cambio alerta-cambio-{% if message.tags == 'error' %}error{% else %}exito{% endif %}">
-                        <i class="bi {% if message.tags == 'error' %}bi-exclamation-circle-fill{% else %}bi-check-circle-fill{% endif %} me-2"></i>
-                        <span>{{ message }}</span>
-                    </div>
-                    {% endfor %}
-                {% endif %}
-
-                <form method="POST" id="formCambiarContrasena">
-                    {% csrf_token %}
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small">
-                            <i class="bi bi-lock-fill me-1"></i>Nueva Contraseña
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
-                            <input type="password" name="nueva_contraseña" id="nueva_contraseña"
-                                   class="form-control" placeholder="Mínimo 8 caracteres" required autocomplete="new-password">
-                            <button class="btn btn-outline-secondary" type="button" id="btnTogglePass" title="Mostrar / ocultar">
-                                <i class="bi bi-eye-fill"></i>
-                            </button>
-                        </div>
-                        <!-- Indicador fortaleza -->
-                        <div class="fortaleza-wrap" id="fortalezaWrap">
-                            <div class="fortaleza-barras">
-                                <div class="fortaleza-barra" id="fb1"></div>
-                                <div class="fortaleza-barra" id="fb2"></div>
-                                <div class="fortaleza-barra" id="fb3"></div>
-                                <div class="fortaleza-barra" id="fb4"></div>
-                            </div>
-                            <span class="fortaleza-texto" id="fortalezaTexto"></span>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold small">
-                            <i class="bi bi-lock-fill me-1"></i>Confirmar Contraseña
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
-                            <input type="password" name="confirmar_contraseña" id="confirmar_contraseña"
-                                   class="form-control" placeholder="Repite la contraseña" required autocomplete="new-password">
-                        </div>
-                        <div id="matchIndicador" class="small mt-1" style="display:none;"></div>
-                    </div>
-
-                    <button type="button" class="btn btn-cambiar w-100 py-2 fw-semibold" id="btnCambiarFinal" disabled>
+                    <button type="button" class="btn btn-primario py-2 fw-semibold" id="btnCambiarFinal" disabled>
                         <i class="bi bi-check-circle me-2"></i>Cambiar Contraseña
                     </button>
-                </form>
-
-                <div class="text-center mt-3">
-                    <a href="{% url 'autenticacion:seleccionar_perfil' %}" class="small text-muted text-decoration-none">
-                        <i class="bi bi-arrow-left me-1"></i>Volver al inicio de sesión
-                    </a>
                 </div>
-                {% endif %}
+            </form>
+            {% endif %}
 
-            </div>
         </div>
     </div>
 </div>
@@ -124,7 +139,7 @@
                     <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">
                         <i class="bi bi-x-circle me-1"></i>Cancelar
                     </button>
-                    <button type="button" class="btn btn-cambiar px-3" id="btnConfirmarCambio">
+                    <button type="button" class="btn btn-primario px-3" id="btnConfirmarCambio">
                         <i class="bi bi-check-circle me-1"></i>Sí, cambiar
                     </button>
                 </div>

@@ -73,15 +73,14 @@
     padding: 0.2rem;
 }
 
-/* Card rectangular 3D */
+/* Card rectangular limpia (panel de control) */
 .reserva-card-compact {
-    border-radius: 14px; padding: 1rem 1.5rem;
-    border: 1px solid rgba(0,0,0,0.04);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 14px; padding: 1rem 1.4rem;
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 2px 6px rgba(26,35,126,0.05);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
     display: flex; flex-direction: row; align-items: center; gap: 1.5rem;
     position: relative; overflow: hidden;
-    transform: perspective(800px) rotateX(1deg);
 }
 
 /* Fondos pastel por estado */
@@ -97,9 +96,9 @@
     border-radius: 14px 14px 0 0; pointer-events: none;
 }
 
-/* Efecto hover 3D */
+/* Hover: se eleva suave (sin torcerse) */
 .reserva-card-compact:hover {
-    transform: perspective(800px) rotateX(0deg) translateY(-4px);
+    transform: translateY(-3px);
     box-shadow: 0 12px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
 }
 
@@ -111,10 +110,10 @@
 .chip-completada { background: rgba(26,115,232,0.15); color: #0d47a1; }
 .chip-cancelada { background: rgba(0,0,0,0.08); color: #666; }
 
-.card-body-compact { display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1; flex: 1; }
-.card-line { font-size: 0.75rem; color: #666; display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; }
+.card-body-compact { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem 1.5rem; position: relative; z-index: 1; flex: 1; }
+.card-line { font-size: 0.75rem; color: #666; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
 
-.card-line i { font-size: 0.8rem; width: 16px; text-align: center; transition: 0.3s; }
+.card-line i { font-size: 0.85rem; width: 28px; height: 28px; border-radius: 8px; background: rgba(255,255,255,0.7); box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: 0.3s; }
 .reserva-card-compact:hover .card-line i { animation: iconPulse 0.6s ease; }
 
 @keyframes iconPulse {
@@ -289,12 +288,41 @@
 .reserva-card-compact.borde-completada:hover { border-color: rgba(26,115,232,0.45); box-shadow: 0 12px 24px rgba(26,115,232,0.18); }
 .reserva-card-compact.borde-cancelada:hover { box-shadow: 0 12px 24px rgba(0,0,0,0.12); }
 
-/* ===== Mis Reservas: detalle profesional (stats extra, filtros, codigo) ===== */
-.stats-row-5 { flex-wrap: wrap; }
-.stats-row-5 .stat-item { min-width: 150px; }
+/* ===== Mis Reservas: KPIs en UNA sola fila (tipo panel de control) ===== */
+.stats-row-5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.7rem;
+    margin-bottom: 1.5rem;
+}
+.stats-row-5 .stat-item {
+    min-width: 0;
+    padding: 0.7rem 0.85rem;      /* más compacto: reduce el alto */
+    gap: 0.6rem;
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+}
+/* Barrita de color arriba de cada KPI (sello de panel de control) */
+.stats-row-5 .stat-item::after {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: currentColor; opacity: 0.9;
+}
+.stats-row-5 .stat-item .stat-icono { width: 38px; height: 38px; font-size: 1.05rem; flex-shrink: 0; }
+.stats-row-5 .stat-item .stat-numero { font-size: 1.5rem; }
+.stats-row-5 .stat-item .stat-etiqueta { font-size: 0.62rem; }
+/* El color de la barrita lo hereda cada tile del icono */
+.stat-item:has(.bg-primary-light) { color: #1a73e8; }
+.stat-item:has(.bg-warning-light) { color: #f9a825; }
+.stat-item:has(.bg-success-light) { color: #34a853; }
+.stat-item:has(.bg-danger-light)  { color: #ea4335; }
+.stat-item:has(.bg-muted-light)   { color: #5f6b7a; }
 
 .bg-danger-light { background: #fdecea; color: #ea4335; }
 .bg-muted-light  { background: #eef1f5; color: #5f6b7a; }
+
+@media (max-width: 900px) { .stats-row-5 { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 560px) { .stats-row-5 { grid-template-columns: repeat(2, 1fr); } }
 
 .reservas-filtros {
     display: flex;

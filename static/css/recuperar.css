@@ -297,3 +297,52 @@
     color: #1b4f9c;
     box-shadow: 0 2px 8px rgba(20, 40, 80, 0.12);
 }
+
+/* ===== Botones Volver + Enviar lado a lado (estilo login) ===== */
+.recuperar-acciones {
+    display: flex;
+    gap: 0.7rem;
+    align-items: stretch;
+}
+.recuperar-acciones .btn-primario { flex: 1; }
+
+.btn-recuperar-volver {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
+    border-radius: 12px;
+    background: #eef2f8;
+    color: #33415c;
+    border: 1.5px solid #dbe3ef;
+    text-decoration: none;
+    transition: all 0.16s ease;
+    white-space: nowrap;
+}
+.btn-recuperar-volver:hover {
+    background: #e2e8f2;
+    color: #1a237e;
+    border-color: #c4cfe0;
+}
+
+/* ===== Marca UNEMI en el panel informativo ===== */
+.recuperar-marca {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 4px;
+    color: #ffffff;
+    line-height: 1;
+}
+.recuperar-marca-sub {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #f2a900;
+    letter-spacing: 0.3px;
+    margin-top: 4px;
+}
+/* Círculo de éxito en verde (cambio de contraseña guardado) */
+.recuperar-exito-circulo.cambio-exito {
+    background: linear-gradient(135deg, #1e7e46, #2ea866);
+    box-shadow: 0 10px 26px rgba(30, 126, 70, 0.35);
+}

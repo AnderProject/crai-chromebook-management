@@ -453,14 +453,25 @@ def recuperar_contraseña(request):
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             enlace = f"http://{request.get_host()}/autenticacion/cambiar-contraseña/{uid}/{token}/"
 
+            nombre = user.first_name.split()[0] if user.first_name else user.username
+            texto_plano = (
+                f'Hola {nombre}:\n\n'
+                f'Recibimos una solicitud para restablecer la contraseña de tu cuenta del '
+                f'CRAI de la UNEMI. Para crear una nueva contraseña (y desbloquear tu cuenta '
+                f'si estaba bloqueada), abre este enlace:\n\n{enlace}\n\n'
+                f'Por tu seguridad, el enlace caduca en 5 minutos y solo puede usarse una vez.\n\n'
+                f'Si tú no solicitaste este cambio, ignora este correo: tu contraseña seguirá '
+                f'siendo la misma.\n\n'
+                f'— Centro de Recursos para el Aprendizaje y la Investigación (CRAI) · UNEMI'
+            )
+
             send_mail(
-                'Recuperación de Contraseña - CRAI UNEMI',
-                f'Hola {user.first_name or user.username}:\n\n'
-                f'Para restablecer tu contraseña y desbloquear tu cuenta, haz clic aquí:\n\n{enlace}\n\n'
-                f'Si no solicitaste esto, ignora este correo.',
+                'Restablece tu contraseña · CRAI UNEMI',
+                texto_plano,
                 settings.DEFAULT_FROM_EMAIL,
                 [user.email],
                 fail_silently=False,
+                html_message=_html_correo_recuperacion(nombre, enlace),
             )
             return render(request, 'autenticacion/recuperar_contraseña.html', {
                 'enviado': True,
@@ -480,6 +491,78 @@ def _enmascarar_correo(correo):
         return correo
     visible = usuario[:2] if len(usuario) > 2 else usuario[:1]
     return f'{visible}***@{dominio}'
+
+
+def _html_correo_recuperacion(nombre, enlace):
+    """Cuerpo HTML del correo de recuperación con la identidad de la UNEMI/CRAI.
+
+    Todo el estilo va en línea y sin imágenes externas (los clientes de correo
+    las bloquean); la marca 'UNEMI' se muestra como texto, lo que se ve
+    profesional y llega igual en Gmail, Outlook, etc.
+    """
+    return f"""\
+<!DOCTYPE html>
+<html lang="es">
+<body style="margin:0;padding:0;background:#eef2f8;font-family:'Segoe UI',Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f8;padding:28px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+             style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 6px 24px rgba(13,44,84,0.12);">
+        <!-- Encabezado -->
+        <tr>
+          <td style="background:linear-gradient(120deg,#0d2c54,#14417b 70%,#1b5aa8);padding:30px 34px;">
+            <div style="font-size:26px;font-weight:800;color:#ffffff;letter-spacing:3px;">UNEMI</div>
+            <div style="font-size:13px;color:#f2a900;font-weight:600;margin-top:4px;letter-spacing:.4px;">
+              CRAI · Centro de Recursos para el Aprendizaje
+            </div>
+          </td>
+        </tr>
+        <!-- Cuerpo -->
+        <tr>
+          <td style="padding:34px;">
+            <h1 style="margin:0 0 6px;font-size:20px;color:#0d2c54;">Restablece tu contraseña</h1>
+            <p style="margin:0 0 18px;font-size:15px;color:#3a4658;line-height:1.55;">
+              Hola <strong>{nombre}</strong>, recibimos una solicitud para restablecer la
+              contraseña de tu cuenta del CRAI. Haz clic en el botón para crear una nueva
+              (y desbloquear tu cuenta si estaba bloqueada).
+            </p>
+            <table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0;">
+              <tr><td align="center" style="border-radius:12px;background:linear-gradient(120deg,#14417b,#1b5aa8);">
+                <a href="{enlace}" target="_blank"
+                   style="display:inline-block;padding:14px 34px;color:#ffffff;font-size:15px;font-weight:700;
+                          text-decoration:none;border-radius:12px;">
+                  Restablecer contraseña
+                </a>
+              </td></tr>
+            </table>
+            <div style="background:#fff6e6;border:1px solid #ffe2a3;border-radius:10px;padding:12px 14px;margin:6px 0 18px;">
+              <p style="margin:0;font-size:13px;color:#9a6700;">
+                ⏱️ Por seguridad, este enlace <strong>caduca en 5 minutos</strong> y solo puede usarse una vez.
+              </p>
+            </div>
+            <p style="margin:0 0 6px;font-size:13px;color:#7b8794;line-height:1.5;">
+              Si el botón no funciona, copia y pega este enlace en tu navegador:
+            </p>
+            <p style="margin:0 0 18px;font-size:12px;color:#14417b;word-break:break-all;">{enlace}</p>
+            <p style="margin:0;font-size:13px;color:#7b8794;line-height:1.5;">
+              Si tú no solicitaste este cambio, ignora este correo: tu contraseña seguirá siendo la misma.
+            </p>
+          </td>
+        </tr>
+        <!-- Pie -->
+        <tr>
+          <td style="background:#f4f7fb;padding:18px 34px;border-top:1px solid #e3eaf4;">
+            <p style="margin:0;font-size:12px;color:#9aa5b1;line-height:1.5;">
+              Universidad Estatal de Milagro · CRAI<br>
+              Este es un correo automático, por favor no respondas a este mensaje.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>"""
 
 
 # ==========================================

@@ -64,6 +64,7 @@
                         <span class="fm-hero-chip">{{ mantenimiento.chromebook.codigo }}</span>
                     </div>
 
+                    <div class="fm-grid">
                     <!-- Datos del equipo -->
                     <div class="fm-card">
                         <div class="fm-card-titulo">Datos del equipo</div>
@@ -106,13 +107,26 @@
                     <!-- Formulario de solución -->
                     <div class="fm-card">
                         <div class="fm-card-titulo">Solución aplicada</div>
-                        <form method="POST">
+                        <form method="POST" enctype="multipart/form-data">
                             {% csrf_token %}
                             <label class="fm-form-label" for="descripcion_solucion">
                                 Describe qué se hizo para resolver el problema
                             </label>
                             <textarea id="descripcion_solucion" name="descripcion_solucion" class="fm-textarea"
                                       placeholder="Ej.: Se reemplazó el cargador y se actualizó ChromeOS. El equipo enciende y carga con normalidad." required></textarea>
+
+                            <!-- Evidencia multimedia (foto o video) de la reparación -->
+                            <label class="fm-form-label mt-3">Evidencia de la reparación <small class="text-muted">(opcional · foto o video)</small></label>
+                            <input type="file" name="evidencia_reparacion" id="fmEvidencia" accept="image/*,video/*" class="d-none" onchange="fmPreviewEvidencia(event)">
+                            <div class="fm-evidencia" id="fmEvidenciaZona" onclick="document.getElementById('fmEvidencia').click()">
+                                <div class="fm-evidencia-vacia" id="fmEvidenciaVacia">
+                                    <i class="bi bi-cloud-arrow-up"></i>
+                                    <span><strong>Adjuntar foto o video</strong></span>
+                                    <small>Haz clic para seleccionar o toma una foto del equipo reparado</small>
+                                </div>
+                                <div class="fm-evidencia-preview" id="fmEvidenciaPreview" style="display:none;"></div>
+                            </div>
+
                             <div class="fm-acciones">
                                 <a href="{% url 'prestamos:lista_mantenimientos' %}" class="fm-btn fm-btn-cancelar">
                                     <i class="bi bi-x-lg"></i> Cancelar
@@ -125,9 +139,36 @@
                     </div>
 
                 </div>
+                </div>{# /fm-grid #}
 
             </main>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+function fmPreviewEvidencia(e) {
+    var file = e.target.files && e.target.files[0];
+    var vacia = document.getElementById('fmEvidenciaVacia');
+    var prev = document.getElementById('fmEvidenciaPreview');
+    if (!file) return;
+    var url = URL.createObjectURL(file);
+    var esVideo = file.type.indexOf('video') === 0;
+    prev.innerHTML = (esVideo
+        ? '<video src="' + url + '" controls></video>'
+        : '<img src="' + url + '" alt="Evidencia">') +
+        '<button type="button" class="fm-evidencia-quitar" title="Quitar"><i class="bi bi-trash3"></i></button>';
+    vacia.style.display = 'none';
+    prev.style.display = 'block';
+    prev.querySelector('.fm-evidencia-quitar').addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        document.getElementById('fmEvidencia').value = '';
+        prev.style.display = 'none';
+        prev.innerHTML = '';
+        vacia.style.display = 'flex';
+    });
+}
+</script>
 {% endblock %}

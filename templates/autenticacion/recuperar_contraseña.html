@@ -37,7 +37,7 @@
                 </ul>
                 <div class="recuperar-info-nota">
                     <i class="bi bi-clock me-2"></i>
-                    El enlace expira en <strong>24 horas</strong>
+                    El enlace expira en <strong>5 minutos</strong>
                 </div>
             </div>
         </div>
@@ -72,10 +72,6 @@
 
             {% else %}
             <!-- ===== ESTADO: FORMULARIO ===== -->
-            <a href="{% url 'autenticacion:seleccionar_perfil' %}" class="recuperar-volver">
-                <i class="bi bi-arrow-left me-1"></i>Volver al inicio de sesión
-            </a>
-
             <div class="recuperar-form-icono">
                 <i class="bi bi-lock-fill"></i>
             </div>
@@ -120,9 +116,14 @@
                     </small>
                 </div>
 
-                <button type="button" class="btn btn-primario w-100 py-2 fw-semibold" id="btnAbrirConfirmacion">
-                    <i class="bi bi-send-fill me-2"></i>Enviar Enlace de Recuperación
-                </button>
+                <div class="recuperar-acciones">
+                    <a href="{% url 'autenticacion:seleccionar_perfil' %}" class="btn btn-recuperar-volver py-2 fw-semibold">
+                        <i class="bi bi-arrow-left me-1"></i>Volver
+                    </a>
+                    <button type="button" class="btn btn-primario py-2 fw-semibold" id="btnAbrirConfirmacion">
+                        <i class="bi bi-send-fill me-2"></i>Enviar Enlace
+                    </button>
+                </div>
             </form>
             {% endif %}
 

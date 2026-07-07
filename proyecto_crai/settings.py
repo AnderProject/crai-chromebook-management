@@ -176,6 +176,9 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')  # ← definir en .env
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')  # ← App Password de Gmail en .env
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'CRAI UNEMI <crai.unemi.test@gmail.com>')
 
+# El enlace de recuperación/desbloqueo de contraseña caduca a los 5 minutos.
+PASSWORD_RESET_TIMEOUT = 300  # segundos
+
 
 # ==================== API EXTERNA DE MATRÍCULAS ====================
 # Servicio que simula el sistema de matrículas de la UNEMI y es la fuente de

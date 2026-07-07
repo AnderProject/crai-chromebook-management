@@ -3,10 +3,62 @@
    ===================================================== */
 
 .fm-wrap {
-    max-width: 820px;
+    max-width: 1180px;
     margin: 0 auto;
     animation: fmIn 0.4s ease;
 }
+
+/* Las dos tarjetas (datos + solución) lado a lado para llenar la pantalla */
+.fm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 1.1rem;
+    align-items: start;
+}
+@media (max-width: 900px) {
+    .fm-grid { grid-template-columns: 1fr; }
+}
+
+/* Zona de evidencia multimedia */
+.fm-evidencia {
+    border: 2px dashed #cfdcf0;
+    border-radius: 14px;
+    background: #f7faff;
+    padding: 1.1rem;
+    cursor: pointer;
+    transition: border-color 0.16s ease, background 0.16s ease;
+    margin-top: 0.4rem;
+}
+.fm-evidencia:hover { border-color: #1a73e8; background: #eef4fd; }
+
+.fm-evidencia-vacia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    text-align: center;
+    color: #5a6473;
+}
+.fm-evidencia-vacia i { font-size: 1.9rem; color: #1a73e8; }
+.fm-evidencia-vacia strong { font-size: 0.9rem; color: #1f2c3d; }
+.fm-evidencia-vacia small { font-size: 0.74rem; color: #8a93a6; }
+
+.fm-evidencia-preview { position: relative; text-align: center; }
+.fm-evidencia-preview img,
+.fm-evidencia-preview video {
+    max-width: 100%;
+    max-height: 260px;
+    border-radius: 10px;
+    border: 1px solid #e3eaf4;
+}
+.fm-evidencia-quitar {
+    position: absolute; top: 8px; right: 8px;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(234, 67, 53, 0.92); color: #fff; border: 2px solid #fff;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+}
+.fm-evidencia-quitar:hover { background: #c5221f; }
 
 @keyframes fmIn {
     from { opacity: 0; transform: translateY(14px); }
