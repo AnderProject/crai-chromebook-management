@@ -422,9 +422,16 @@
     cursor: pointer;
 }
 
+.btn-reservar-submit,
+.btn-reservar-submit:hover,
+.btn-reservar-submit:focus,
+.btn-reservar-submit:active {
+    color: #fff !important;   /* el texto SIEMPRE blanco sobre el azul (antes se veía negro al pasar el cursor) */
+}
 .btn-reservar-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(26,35,126,0.3);
+    box-shadow: 0 6px 18px rgba(26,35,126,0.35);
+    background: linear-gradient(135deg, #223089, #2f429e);
 }
 
 /* Botones de acción tras confirmar la reserva */

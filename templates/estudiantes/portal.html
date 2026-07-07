@@ -40,9 +40,10 @@
                     <p class="text-muted mb-0">¿Qué deseas hacer hoy?</p>
                 </div>
             </div>
-            <div class="disponibilidad-badge">
-                <span class="punto-verde"></span>
-                <span data-disponibles>{{ disponibles }}</span> Chromebooks disponibles
+            <div class="disponibilidad-badge {% if disponibles > 0 %}dispo-hay{% else %}dispo-no{% endif %}" data-disponibles="{{ disponibles }}">
+                <span class="dispo-punto"></span>
+                <i class="bi {% if disponibles > 0 %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %} dispo-ico"></i>
+                <span class="dispo-txt">{% if disponibles > 0 %}Chromebooks disponibles{% else %}Sin Chromebooks disponibles{% endif %}</span>
             </div>
         </div>
         <!-- Cards de acciones -->

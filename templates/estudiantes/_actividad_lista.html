@@ -1,20 +1,26 @@
 {% if actividad %}
     {% for item in actividad %}
     <div class="actividad-item">
-        <div class="actividad-dot {{ item.dot }}"></div>
-        <div>
-            <strong>{{ item.codigo }}</strong> - {{ item.equipo }}
-            <br><small class="text-muted">{{ item.estado }} • {{ item.fecha|date:"d/m/Y H:i" }}</small>
+        <div class="actividad-icono act-{{ item.dot }}">
+            <i class="bi {{ item.icono|default:'bi-clock-history' }}"></i>
+        </div>
+        <div class="actividad-cuerpo">
+            <div class="actividad-linea1">
+                <strong>{{ item.codigo }}</strong>
+                <span class="actividad-equipo">{{ item.equipo }}</span>
+            </div>
+            {% if item.detalle %}<div class="actividad-detalle"><i class="bi bi-info-circle"></i> {{ item.detalle }}</div>{% endif %}
+            <div class="actividad-fecha"><i class="bi bi-clock"></i> {{ item.fecha|date:"d/m/Y H:i" }}</div>
         </div>
         <span class="actividad-badge {{ item.badge }}">{{ item.estado }}</span>
     </div>
     {% endfor %}
 {% else %}
     <div class="actividad-item">
-        <div class="actividad-dot"></div>
-        <div>
-            <strong>Sin actividad</strong>
-            <br><small class="text-muted">Aún no tienes préstamos ni reservas</small>
+        <div class="actividad-icono act-nuevo"><i class="bi bi-stars"></i></div>
+        <div class="actividad-cuerpo">
+            <div class="actividad-linea1"><strong>Sin actividad</strong></div>
+            <div class="actividad-detalle">Aún no tienes préstamos ni reservas. ¡Reserva tu primer Chromebook!</div>
         </div>
         <span class="actividad-badge bg-light text-muted">Nuevo</span>
     </div>

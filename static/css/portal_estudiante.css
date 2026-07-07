@@ -141,30 +141,36 @@
     font-size: 1.7rem;
 }
 
+/* Badge de disponibilidad (sin número: "hay" verde / "no hay" rojo) */
 .disponibilidad-badge {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    padding: 0.7rem 1.35rem;
-    border-radius: 25px;
-    font-size: 0.95rem;
-    color: #666;
-    display: flex;
+    padding: 0.6rem 1.2rem 0.6rem 1rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.55rem;
     white-space: nowrap;
+    border: 1.5px solid transparent;
+    transition: all 0.2s ease;
 }
-
-.punto-verde {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--exito);
+.disponibilidad-badge.dispo-hay {
+    background: #e7f6ee; color: #1a7431; border-color: #b7e1c3;
+}
+.disponibilidad-badge.dispo-no {
+    background: #fde7e5; color: #b3261e; border-color: #f5c4bf;
+}
+.dispo-ico { font-size: 1rem; }
+.dispo-punto {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 4px rgba(0,0,0,0.06);
     animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.85); }
 }
 
 /* ==========================================
@@ -248,7 +254,7 @@
 
 .accion-info p {
     font-size: 0.88rem;
-    color: #888;
+    color: #5a6473;
     margin: 0;
 }
 
@@ -760,3 +766,29 @@
 
 /* Actividad reciente: reservas vencidas (punto rojo) */
 .actividad-dot.vencido { background: #ea4335; }
+
+/* ===== Actividad reciente con más detalle ===== */
+.actividad-icono {
+    width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.05rem;
+}
+.actividad-icono.act-activo    { background: #e6f4ea; color: #1e7e46; }
+.actividad-icono.act-pendiente { background: #fff4d6; color: #9a6700; }
+.actividad-icono.act-devuelto  { background: #eceff3; color: #4a5563; }
+.actividad-icono.act-vencido   { background: #fde7e5; color: #b3261e; }
+.actividad-icono.act-nuevo     { background: #e8f0fe; color: #1a73e8; }
+
+.actividad-cuerpo { flex: 1; min-width: 0; }
+.actividad-linea1 { display: flex; align-items: baseline; gap: 0.4rem; flex-wrap: wrap; }
+.actividad-linea1 strong { color: #1f2c3d; font-size: 0.92rem; }
+.actividad-equipo { color: #5a6473; font-size: 0.82rem; }
+.actividad-detalle {
+    font-size: 0.76rem; color: #4a5563; margin-top: 0.15rem;
+    display: flex; align-items: center; gap: 0.3rem;
+}
+.actividad-detalle i { color: #1a73e8; font-size: 0.75rem; }
+.actividad-fecha {
+    font-size: 0.7rem; color: #9aa5b1; margin-top: 0.15rem;
+    display: flex; align-items: center; gap: 0.3rem;
+}

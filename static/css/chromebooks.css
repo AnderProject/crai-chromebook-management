@@ -384,3 +384,28 @@ td .badge {
 .cb-conexion-banner.desconectado .cb-conexion-dot {
     background: #c2c8d0;
 }
+
+/* ============================================================
+   MEJORAS DE LEGIBILIDAD (estado/condición + desconectado)
+   ============================================================ */
+/* "Desconectado" más visible: texto legible en vez de gris apagado */
+.cb-conexion.desconectado {
+    background: #fdeee9;
+    color: #b0430f;
+    border-color: #f6d3c0;
+}
+.cb-conexion.desconectado .cb-conexion-dot { background: #ea580c; }
+
+/* Badges de Estado/Condición: relieve (contorno + sombra) y texto legible.
+   El amarillo (Prestado/Regular) llevaba letra blanca ilegible -> texto oscuro. */
+td .badge {
+    box-shadow: 0 1px 3px rgba(20, 40, 80, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+td .badge.bg-warning {
+    background-color: #ffc61a !important;
+    color: #4a3600 !important;
+    text-shadow: none;
+}
+td .badge.bg-success { color: #fff !important; }
+td .badge.bg-danger  { color: #fff !important; }

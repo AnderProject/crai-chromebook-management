@@ -113,11 +113,11 @@
 }
 
 .tabla-personal thead th {
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #9aa0b8;
-    font-weight: 600;
+    color: #37415a;
+    font-weight: 800;
     padding: 0.9rem 1rem;
     border-bottom: 1px solid #eef0f5;
 }

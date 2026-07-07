@@ -43,7 +43,11 @@ def construir_actividad(user):
                 'fecha': p.fecha_prestamo,
                 'estado': 'Activo',
                 'badge': 'bg-success',
-                'dot': 'activo'
+                'dot': 'activo',
+                'icono': 'bi-laptop',
+                'detalle': (f'Devolver antes de las {timezone.localtime(p.fecha_devolucion).strftime("%H:%M")} '
+                            f'del {timezone.localtime(p.fecha_devolucion).strftime("%d/%m")}')
+                            if p.fecha_devolucion else 'Préstamo en curso',
             })
         
         # Últimas reservas: se muestran TODOS los estados (pendiente, completada,
@@ -57,7 +61,7 @@ def construir_actividad(user):
         }
         ultimas_reservas = Reserva.objects.filter(
             estudiante=estudiante
-        ).order_by('-creado')[:5]
+        ).select_related('chromebook').order_by('-creado')[:5]
 
         for r in ultimas_reservas:
             equipo, estado, badge, dot = ETIQUETA_RESERVA.get(
@@ -69,7 +73,11 @@ def construir_actividad(user):
                 'fecha': r.creado,
                 'estado': estado,
                 'badge': badge,
-                'dot': dot
+                'dot': dot,
+                'icono': 'bi-calendar-check',
+                'detalle': (f'Uso {r.fecha_uso.strftime("%d/%m")} · '
+                            f'{r.hora_inicio.strftime("%H:%M")}–{r.hora_fin.strftime("%H:%M")}'
+                            + (f' · Equipo {r.chromebook.codigo}' if r.chromebook_id else '')),
             })
         
         # Préstamos devueltos
@@ -86,7 +94,10 @@ def construir_actividad(user):
                 'fecha': p.fecha_devuelto,
                 'estado': 'Devuelto',
                 'badge': 'bg-secondary',
-                'dot': 'devuelto'
+                'dot': 'devuelto',
+                'icono': 'bi-check2-circle',
+                'detalle': (f'Devuelto el {timezone.localtime(p.fecha_devuelto).strftime("%d/%m a las %H:%M")}'
+                            if p.fecha_devuelto else 'Préstamo devuelto'),
             })
         
         # Ordenar por fecha. Se muestran ~4 a la vez (scroll interno); dejamos

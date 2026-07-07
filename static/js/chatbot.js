@@ -194,9 +194,16 @@ function refrescarActividad() {
                 lista.innerHTML = data.html;
                 ultimaActividadHtml = data.html;
             }
-            var disp = document.querySelector('[data-disponibles]');
-            if (disp && typeof data.disponibles !== 'undefined') {
-                disp.textContent = data.disponibles;
+            var badge = document.querySelector('[data-disponibles]');
+            if (badge && typeof data.disponibles !== 'undefined') {
+                badge.setAttribute('data-disponibles', data.disponibles);
+                var hay = data.disponibles > 0;
+                badge.classList.toggle('dispo-hay', hay);
+                badge.classList.toggle('dispo-no', !hay);
+                var txt = badge.querySelector('.dispo-txt');
+                if (txt) txt.textContent = hay ? 'Chromebooks disponibles' : 'Sin Chromebooks disponibles';
+                var ico = badge.querySelector('.dispo-ico');
+                if (ico) ico.className = 'bi dispo-ico ' + (hay ? 'bi-check-circle-fill' : 'bi-x-circle-fill');
             }
             procesarAvisosDevolucion(data.avisos_devolucion);
         })

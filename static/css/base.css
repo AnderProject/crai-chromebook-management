@@ -34,7 +34,7 @@ body {
 }
 
 .texto-primario { color: var(--primario); }
-.texto-gris { color: var(--texto-claro); }
+.texto-gris { color: #566072; }
 
 /* Panel izquierdo (usado en login y selector) */
 .panel-izquierdo {
