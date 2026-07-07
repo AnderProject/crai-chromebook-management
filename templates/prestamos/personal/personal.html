@@ -191,10 +191,16 @@
                                         </span>
                                     </td>
                                     <td class="text-end">
-                                        <button type="button" class="btn-eliminar" title="Eliminar técnico"
-                                                onclick="abrirEliminarTecnico('{{ t.id }}', '{{ t.nombre_completo }}', {{ t.en_proceso }})">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
+                                        <div class="acciones-fila" style="justify-content:flex-end;">
+                                            <button type="button" class="btn-editar-rol" title="Editar datos"
+                                                    onclick="abrirEditarTecnico({{ t.id }}, '{{ t.nombres|escapejs }}', '{{ t.apellidos|escapejs }}', '{{ t.cedula }}', '{{ t.telefono|default:''|escapejs }}', '{{ t.correo|default:''|escapejs }}', '{{ t.especialidad|default:''|escapejs }}')">
+                                                <i class="bi bi-pencil-square me-1"></i>Editar
+                                            </button>
+                                            <button type="button" class="btn-eliminar" title="Eliminar técnico"
+                                                    onclick="abrirEliminarTecnico('{{ t.id }}', '{{ t.nombre_completo|escapejs }}', {{ t.en_proceso }})">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -351,10 +357,39 @@
                 <label>Especialidad <span class="opc">(opcional)</span></label>
                 <input type="text" name="tec_especialidad" placeholder="Ej: Hardware, Redes, Software…">
             </div>
-            <p class="tics-nota"><i class="bi bi-info-circle me-1"></i>El técnico no tendrá usuario ni contraseña: solo se asigna a los mantenimientos.</p>
+            <p class="tics-nota"><i class="bi bi-info-circle me-1"></i>Podrá entrar a su portal de técnico con su cédula como usuario y contraseña (podrá cambiarla luego).</p>
             <div class="modal-personal-foot">
                 <button type="button" class="btn-modal-cancel" onclick="cerrarModal('modalCrearTecnico')">Cancelar</button>
                 <button type="submit" class="btn-modal-ok"><i class="bi bi-check2-circle me-1"></i>Registrar técnico</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== Modal: Editar técnico de TICs ===== -->
+<div class="modal-personal" id="modalEditarTecnico">
+    <div class="modal-personal-card">
+        <div class="modal-personal-head">
+            <h5><i class="bi bi-pencil-square me-2"></i>Editar técnico</h5>
+            <button type="button" class="modal-x" onclick="cerrarModal('modalEditarTecnico')"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'prestamos:gestion_personal' %}" class="modal-personal-body">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="editar_tecnico">
+            <input type="hidden" name="tecnico_id" id="etecId">
+            <div class="campo-grid">
+                <div class="campo"><label>Nombres</label><input type="text" name="tec_nombres" id="etecNombres" required></div>
+                <div class="campo"><label>Apellidos</label><input type="text" name="tec_apellidos" id="etecApellidos" required></div>
+            </div>
+            <div class="campo-grid">
+                <div class="campo"><label>Cédula</label><input type="text" name="tec_cedula" id="etecCedula" maxlength="10" pattern="\d{10}" required></div>
+                <div class="campo"><label>Teléfono <span class="opc">(opcional)</span></label><input type="text" name="tec_telefono" id="etecTelefono" maxlength="10"></div>
+            </div>
+            <div class="campo"><label>Correo <span class="opc">(opcional)</span></label><input type="email" name="tec_correo" id="etecCorreo"></div>
+            <div class="campo"><label>Especialidad <span class="opc">(opcional)</span></label><input type="text" name="tec_especialidad" id="etecEspecialidad"></div>
+            <div class="modal-personal-foot">
+                <button type="button" class="btn-modal-cancel" onclick="cerrarModal('modalEditarTecnico')">Cancelar</button>
+                <button type="submit" class="btn-modal-ok"><i class="bi bi-check2-circle me-1"></i>Guardar cambios</button>
             </div>
         </form>
     </div>

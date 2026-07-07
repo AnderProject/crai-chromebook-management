@@ -2,6 +2,7 @@
 
 from django.urls import path
 from . import views
+from . import views_tecnicos
 
 app_name = 'prestamos'
 
@@ -58,6 +59,13 @@ urlpatterns = [
 
     # TICs: gestión de personal (crear recepcionistas)
     path('personal/', views.gestion_personal, name='gestion_personal'),
+
+    # Portal de TÉCNICOS (login propio, aparte del principal)
+    path('tecnicos/', views_tecnicos.tecnico_panel, name='tecnico_panel'),
+    path('tecnicos/login/', views_tecnicos.tecnico_login, name='tecnico_login'),
+    path('tecnicos/salir/', views_tecnicos.tecnico_logout, name='tecnico_logout'),
+    path('tecnicos/confirmar/', views_tecnicos.tecnico_confirmar, name='tecnico_confirmar'),
+    path('tecnicos/password/', views_tecnicos.tecnico_cambiar_password, name='tecnico_cambiar_password'),
     path('api/detalle-chromebook/<int:id>/', views.api_detalle_chromebook, name='api_detalle_chromebook'),
     path('api/editar-chromebook/<int:id>/', views.api_editar_chromebook, name='api_editar_chromebook'),
     path('api/generar-qr-foto-chromebook/', views.api_generar_qr_foto_chromebook, name='api_generar_qr_foto'),

@@ -225,3 +225,24 @@
     padding: 0.5rem 0.95rem; border-radius: 10px;
 }
 .fm-volver:hover { background: #e4e8f5; border-color: #c7cfe6; }
+
+/* Panel: reparación confirmada por el técnico (visible para el CRAI) */
+.fm-tecnico-panel {
+    background: #e4f0fd;
+    border: 1px solid #bcd9f7;
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 1rem;
+}
+.fm-tecnico-head {
+    display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+    color: #0b5cad; font-size: 0.88rem;
+}
+.fm-tecnico-head > i { font-size: 1.1rem; }
+.fm-tecnico-head small { margin-left: auto; color: #5a6473; font-size: 0.74rem; }
+.fm-tecnico-evi {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    margin-top: 0.5rem; font-size: 0.82rem; font-weight: 700;
+    color: #14417b; text-decoration: none;
+}
+.fm-tecnico-evi:hover { text-decoration: underline; }

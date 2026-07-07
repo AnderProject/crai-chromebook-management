@@ -107,13 +107,30 @@
                     <!-- Formulario de solución -->
                     <div class="fm-card">
                         <div class="fm-card-titulo">Solución aplicada</div>
+
+                        {% if mantenimiento.confirmado_por_tecnico %}
+                        <!-- Reparación registrada por el técnico desde su portal -->
+                        <div class="fm-tecnico-panel">
+                            <div class="fm-tecnico-head">
+                                <i class="bi bi-person-check-fill"></i>
+                                <span>El técnico <strong>{{ mantenimiento.tecnico }}</strong> confirmó la reparación</span>
+                                <small>{{ mantenimiento.fecha_confirmacion_tecnico|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            {% if mantenimiento.evidencia_reparacion %}
+                            <a href="{{ mantenimiento.evidencia_reparacion.url }}" target="_blank" class="fm-tecnico-evi">
+                                <i class="bi bi-paperclip"></i> Ver evidencia adjunta por el técnico
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
                         <form method="POST" enctype="multipart/form-data">
                             {% csrf_token %}
                             <label class="fm-form-label" for="descripcion_solucion">
                                 Describe qué se hizo para resolver el problema
                             </label>
                             <textarea id="descripcion_solucion" name="descripcion_solucion" class="fm-textarea"
-                                      placeholder="Ej.: Se reemplazó el cargador y se actualizó ChromeOS. El equipo enciende y carga con normalidad." required></textarea>
+                                      placeholder="Ej.: Se reemplazó el cargador y se actualizó ChromeOS. El equipo enciende y carga con normalidad." required>{{ mantenimiento.descripcion_solucion|default:'' }}</textarea>
 
                             <!-- Evidencia multimedia (foto o video) de la reparación -->
                             <label class="fm-form-label mt-3">Evidencia de la reparación <small class="text-muted">(opcional · foto o video)</small></label>

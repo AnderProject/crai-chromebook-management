@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Mantenimientos · Portal de Técnicos</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+    <link href="{% static 'css/bootstrap-icons.css' %}" rel="stylesheet">
+    <link href="{% static 'css/tecnicos.css' %}?v={% now 'U' %}" rel="stylesheet">
+</head>
+<body class="tec-body">
+    <header class="tec-header">
+        <div class="tec-header-inner">
+            <div class="tec-brand">
+                <span class="tec-brand-ico"><i class="bi bi-person-gear"></i></span>
+                <div>
+                    <strong>UNEMI · Técnicos</strong>
+                    <small>Departamento de TICs</small>
+                </div>
+            </div>
+            <div class="tec-header-user">
+                <span class="tec-user-nombre">{{ tecnico.nombre_completo }}</span>
+                <button type="button" class="tec-user-btn" onclick="document.getElementById('modalPass').classList.add('visible')" title="Cambiar contraseña"><i class="bi bi-key"></i></button>
+                <a href="{% url 'prestamos:tecnico_logout' %}" class="tec-user-btn" title="Salir"><i class="bi bi-box-arrow-right"></i></a>
+            </div>
+        </div>
+    </header>
+
+    <main class="tec-main">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="tec-alerta tec-alerta-{% if message.tags == 'error' %}error{% else %}exito{% endif %}">
+                <i class="bi {% if message.tags == 'error' %}bi-exclamation-circle-fill{% else %}bi-check-circle-fill{% endif %}"></i> {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="tec-saludo">
+            <h1>Hola, {{ tecnico.nombres }} 👋</h1>
+            <p>Estos son los equipos que te asignaron para reparar.</p>
+        </div>
+
+        <div class="tec-stats">
+            <div class="tec-stat"><span class="tec-stat-num">{{ total }}</span><span class="tec-stat-lbl">Total</span></div>
+            <div class="tec-stat tec-stat-warn"><span class="tec-stat-num">{{ en_proceso }}</span><span class="tec-stat-lbl">En proceso</span></div>
+            <div class="tec-stat tec-stat-info"><span class="tec-stat-num">{{ por_confirmar }}</span><span class="tec-stat-lbl">Por confirmar</span></div>
+            <div class="tec-stat tec-stat-ok"><span class="tec-stat-num">{{ finalizados }}</span><span class="tec-stat-lbl">Finalizados</span></div>
+        </div>
+
+        <div class="tec-lista">
+            {% for m in mantenimientos %}
+            <div class="tec-card {% if m.estado == 'finalizado' %}tec-card-fin{% elif m.confirmado_por_tecnico %}tec-card-conf{% endif %}">
+                <div class="tec-card-top">
+                    <span class="tec-card-equipo"><i class="bi bi-laptop"></i> {{ m.chromebook.codigo }}</span>
+                    <span class="tec-card-estado
+                        {% if m.estado == 'finalizado' %}est-fin{% elif m.confirmado_por_tecnico %}est-conf{% else %}est-proc{% endif %}">
+                        {% if m.estado == 'finalizado' %}Finalizado por el CRAI
+                        {% elif m.confirmado_por_tecnico %}Enviado · esperando al CRAI
+                        {% else %}Por reparar{% endif %}
+                    </span>
+                </div>
+                <div class="tec-card-body">
+                    <div class="tec-dato"><small>Equipo</small><b>{{ m.chromebook.marca }} {{ m.chromebook.modelo }}</b></div>
+                    <div class="tec-dato"><small>Tipo</small><b>{{ m.get_tipo_display }}</b></div>
+                    <div class="tec-dato"><small>Inicio</small><b>{{ m.fecha_inicio|date:"d/m/Y" }}</b></div>
+                </div>
+                <div class="tec-problema"><strong>Problema:</strong> {{ m.descripcion_problema|default:"No especificado" }}</div>
+
+                {% if m.estado == 'en_proceso' and not m.confirmado_por_tecnico %}
+                <form method="POST" action="{% url 'prestamos:tecnico_confirmar' %}" enctype="multipart/form-data" class="tec-form-conf" onsubmit="return confirmarEnvio(this)">
+                    {% csrf_token %}
+                    <input type="hidden" name="mantenimiento_id" value="{{ m.id }}">
+                    <label class="tec-label">¿Qué reparaste?</label>
+                    <textarea name="descripcion_solucion" rows="2" placeholder="Ej.: Se reemplazó el teclado y se actualizó ChromeOS." required></textarea>
+                    <label class="tec-label">Evidencia (foto o video) <span>*</span></label>
+                    <input type="file" name="evidencia" accept="image/*,video/*" class="tec-file" required>
+                    <button type="submit" class="tec-btn-conf"><i class="bi bi-check-circle"></i> Confirmar reparación y enviar</button>
+                </form>
+                {% elif m.confirmado_por_tecnico %}
+                <div class="tec-confirmado">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <div>
+                        <strong>Reparación registrada</strong>
+                        <small>{{ m.fecha_confirmacion_tecnico|date:"d/m/Y H:i" }} · El CRAI la revisará para finalizar.</small>
+                    </div>
+                    {% if m.evidencia_reparacion %}<a href="{{ m.evidencia_reparacion.url }}" target="_blank" class="tec-ver-evi"><i class="bi bi-paperclip"></i> Ver evidencia</a>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="tec-vacio">
+                <i class="bi bi-clipboard-check"></i>
+                <p>No tienes mantenimientos asignados por ahora.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <!-- Modal cambiar contraseña -->
+    <div class="tec-modal" id="modalPass" onclick="if(event.target===this)this.classList.remove('visible')">
+        <div class="tec-modal-card">
+            <h3><i class="bi bi-key"></i> Cambiar contraseña</h3>
+            <form method="POST" action="{% url 'prestamos:tecnico_cambiar_password' %}">
+                {% csrf_token %}
+                <input type="password" name="actual" placeholder="Contraseña actual" required>
+                <input type="password" name="nueva" placeholder="Nueva contraseña" required>
+                <input type="password" name="confirmar" placeholder="Repite la nueva" required>
+                <div class="tec-modal-acciones">
+                    <button type="button" class="tec-btn-cancel" onclick="document.getElementById('modalPass').classList.remove('visible')">Cancelar</button>
+                    <button type="submit" class="tec-btn-ok">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    function confirmarEnvio(form) {
+        return confirm('¿Confirmas que terminaste esta reparación? Se enviará al CRAI con tu evidencia.');
+    }
+    </script>
+</body>
+</html>

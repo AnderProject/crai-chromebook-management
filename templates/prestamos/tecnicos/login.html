@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Técnicos · CRAI UNEMI</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+    <link href="{% static 'css/bootstrap-icons.css' %}" rel="stylesheet">
+    <link href="{% static 'css/tecnicos.css' %}?v={% now 'U' %}" rel="stylesheet">
+</head>
+<body class="tec-login-body">
+    <div class="tec-login-card">
+        <div class="tec-login-icono"><i class="bi bi-person-gear"></i></div>
+        <div class="tec-login-marca">UNEMI</div>
+        <div class="tec-login-sub">Portal de Técnicos · Departamento de TICs</div>
+
+        <h1 class="tec-login-titulo">Inicia sesión</h1>
+        <p class="tec-login-hint">Ingresa con tu cédula. Si es tu primer acceso, tu contraseña también es tu cédula.</p>
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="tec-alerta tec-alerta-error"><i class="bi bi-exclamation-circle-fill"></i> {{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" class="tec-login-form">
+            {% csrf_token %}
+            <div class="tec-campo">
+                <i class="bi bi-person-vcard"></i>
+                <input type="text" name="cedula" placeholder="Cédula" inputmode="numeric" maxlength="10" required autofocus>
+            </div>
+            <div class="tec-campo">
+                <i class="bi bi-lock-fill"></i>
+                <input type="password" name="password" id="tecPass" placeholder="Contraseña" required>
+                <button type="button" class="tec-ver" onclick="var p=document.getElementById('tecPass');p.type=p.type==='password'?'text':'password';this.querySelector('i').className=p.type==='password'?'bi bi-eye':'bi bi-eye-slash';"><i class="bi bi-eye"></i></button>
+            </div>
+            <button type="submit" class="tec-login-btn"><i class="bi bi-box-arrow-in-right"></i> Ingresar</button>
+        </form>
+
+        <a href="{% url 'autenticacion:seleccionar_perfil' %}" class="tec-login-volver"><i class="bi bi-arrow-left"></i> Volver al inicio del CRAI</a>
+    </div>
+</body>
+</html>

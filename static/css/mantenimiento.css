@@ -583,3 +583,12 @@
 .tecnico-chip-lleno .tecnico-chip-avatar { background: linear-gradient(135deg, #c0392b, #e5534b); }
 
 .mant-hint-alerta { color: #c0392b !important; font-weight: 600; }
+
+/* Badge: el técnico confirmó su reparación (esperando revisión del CRAI) */
+.badge-tecnico-confirmo {
+    background: #e4f0fd !important;
+    color: #0b5cad !important;
+    border: 1px solid #bcd9f7;
+    font-size: 0.66rem;
+    font-weight: 700;
+}

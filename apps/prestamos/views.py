@@ -1431,7 +1431,7 @@ def agregar_mantenimiento(request):
                 # Crear mantenimiento (el nombre del técnico se copia al campo de
                 # texto por compatibilidad con reportes e historial).
                 from .models import Mantenimiento
-                Mantenimiento.objects.create(
+                nuevo = Mantenimiento.objects.create(
                     chromebook=chromebook,
                     tipo=tipo,
                     descripcion_problema=descripcion_problema,
@@ -1450,7 +1450,15 @@ def agregar_mantenimiento(request):
                 chromebook.condicion = 'malo' if tipo == 'correctivo' else 'regular'
                 chromebook.save()
 
-                messages.success(request, f'{chromebook.codigo} enviado a mantenimiento con {tecnico_obj.nombre_completo}.')
+                # Notificar por correo al técnico (con botón a su portal).
+                try:
+                    from .views_tecnicos import enviar_correo_asignacion
+                    enviar_correo_asignacion(tecnico_obj, nuevo, request.build_absolute_uri('/')[:-1])
+                except Exception:
+                    pass
+
+                aviso_correo = ' Se le notificó por correo.' if tecnico_obj.correo else ''
+                messages.success(request, f'{chromebook.codigo} enviado a mantenimiento con {tecnico_obj.nombre_completo}.{aviso_correo}')
                 return redirect('prestamos:lista_mantenimientos')
 
             except Chromebook.DoesNotExist:
@@ -2633,12 +2641,47 @@ def gestion_personal(request):
             elif Tecnico.objects.filter(cedula=cedula).exists():
                 messages.error(request, f'Ya existe un técnico con la cédula {cedula}.')
             else:
-                Tecnico.objects.create(
+                tecnico = Tecnico(
                     nombres=nombres, apellidos=apellidos, cedula=cedula,
                     telefono=telefono[:10], correo=correo or None,
                     especialidad=especialidad or None,
                 )
-                messages.success(request, f'Técnico registrado: {nombres} {apellidos} (Departamento TICs).')
+                # Contraseña inicial = su cédula (la puede cambiar en su portal).
+                tecnico.set_password(cedula)
+                tecnico.save()
+                messages.success(request, (
+                    f'Técnico registrado: {nombres} {apellidos}. Puede ingresar al portal de '
+                    f'técnicos con su cédula como usuario y contraseña.'
+                ))
+            return redirect('prestamos:gestion_personal')
+
+        # ---- Departamento TICs: editar los datos de un técnico ----
+        if accion == 'editar_tecnico':
+            tecnico = Tecnico.objects.filter(id=request.POST.get('tecnico_id')).first()
+            nombres = (request.POST.get('tec_nombres') or '').strip()
+            apellidos = (request.POST.get('tec_apellidos') or '').strip()
+            cedula = (request.POST.get('tec_cedula') or '').strip()
+            telefono = (request.POST.get('tec_telefono') or '').strip()
+            correo = (request.POST.get('tec_correo') or '').strip()
+            especialidad = (request.POST.get('tec_especialidad') or '').strip()
+
+            if tecnico is None:
+                messages.error(request, 'Técnico no encontrado.')
+            elif not nombres or not apellidos:
+                messages.error(request, 'Nombres y apellidos son obligatorios.')
+            elif not (cedula.isdigit() and len(cedula) == 10):
+                messages.error(request, 'La cédula debe tener 10 dígitos.')
+            elif Tecnico.objects.filter(cedula=cedula).exclude(id=tecnico.id).exists():
+                messages.error(request, f'Ya existe otro técnico con la cédula {cedula}.')
+            else:
+                tecnico.nombres = nombres
+                tecnico.apellidos = apellidos
+                tecnico.cedula = cedula
+                tecnico.telefono = telefono[:10]
+                tecnico.correo = correo or None
+                tecnico.especialidad = especialidad or None
+                tecnico.save()
+                messages.success(request, f'Datos del técnico {tecnico.nombre_completo} actualizados.')
             return redirect('prestamos:gestion_personal')
 
         # ---- Departamento TICs: eliminar un técnico ----

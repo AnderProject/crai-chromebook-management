@@ -57,3 +57,15 @@ function abrirEliminarTecnico(tecnicoId, nombre, enProceso) {
     }
     abrirModal('modalEliminarTecnico');
 }
+
+// Abre el modal de edición de un técnico, precargado con sus datos.
+function abrirEditarTecnico(id, nombres, apellidos, cedula, telefono, correo, especialidad) {
+    document.getElementById('etecId').value = id;
+    document.getElementById('etecNombres').value = nombres || '';
+    document.getElementById('etecApellidos').value = apellidos || '';
+    document.getElementById('etecCedula').value = cedula || '';
+    document.getElementById('etecTelefono').value = telefono || '';
+    document.getElementById('etecCorreo').value = correo || '';
+    document.getElementById('etecEspecialidad').value = especialidad || '';
+    abrirModal('modalEditarTecnico');
+}

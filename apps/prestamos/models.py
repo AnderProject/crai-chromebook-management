@@ -349,6 +349,9 @@ class Tecnico(models.Model):
     correo = models.EmailField(blank=True, null=True)
     especialidad = models.CharField(max_length=100, blank=True, null=True)
     activo = models.BooleanField(default=True)
+    # Acceso al portal de técnicos (login propio, aparte del login principal).
+    # La contraseña inicial es su cédula; puede cambiarla en su portal.
+    password = models.CharField(max_length=128, blank=True)
     creado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -359,6 +362,14 @@ class Tecnico(models.Model):
 
     def __str__(self):
         return self.nombre_completo
+
+    def set_password(self, raw):
+        from django.contrib.auth.hashers import make_password
+        self.password = make_password(raw)
+
+    def check_password(self, raw):
+        from django.contrib.auth.hashers import check_password
+        return bool(self.password) and check_password(raw, self.password)
 
     @property
     def nombre_completo(self):
@@ -397,6 +408,10 @@ class Mantenimiento(models.Model):
         related_name='mantenimientos',
         help_text='Técnico de TICs responsable (el campo "tecnico" guarda el nombre por compatibilidad).'
     )
+    # El técnico confirma la reparación y sube su evidencia desde su portal;
+    # el CRAI la revisa y recién ahí finaliza el mantenimiento.
+    confirmado_por_tecnico = models.BooleanField(default=False)
+    fecha_confirmacion_tecnico = models.DateTimeField(null=True, blank=True)
     costo = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     en_garantia = models.BooleanField(default=False, verbose_name='¿En garantía?')
     fecha_inicio = models.DateField()
