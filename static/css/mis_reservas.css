@@ -576,3 +576,13 @@
 
 /* Panel acotado: ~2 filas de boletos visibles y el resto con scroll interno */
 .reservas-scroll { max-height: 520px; }
+
+/* Fondo del área de boletos (no blanco, para que las tarjetas resalten) */
+.reservas-scroll {
+    background: linear-gradient(180deg, #e7ebf5 0%, #eef1f8 100%);
+    border-top: 1px solid #e0e5f0;
+}
+
+/* Las muescas del boleto deben igualar el nuevo fondo del área (para que se vean como recortes) */
+.ticket-stub::before,
+.ticket-stub::after { background: #ebeef7; }
