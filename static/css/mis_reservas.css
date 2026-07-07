@@ -522,3 +522,57 @@
     .ticket-stub::after { left: auto; right: -9px; top: -10px; bottom: auto; }
     .ticket-stub .progreso-live { width: auto; flex: 1; }
 }
+
+/* ============================================================
+   VISTA COMPACTA: 4 BOLETOS POR FILA (verticales)
+   (sobrescribe la disposición horizontal anterior)
+   ============================================================ */
+.reservas-grid { grid-template-columns: repeat(4, 1fr); gap: 0.9rem; }
+@media (max-width: 1150px) { .reservas-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 860px)  { .reservas-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px)  { .reservas-grid { grid-template-columns: 1fr; } }
+
+/* Boleto en vertical: cuerpo arriba + talón abajo */
+.reserva-ticket { flex-direction: column; }
+
+.ticket-main {
+    border-left: none;
+    border-top: 4px solid var(--tk);
+    padding: 0.75rem 0.85rem 0.85rem;
+}
+.ticket-head { margin-bottom: 0.5rem; }
+.ticket-estado-chip { font-size: 0.62rem; padding: 0.22rem 0.55rem; gap: 0.25rem; }
+.ticket-num { font-size: 0.62rem; }
+
+.ticket-codigo-zone { padding: 0.15rem 0 0.5rem; margin-bottom: 0.5rem; }
+.ticket-codigo-label { font-size: 0.52rem; }
+.ticket-codigo { font-size: 1.25rem; letter-spacing: 0.18em; }
+
+.ticket-datos { gap: 0.4rem 0.55rem; }
+.ticket-dato { gap: 0.4rem; }
+.ticket-dato > i { width: 26px; height: 26px; font-size: 0.78rem; border-radius: 7px; }
+.ticket-dato small { font-size: 0.53rem; }
+.ticket-dato b { font-size: 0.72rem; }
+
+/* Talón como barra inferior con perforación horizontal */
+.ticket-stub {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.55rem;
+    padding: 0.55rem 0.8rem;
+    border-left: none;
+    border-top: 2px dashed #d7dbe8;
+}
+.ticket-stub::before { left: -9px; top: -10px; }
+.ticket-stub::after  { left: auto; right: -9px; top: -10px; bottom: auto; }
+
+.ticket-stub-ico { width: 32px; height: 32px; font-size: 0.95rem; border-width: 1.5px; }
+.ticket-stub-label { font-size: 0.7rem; }
+.ticket-cancelar { margin-top: 0; margin-left: auto; padding: 0.24rem 0.6rem; font-size: 0.68rem; }
+.ticket-stub .progreso-live { flex: 1 1 100%; width: auto; }
+
+/* Panel acotado: ~2 filas de boletos visibles y el resto con scroll interno */
+.reservas-scroll { max-height: 520px; }
