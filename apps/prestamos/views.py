@@ -1365,7 +1365,9 @@ def lista_mantenimientos(request):
     """Lista de equipos en mantenimiento"""
     from .models import Mantenimiento, Tecnico
 
-    mantenimientos = Mantenimiento.objects.select_related('chromebook', 'registrado_por', 'tecnico_asignado').all().order_by('-fecha_inicio')
+    # Orden: el registrado más recientemente aparece PRIMERO (por fecha y, en
+    # empate del mismo día, por id descendente).
+    mantenimientos = Mantenimiento.objects.select_related('chromebook', 'registrado_por', 'tecnico_asignado').all().order_by('-fecha_inicio', '-id')
 
     en_proceso = mantenimientos.filter(estado='en_proceso').count()
     finalizados = mantenimientos.filter(estado='finalizado').count()

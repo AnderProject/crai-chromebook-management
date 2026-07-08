@@ -115,8 +115,8 @@
 }
 
 .sidebar-dashboard .nav-link {
-    color: var(--texto);
-    font-weight: 500;
+    color: #2b3448;
+    font-weight: 700;
     padding: 0.7rem 1.2rem;
     margin: 0.2rem 0.5rem;
     border-radius: 0.4rem;

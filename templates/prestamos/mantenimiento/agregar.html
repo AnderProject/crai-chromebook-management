@@ -141,6 +141,30 @@
                     </form>
                 </div>
 
+                <!-- Carga de trabajo del Departamento de TICs (debajo del formulario) -->
+                {% if tecnicos %}
+                <div class="tecnicos-carga mt-4">
+                    <div class="tecnicos-carga-head">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Departamento TICs · máquinas por técnico</span>
+                    </div>
+                    <div class="tecnicos-carga-lista">
+                        {% for t in tecnicos %}
+                        <div class="tecnico-chip {% if t.en_proceso >= limite_tecnico %}tecnico-chip-lleno{% elif t.en_proceso > 0 %}tecnico-chip-ocupado{% endif %}">
+                            <span class="tecnico-chip-avatar"><i class="bi bi-person-gear"></i></span>
+                            <span class="tecnico-chip-info">
+                                <strong>{{ t.nombre_completo }}</strong>
+                                <small>{{ t.especialidad|default:'Técnico de TICs' }}</small>
+                            </span>
+                            <span class="tecnico-chip-carga" title="Equipos en mantenimiento">
+                                {{ t.en_proceso }}<span class="tecnico-chip-max">/{{ limite_tecnico }}</span>
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
             </main>
         </div>
     </div>
