@@ -68,6 +68,17 @@
             </div>
         </div>
 
+        <div class="reservas-topbar">
+            <a href="{% url 'estudiantes:reservar' %}" class="btn-nueva-reserva">
+                <span class="bnr-ico"><i class="bi bi-plus-lg"></i></span>
+                <span class="bnr-txt">
+                    <strong>Reservar Chromebook</strong>
+                    <small>Agenda un equipo para tu próxima sesión</small>
+                </span>
+                <i class="bi bi-chevron-right bnr-flecha"></i>
+            </a>
+        </div>
+
         {% if reservas %}
         <div class="reservas-panel">
             <div class="reservas-panel-head">
