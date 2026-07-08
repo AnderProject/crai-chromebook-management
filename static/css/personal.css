@@ -3,7 +3,7 @@
    ===================================================== */
 
 .personal-panel {
-    max-width: 1100px;
+    max-width: 1260px;
     margin: 0 auto;
     animation: fadeIn 0.4s ease;
 }
@@ -61,24 +61,28 @@
     background: #fff;
     border: 1px solid #eef0f5;
     border-radius: 16px;
-    padding: 1.1rem 1.25rem;
+    padding: 1.3rem 1.45rem;
     display: flex;
     align-items: center;
-    gap: 0.9rem;
+    gap: 1rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
+.stat-mini:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(26,35,126,0.12); }
 
 .stat-mini-icono {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     color: #fff;
     flex-shrink: 0;
+    transition: transform 0.3s ease;
 }
+.stat-mini:hover .stat-mini-icono { transform: scale(1.08) rotate(-5deg); }
 
 .icono-total { background: linear-gradient(135deg, #1a237e, #3949ab); }
 .icono-admin { background: linear-gradient(135deg, #c62828, #e53935); }
@@ -86,14 +90,14 @@
 
 .stat-mini-num {
     display: block;
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.75rem;
+    font-weight: 800;
     color: #2b2f4a;
     line-height: 1;
 }
 
 .stat-mini-lbl {
-    font-size: 0.8rem;
+    font-size: 0.84rem;
     color: #8a90a8;
 }
 
@@ -112,19 +116,20 @@
 }
 
 .tabla-personal thead th {
-    font-size: 0.74rem;
+    font-size: 0.78rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: #37415a;
     font-weight: 800;
-    padding: 0.9rem 1rem;
+    padding: 1.05rem 1.15rem;
     border-bottom: 1px solid #eef0f5;
+    white-space: nowrap;          /* que los títulos no se partan en dos líneas */
 }
 
 .tabla-personal tbody td {
-    padding: 0.85rem 1rem;
+    padding: 1rem 1.15rem;
     border-bottom: 1px solid #f4f5fa;
-    font-size: 0.9rem;
+    font-size: 0.94rem;
     color: #3a3f5a;
     vertical-align: middle;
 }
@@ -150,8 +155,8 @@
 }
 
 .persona-avatar {
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: #e8edff;
     color: #1a237e;
@@ -159,7 +164,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     flex-shrink: 0;
 }
 
@@ -469,10 +474,11 @@ body.modo-oscuro .campo select {
 .carga-badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.3rem 0.75rem;
+    padding: 0.35rem 0.85rem;
     border-radius: 999px;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 700;
+    white-space: nowrap;
 }
 
 .carga-libre  { background: #e7f6ee; color: #1e7e46; }
