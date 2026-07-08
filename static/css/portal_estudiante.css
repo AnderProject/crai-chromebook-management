@@ -803,7 +803,7 @@
 .portal-avatar { width: 74px; height: 74px; font-size: 1.35rem; border-radius: 20px; }
 
 /* Tarjetas de acción más grandes */
-.acciones-grid { gap: 1.4rem; margin-bottom: 2.5rem; }
+.acciones-grid { gap: 1.4rem; margin-bottom: 1.6rem; }
 .accion-card { padding: 1.95rem 2rem; gap: 1.5rem; }
 .accion-info h4 { font-size: 1.18rem; }
 .accion-info p { font-size: 0.92rem; }
@@ -834,7 +834,7 @@
 .actividad-seccion h5 { font-size: 1.15rem; }
 
 /* Área de actividad un poco más alta (portal más grande) */
-.actividad-lista { max-height: 380px; }
+.actividad-lista { max-height: 300px; }
 
 @media (max-width: 768px) {
     .portal-contenido { padding: 1.6rem 1rem; }
