@@ -792,3 +792,137 @@
     font-size: 0.7rem; color: #9aa5b1; margin-top: 0.15rem;
     display: flex; align-items: center; gap: 0.3rem;
 }
+
+/* ============================================================
+   Portal más grande + íconos con color vivo (degradados)
+   ============================================================ */
+.portal-contenido { max-width: 1280px; padding: 2.8rem 2rem; }
+
+/* Saludo y avatar un poco más grandes */
+.portal-saludo h3 { font-size: 1.95rem; }
+.portal-avatar { width: 74px; height: 74px; font-size: 1.35rem; border-radius: 20px; }
+
+/* Tarjetas de acción más grandes */
+.acciones-grid { gap: 1.4rem; margin-bottom: 2.5rem; }
+.accion-card { padding: 1.95rem 2rem; gap: 1.5rem; }
+.accion-info h4 { font-size: 1.18rem; }
+.accion-info p { font-size: 0.92rem; }
+
+/* Íconos de acción: degradados vivos + sombra de color + pop al hover */
+.accion-icono {
+    width: 70px; height: 70px; font-size: 1.95rem; border-radius: 18px;
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+.accion-card:hover .accion-icono { transform: scale(1.08) rotate(-5deg); }
+.bg-primario { background: linear-gradient(135deg, #1a237e, #3f51b5); box-shadow: 0 8px 20px rgba(26,35,126,0.35); }
+.bg-exito     { background: linear-gradient(135deg, #1e7e46, #34c759); box-shadow: 0 8px 20px rgba(30,126,70,0.32); }
+.bg-advertencia { background: linear-gradient(135deg, #e8590c, #f7a900); box-shadow: 0 8px 20px rgba(232,89,12,0.30); }
+
+/* Flecha de cada tarjeta con su propio color */
+.accion-card.destacada .accion-flecha { color: #9fa8da; }
+.accion-card.accion-verde .accion-flecha { color: #a5d6b7; }
+.accion-card.accion-naranja .accion-flecha { color: #f5c98a; }
+
+/* Íconos del mensaje de bienvenida del chatbot: cada uno con su color */
+.mensaje-contenido .bi-laptop          { color: #1a73e8; }
+.mensaje-contenido .bi-calendar-check  { color: #1e9e50; }
+.mensaje-contenido .bi-list-check      { color: #f59e0b; }
+.mensaje-contenido .bi-question-circle { color: #8e44ad; }
+.mensaje-contenido .bi-emoji-smile     { color: #f6b93b; }
+
+/* Ícono del encabezado "Actividad Reciente" un poco más grande */
+.actividad-seccion h5 { font-size: 1.15rem; }
+
+/* Área de actividad un poco más alta (portal más grande) */
+.actividad-lista { max-height: 380px; }
+
+@media (max-width: 768px) {
+    .portal-contenido { padding: 1.6rem 1rem; }
+    .portal-saludo h3 { font-size: 1.5rem; }
+    .accion-icono { width: 60px; height: 60px; font-size: 1.6rem; }
+}
+
+/* ============================================================
+   Actividad Reciente · rediseño en LÍNEA DE TIEMPO (timeline)
+   ============================================================ */
+.acti-timeline { position: relative; padding: 0.2rem 0; }
+
+.acti-nodo {
+    position: relative; padding-left: 3.5rem; padding-bottom: 1.15rem;
+    animation: actiIn 0.4s ease both;
+}
+.acti-nodo:last-child { padding-bottom: 0.2rem; }
+.acti-nodo:nth-child(1){animation-delay:.03s}.acti-nodo:nth-child(2){animation-delay:.08s}
+.acti-nodo:nth-child(3){animation-delay:.13s}.acti-nodo:nth-child(4){animation-delay:.18s}
+.acti-nodo:nth-child(5){animation-delay:.23s}.acti-nodo:nth-child(6){animation-delay:.28s}
+@keyframes actiIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* Línea vertical que conecta los nodos */
+.acti-nodo::before {
+    content: ''; position: absolute; left: 20px; top: 44px; bottom: -2px; width: 2px;
+    background: linear-gradient(#e3e7f2, #eef0f5); border-radius: 2px;
+}
+.acti-nodo:last-child::before { display: none; }
+
+/* Nodo / ícono con color por estado */
+.acti-icono {
+    position: absolute; left: 0; top: 0; z-index: 1;
+    width: 42px; height: 42px; border-radius: 13px; border: 2px solid #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    box-shadow: 0 3px 9px rgba(26,35,126,0.12); transition: transform 0.2s ease;
+}
+.acti-nodo:hover .acti-icono { transform: scale(1.08); }
+.acti-nodo.act-activo    .acti-icono { background: #e6f4ea; color: #1e7e46; }
+.acti-nodo.act-pendiente .acti-icono { background: #fff4d6; color: #9a6700; }
+.acti-nodo.act-devuelto  .acti-icono { background: #eceff3; color: #4a5563; }
+.acti-nodo.act-vencido   .acti-icono { background: #fde7e5; color: #b3261e; }
+.acti-nodo.act-nuevo     .acti-icono { background: #e8f0fe; color: #1a73e8; }
+
+/* Tarjeta de cada evento */
+.acti-card {
+    background: #fbfcff; border: 1px solid #eef0f5; border-radius: 14px; padding: 0.85rem 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.acti-nodo:hover .acti-card { transform: translateX(3px); box-shadow: 0 6px 16px rgba(26,35,126,0.09); border-color: #e0e5f5; }
+
+.acti-card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.4rem; }
+.acti-tipo { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: #7b83a0; display: inline-flex; align-items: center; gap: 0.3rem; }
+
+.acti-codigo { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; }
+.acti-codigo strong { font-family: 'Courier New', monospace; font-size: 1rem; color: #1f2c3d; letter-spacing: 0.04em; }
+.acti-equipo { font-size: 0.83rem; color: #5a6473; font-weight: 600; }
+
+.acti-detalle { font-size: 0.79rem; color: #4a5563; margin-top: 0.35rem; display: inline-flex; align-items: center; gap: 0.35rem; }
+.acti-detalle i { color: #1a73e8; }
+
+.acti-fecha { display: flex; flex-wrap: wrap; gap: 0.25rem 0.9rem; margin-top: 0.45rem; font-size: 0.71rem; color: #9aa5b1; font-weight: 600; }
+.acti-fecha span { display: inline-flex; align-items: center; gap: 0.3rem; }
+.acti-fecha-exacta { color: #b3bac7; }
+
+/* Estado vacío (invita a reservar) */
+.acti-vacio { text-align: center; padding: 2.2rem 1rem 1.5rem; }
+.acti-vacio-ico {
+    width: 66px; height: 66px; margin: 0 auto 0.9rem; border-radius: 18px;
+    background: linear-gradient(135deg, #1a237e, #3949ab); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+    box-shadow: 0 8px 20px rgba(26,35,126,0.28);
+}
+.acti-vacio h6 { font-weight: 800; color: #2b2f4a; margin-bottom: 0.35rem; }
+.acti-vacio p { font-size: 0.86rem; color: #8a90a8; max-width: 340px; margin: 0 auto 1.1rem; line-height: 1.5; }
+.acti-vacio-btn {
+    display: inline-flex; align-items: center; text-decoration: none;
+    background: linear-gradient(135deg, #1a237e, #283593); color: #fff;
+    border-radius: 11px; padding: 0.6rem 1.15rem; font-size: 0.86rem; font-weight: 700;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.acti-vacio-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(26,35,126,0.32); color: #fff; }
+
+/* Encabezado de la sección de actividad */
+.actividad-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.8rem; margin-bottom: 1.1rem; }
+.actividad-sub { font-size: 0.8rem; color: #8a90a8; margin: 0.15rem 0 0; }
+.actividad-live {
+    display: inline-flex; align-items: center; gap: 0.4rem; flex-shrink: 0;
+    font-size: 0.72rem; font-weight: 700; color: #1e7e46;
+    background: #e7f6ee; border: 1px solid #bfe6d0; border-radius: 999px; padding: 0.28rem 0.7rem;
+}
+.actividad-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #1e9e50; box-shadow: 0 0 0 3px rgba(30,158,80,0.18); animation: pulse 2s infinite; }

@@ -1,27 +1,33 @@
 {% if actividad %}
+<div class="acti-timeline">
     {% for item in actividad %}
-    <div class="actividad-item">
-        <div class="actividad-icono act-{{ item.dot }}">
-            <i class="bi {{ item.icono|default:'bi-clock-history' }}"></i>
-        </div>
-        <div class="actividad-cuerpo">
-            <div class="actividad-linea1">
-                <strong>{{ item.codigo }}</strong>
-                <span class="actividad-equipo">{{ item.equipo }}</span>
+    <div class="acti-nodo act-{{ item.dot }}">
+        <div class="acti-icono"><i class="bi {{ item.icono|default:'bi-clock-history' }}"></i></div>
+        <div class="acti-card">
+            <div class="acti-card-top">
+                <span class="acti-tipo">
+                    {% if item.tipo == 'prestamo' %}<i class="bi bi-laptop"></i> Préstamo{% else %}<i class="bi bi-calendar-check"></i> Reserva{% endif %}
+                </span>
+                <span class="actividad-badge {{ item.badge }}">{{ item.estado }}</span>
             </div>
-            {% if item.detalle %}<div class="actividad-detalle"><i class="bi bi-info-circle"></i> {{ item.detalle }}</div>{% endif %}
-            <div class="actividad-fecha"><i class="bi bi-clock"></i> {{ item.fecha|date:"d/m/Y H:i" }}</div>
+            <div class="acti-codigo">
+                <strong>{{ item.codigo }}</strong>
+                <span class="acti-equipo">{{ item.equipo }}</span>
+            </div>
+            {% if item.detalle %}<div class="acti-detalle"><i class="bi bi-info-circle"></i> {{ item.detalle }}</div>{% endif %}
+            <div class="acti-fecha">
+                <span><i class="bi bi-clock-history"></i> hace {{ item.fecha|timesince }}</span>
+                <span class="acti-fecha-exacta"><i class="bi bi-calendar3"></i> {{ item.fecha|date:"d/m/Y · H:i" }}</span>
+            </div>
         </div>
-        <span class="actividad-badge {{ item.badge }}">{{ item.estado }}</span>
     </div>
     {% endfor %}
+</div>
 {% else %}
-    <div class="actividad-item">
-        <div class="actividad-icono act-nuevo"><i class="bi bi-stars"></i></div>
-        <div class="actividad-cuerpo">
-            <div class="actividad-linea1"><strong>Sin actividad</strong></div>
-            <div class="actividad-detalle">Aún no tienes préstamos ni reservas. ¡Reserva tu primer Chromebook!</div>
-        </div>
-        <span class="actividad-badge bg-light text-muted">Nuevo</span>
-    </div>
+<div class="acti-vacio">
+    <div class="acti-vacio-ico"><i class="bi bi-stars"></i></div>
+    <h6>Aún no tienes actividad</h6>
+    <p>Cuando reserves o retires un Chromebook, tu historial aparecerá aquí como una línea de tiempo.</p>
+    <a href="{% url 'estudiantes:reservar' %}" class="acti-vacio-btn"><i class="bi bi-laptop me-1"></i>Reservar mi primer Chromebook</a>
+</div>
 {% endif %}
