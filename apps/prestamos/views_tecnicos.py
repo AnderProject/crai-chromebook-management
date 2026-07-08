@@ -152,12 +152,21 @@ def tecnico_cambiar_password(request, tecnico):
 # CORREO DE ASIGNACIÓN
 # ==========================================================================
 
+def _fecha_str(valor):
+    """Formatea la fecha de inicio tanto si es date como si llega como texto."""
+    try:
+        return valor.strftime('%d/%m/%Y')
+    except AttributeError:
+        return str(valor or '')
+
+
 def enviar_correo_asignacion(tecnico, mantenimiento, base_url):
     """Notifica por correo al técnico que se le asignó un mantenimiento."""
     if not tecnico or not tecnico.correo:
         return
     cb = mantenimiento.chromebook
     portal_url = f'{base_url}/prestamos/tecnicos/'
+    fecha = _fecha_str(mantenimiento.fecha_inicio)
     asunto = f'Nuevo mantenimiento asignado · {cb.codigo}'
     texto = (
         f'Hola {tecnico.nombres}:\n\n'
@@ -165,7 +174,7 @@ def enviar_correo_asignacion(tecnico, mantenimiento, base_url):
         f'Equipo: {cb.codigo} ({cb.marca} {cb.modelo})\n'
         f'Tipo: {mantenimiento.get_tipo_display()}\n'
         f'Problema: {mantenimiento.descripcion_problema or "No especificado"}\n'
-        f'Fecha de inicio: {mantenimiento.fecha_inicio:%d/%m/%Y}\n\n'
+        f'Fecha de inicio: {fecha}\n\n'
         f'Ingresa a tu portal para confirmar la reparación y subir la evidencia:\n'
         f'{portal_url}\n\n'
         f'Usuario: tu cédula ({tecnico.cedula}). Si es tu primer ingreso, la '
@@ -183,6 +192,7 @@ def enviar_correo_asignacion(tecnico, mantenimiento, base_url):
 
 def _html_correo_asignacion(tecnico, m, portal_url):
     cb = m.chromebook
+    fecha = _fecha_str(m.fecha_inicio)
     return f"""\
 <!DOCTYPE html><html lang="es"><body style="margin:0;padding:0;background:#eef2f8;font-family:'Segoe UI',Arial,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f8;padding:28px 12px;"><tr><td align="center">
@@ -198,7 +208,7 @@ def _html_correo_asignacion(tecnico, m, portal_url):
       <tr><td style="padding:10px 14px;background:#f6f9ff;font-weight:700;width:130px;">Equipo</td><td style="padding:10px 14px;">{cb.codigo} · {cb.marca} {cb.modelo}</td></tr>
       <tr><td style="padding:10px 14px;background:#f6f9ff;font-weight:700;">Tipo</td><td style="padding:10px 14px;">{m.get_tipo_display()}</td></tr>
       <tr><td style="padding:10px 14px;background:#f6f9ff;font-weight:700;">Problema</td><td style="padding:10px 14px;">{m.descripcion_problema or 'No especificado'}</td></tr>
-      <tr><td style="padding:10px 14px;background:#f6f9ff;font-weight:700;">Fecha</td><td style="padding:10px 14px;">{m.fecha_inicio:%d/%m/%Y}</td></tr>
+      <tr><td style="padding:10px 14px;background:#f6f9ff;font-weight:700;">Fecha</td><td style="padding:10px 14px;">{fecha}</td></tr>
     </table>
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0;"><tr><td align="center" style="border-radius:12px;background:linear-gradient(120deg,#14417b,#1b5aa8);">
       <a href="{portal_url}" target="_blank" style="display:inline-block;padding:14px 34px;color:#fff;font-size:15px;font-weight:700;text-decoration:none;border-radius:12px;">Ir a mi portal de técnico</a>
