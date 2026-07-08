@@ -8,18 +8,35 @@ var HORA_MAX = 17 * 60;   // 17:00 en minutos
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    // Al elegir una hora manualmente, avanza el indicador de pasos.
-    // En cualquier cambio de hora, refresca el resumen en vivo.
-    if (window.CraiTP) {
-        CraiTP.onChange('horaInicio', function (e) { if (e.detail.byUser) { activarPaso(2); } actualizarResumen(); });
-        CraiTP.onChange('horaFin', function (e) { if (e.detail.byUser) { activarPaso(2); } actualizarResumen(); });
-    }
-
-    seleccionarFecha('hoy');
+    // Espera a que los timepickers estén registrados antes de fijar la fecha/hora.
+    // Si no, `setMin` no encuentra el selector y las horas ya pasadas quedarían
+    // habilitadas (deben salir deshabilitadas cuando la fecha es hoy).
+    esperarTimepicker(function () {
+        // Al elegir una hora manualmente, avanza el indicador de pasos.
+        // En cualquier cambio de hora, refresca el resumen en vivo.
+        if (window.CraiTP) {
+            CraiTP.onChange('horaInicio', function (e) { if (e.detail.byUser) { activarPaso(2); } actualizarResumen(); });
+            CraiTP.onChange('horaFin', function (e) { if (e.detail.byUser) { activarPaso(2); } actualizarResumen(); });
+        }
+        seleccionarFecha('hoy');
+    });
 
     var motivo = document.querySelector('textarea[name="motivo"]');
     if (motivo) motivo.addEventListener('focus', function () { activarPaso(3); });
 });
+
+// Ejecuta cb cuando los timepickers ya están inicializados (CraiTP con valor),
+// sin importar el orden en que se ejecuten los scripts.
+function esperarTimepicker(cb) {
+    if (window.CraiTP && CraiTP.get('horaInicio')) { cb(); return; }
+    var intentos = 0;
+    var t = setInterval(function () {
+        if ((window.CraiTP && CraiTP.get('horaInicio')) || ++intentos > 60) {
+            clearInterval(t);
+            cb();
+        }
+    }, 10);
+}
 
 // =============================================
 // UTILIDADES DE TIEMPO

@@ -186,6 +186,6 @@
 {% endblock %}
 
 {% block scripts_extra %}
-<script src="{% static 'js/timepicker.js' %}"></script>
-<script src="{% static 'js/reservar.js' %}"></script>
+<script src="{% static 'js/timepicker.js' %}?v={% now 'U' %}"></script>
+<script src="{% static 'js/reservar.js' %}?v={% now 'U' %}"></script>
 {% endblock %}
