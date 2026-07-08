@@ -9,9 +9,10 @@ var HORA_MAX = 17 * 60;   // 17:00 en minutos
 document.addEventListener('DOMContentLoaded', function () {
 
     // Al elegir una hora manualmente, avanza el indicador de pasos.
+    // En cualquier cambio de hora, refresca el resumen en vivo.
     if (window.CraiTP) {
-        CraiTP.onChange('horaInicio', function (e) { if (e.detail.byUser) { activarPaso(2); } });
-        CraiTP.onChange('horaFin', function (e) { if (e.detail.byUser) { activarPaso(2); } });
+        CraiTP.onChange('horaInicio', function (e) { if (e.detail.byUser) { activarPaso(2); } actualizarResumen(); });
+        CraiTP.onChange('horaFin', function (e) { if (e.detail.byUser) { activarPaso(2); } actualizarResumen(); });
     }
 
     seleccionarFecha('hoy');
@@ -100,7 +101,53 @@ function seleccionarFecha(tipo) {
 
     actualizarHorasPorFecha();
     actualizarDisponibilidad();
+    actualizarResumen();
     activarPaso(1);
+}
+
+// =============================================
+// RESUMEN EN VIVO (día · horario · duración)
+// Se actualiza al cambiar la fecha o la hora.
+// =============================================
+function actualizarResumen() {
+    var elDia = document.getElementById('resDia');
+    if (!elDia) { return; }
+    var elHorario = document.getElementById('resHorario');
+    var elDur = document.getElementById('resDuracion');
+
+    var fecha = document.getElementById('fechaSeleccionada').value;
+    var inicio = document.getElementById('horaInicio').value;
+    var fin = document.getElementById('horaFin').value;
+
+    // Día (Hoy / Mañana + fecha corta)
+    if (fecha) {
+        var ec = ahoraEcuador();
+        var etiqueta = (fecha === ec.fecha) ? 'Hoy' : (fecha === fechaManana() ? 'Mañana' : 'Fecha');
+        var p = fecha.split('-');
+        elDia.textContent = etiqueta + ' · ' + p[2] + '/' + p[1];
+    } else {
+        elDia.textContent = '—';
+    }
+
+    // Horario
+    elHorario.textContent = (inicio && fin) ? (inicio + ' – ' + fin) : '—';
+
+    // Duración
+    if (inicio && fin) {
+        var pi = inicio.split(':'), pf = fin.split(':');
+        var mins = (parseInt(pf[0], 10) * 60 + parseInt(pf[1], 10)) - (parseInt(pi[0], 10) * 60 + parseInt(pi[1], 10));
+        if (mins > 0) {
+            var h = Math.floor(mins / 60), m = mins % 60;
+            var txt = '';
+            if (h > 0) { txt += h + (h === 1 ? ' hora' : ' horas'); }
+            if (m > 0) { txt += (h > 0 ? ' ' : '') + m + ' min'; }
+            elDur.textContent = txt;
+        } else {
+            elDur.textContent = '—';
+        }
+    } else {
+        elDur.textContent = '—';
+    }
 }
 
 // Refleja la disponibilidad de la fecha elegida (hoy/mañana) en la tarjeta y el botón.
