@@ -24,27 +24,47 @@
     
     <div class="reservas-contenido">
         
-        <!-- Stats -->
+        <!-- Stats (estilo panel de control: barra de color abajo + animación) -->
         <div class="stats-row stats-row-5">
-            <div class="stat-item">
-                <div class="stat-icono bg-primary-light"><i class="bi bi-collection"></i></div>
-                <div class="stat-info"><span class="stat-numero">{{ total_reservas }}</span><span class="stat-etiqueta">Total</span></div>
+            <div class="stat-item stat-total">
+                <div class="stat-glow"></div>
+                <div class="stat-cuerpo">
+                    <div class="stat-icono bg-primary-light"><i class="bi bi-collection"></i></div>
+                    <div class="stat-info"><span class="stat-numero">{{ total_reservas }}</span><span class="stat-etiqueta">Total</span></div>
+                </div>
+                <div class="stat-barra"></div>
             </div>
-            <div class="stat-item">
-                <div class="stat-icono bg-warning-light"><i class="bi bi-hourglass-split"></i></div>
-                <div class="stat-info"><span class="stat-numero">{{ activas }}</span><span class="stat-etiqueta">Pendientes</span></div>
+            <div class="stat-item stat-pendiente">
+                <div class="stat-glow"></div>
+                <div class="stat-cuerpo">
+                    <div class="stat-icono bg-warning-light"><i class="bi bi-hourglass-split"></i></div>
+                    <div class="stat-info"><span class="stat-numero">{{ activas }}</span><span class="stat-etiqueta">Pendientes</span></div>
+                </div>
+                <div class="stat-barra"></div>
             </div>
-            <div class="stat-item">
-                <div class="stat-icono bg-success-light"><i class="bi bi-check-circle"></i></div>
-                <div class="stat-info"><span class="stat-numero">{{ completadas }}</span><span class="stat-etiqueta">Completadas</span></div>
+            <div class="stat-item stat-completada">
+                <div class="stat-glow"></div>
+                <div class="stat-cuerpo">
+                    <div class="stat-icono bg-success-light"><i class="bi bi-check-circle"></i></div>
+                    <div class="stat-info"><span class="stat-numero">{{ completadas }}</span><span class="stat-etiqueta">Completadas</span></div>
+                </div>
+                <div class="stat-barra"></div>
             </div>
-            <div class="stat-item">
-                <div class="stat-icono bg-danger-light"><i class="bi bi-exclamation-triangle"></i></div>
-                <div class="stat-info"><span class="stat-numero">{{ vencidas }}</span><span class="stat-etiqueta">Vencidas</span></div>
+            <div class="stat-item stat-vencida">
+                <div class="stat-glow"></div>
+                <div class="stat-cuerpo">
+                    <div class="stat-icono bg-danger-light"><i class="bi bi-exclamation-triangle"></i></div>
+                    <div class="stat-info"><span class="stat-numero">{{ vencidas }}</span><span class="stat-etiqueta">Vencidas</span></div>
+                </div>
+                <div class="stat-barra"></div>
             </div>
-            <div class="stat-item">
-                <div class="stat-icono bg-muted-light"><i class="bi bi-x-circle"></i></div>
-                <div class="stat-info"><span class="stat-numero">{{ canceladas }}</span><span class="stat-etiqueta">Canceladas</span></div>
+            <div class="stat-item stat-cancelada">
+                <div class="stat-glow"></div>
+                <div class="stat-cuerpo">
+                    <div class="stat-icono bg-muted-light"><i class="bi bi-x-circle"></i></div>
+                    <div class="stat-info"><span class="stat-numero">{{ canceladas }}</span><span class="stat-etiqueta">Canceladas</span></div>
+                </div>
+                <div class="stat-barra"></div>
             </div>
         </div>
 
@@ -64,45 +84,73 @@
             <div class="reservas-scroll" id="reservasScroll">
             <div class="reservas-grid" id="reservasGrid">
             {% for r in reservas %}
-            <div class="reserva-dash reserva-card-compact estado-{{ r.estado }}" data-estado="{{ r.estado }}">
-                <div class="rd-glow"></div>
-                <div class="rd-content">
-                    <div class="rd-icono">
-                        {% if r.estado == 'pendiente' %}<i class="bi bi-hourglass-split"></i>
-                        {% elif r.estado == 'confirmada' %}<i class="bi bi-laptop"></i>
-                        {% elif r.estado == 'completada' %}<i class="bi bi-check-circle-fill"></i>
-                        {% elif r.estado == 'vencida' %}<i class="bi bi-exclamation-triangle-fill"></i>
-                        {% else %}<i class="bi bi-x-circle-fill"></i>{% endif %}
+            <div class="reserva-ticket reserva-card-compact estado-{{ r.estado }}" data-estado="{{ r.estado }}">
+
+                <!-- Cuerpo del boleto -->
+                <div class="ticket-main">
+                    <div class="ticket-head">
+                        <span class="ticket-estado-chip">
+                            {% if r.estado == 'pendiente' %}<i class="bi bi-hourglass-split"></i> Pendiente
+                            {% elif r.estado == 'confirmada' %}<i class="bi bi-laptop"></i> En curso
+                            {% elif r.estado == 'completada' %}<i class="bi bi-check-circle-fill"></i> Completada
+                            {% elif r.estado == 'vencida' %}<i class="bi bi-exclamation-triangle-fill"></i> Vencida
+                            {% else %}<i class="bi bi-x-circle-fill"></i> Cancelada{% endif %}
+                        </span>
+                        <span class="ticket-num">RES-{{ r.id|stringformat:"04d" }}</span>
                     </div>
-                    <div class="rd-info">
-                        <div class="rd-top">
-                            <span class="rd-codigo">{{ r.codigo_verificacion }}</span>
-                            <span class="rd-estado-chip">
-                                {% if r.estado == 'pendiente' %}Pendiente
-                                {% elif r.estado == 'confirmada' %}En curso
-                                {% elif r.estado == 'completada' %}Completada
-                                {% elif r.estado == 'vencida' %}Vencida
-                                {% else %}Cancelada{% endif %}
-                            </span>
+
+                    <div class="ticket-codigo-zone">
+                        <span class="ticket-codigo-label"><i class="bi bi-qr-code-scan"></i> Código de verificación</span>
+                        <span class="ticket-codigo">{{ r.codigo_verificacion }}</span>
+                    </div>
+
+                    <div class="ticket-datos">
+                        <div class="ticket-dato">
+                            <i class="bi bi-calendar3"></i>
+                            <div><small>Fecha de uso</small><b>{{ r.fecha_uso|date:"d/m/Y" }}</b></div>
                         </div>
-                        <div class="rd-num">Reserva #{{ r.id|stringformat:"04d" }} · código de verificación</div>
-                        <div class="rd-datos">
-                            <span><i class="bi bi-calendar3"></i> {{ r.fecha_uso|date:"d/m/Y" }}</span>
-                            <span><i class="bi bi-clock"></i> {{ r.hora_inicio|time:"H:i" }}–{{ r.hora_fin|time:"H:i" }}</span>
-                            <span><i class="bi bi-hourglass-split"></i> {{ r.calcular_duracion }}h</span>
-                            <span><i class="bi bi-laptop"></i> {% if r.chromebook %}{{ r.chromebook.codigo }}{% else %}Al llegar{% endif %}</span>
+                        <div class="ticket-dato">
+                            <i class="bi bi-clock"></i>
+                            <div><small>Horario</small><b>{{ r.hora_inicio|time:"H:i" }} – {{ r.hora_fin|time:"H:i" }}</b></div>
                         </div>
-                        {% if r.estado == 'pendiente' %}
-                        <button class="rd-cancelar" onclick="cancelarReserva({{ r.id }})"><i class="bi bi-x-lg"></i> Cancelar reserva</button>
-                        {% elif r.estado == 'confirmada' %}
-                        <div class="progreso-live rd-progreso" data-fecha="{{ r.fecha_uso|date:'Y-m-d' }}" data-inicio="{{ r.hora_inicio|time:'H:i' }}" data-fin="{{ r.hora_fin|time:'H:i' }}">
-                            <div class="progreso-live-bar"><div class="progreso-live-fill" style="width: 0%;"></div></div>
-                            <span class="progreso-live-time">--</span>
+                        <div class="ticket-dato">
+                            <i class="bi bi-hourglass-split"></i>
+                            <div><small>Duración</small><b>{{ r.calcular_duracion }} h</b></div>
                         </div>
-                        {% endif %}
+                        <div class="ticket-dato">
+                            <i class="bi bi-laptop"></i>
+                            <div><small>Equipo</small><b>{% if r.chromebook %}{{ r.chromebook.codigo }}{% else %}Al llegar{% endif %}</b></div>
+                        </div>
                     </div>
                 </div>
-                <div class="rd-bar"></div>
+
+                <!-- Talón / acción del boleto -->
+                <div class="ticket-stub">
+                    {% if r.estado == 'pendiente' %}
+                    <div class="ticket-stub-ico"><i class="bi bi-hourglass-split"></i></div>
+                    <span class="ticket-stub-label">En espera</span>
+                    <button class="ticket-cancelar" onclick="cancelarReserva({{ r.id }})">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </button>
+                    {% elif r.estado == 'confirmada' %}
+                    <div class="ticket-stub-ico"><i class="bi bi-laptop"></i></div>
+                    <span class="ticket-stub-label">En curso</span>
+                    <div class="progreso-live" data-fecha="{{ r.fecha_uso|date:'Y-m-d' }}" data-inicio="{{ r.hora_inicio|time:'H:i' }}" data-fin="{{ r.hora_fin|time:'H:i' }}">
+                        <div class="progreso-live-bar"><div class="progreso-live-fill" style="width: 0%;"></div></div>
+                        <span class="progreso-live-time">--</span>
+                    </div>
+                    {% elif r.estado == 'completada' %}
+                    <div class="ticket-stub-ico"><i class="bi bi-check-circle-fill"></i></div>
+                    <span class="ticket-stub-label">Completada</span>
+                    {% elif r.estado == 'vencida' %}
+                    <div class="ticket-stub-ico"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    <span class="ticket-stub-label">Vencida</span>
+                    {% else %}
+                    <div class="ticket-stub-ico"><i class="bi bi-x-circle-fill"></i></div>
+                    <span class="ticket-stub-label">Cancelada</span>
+                    {% endif %}
+                </div>
+
             </div>
             {% endfor %}
             </div>
