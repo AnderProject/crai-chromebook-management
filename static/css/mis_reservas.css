@@ -17,8 +17,9 @@
 .navbar-derecha { display: flex; align-items: center; gap: 0.6rem; }
 .btn-logout-nav { color: white; font-size: 1.2rem; text-decoration: none; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.15); transition: 0.2s; }
 .btn-logout-nav:hover { background: rgba(255,255,255,0.25); color: white; }
-.reservas-contenido { max-width: 1180px; margin: 0 auto; padding: 2rem 1.5rem; }
-@media (max-width: 600px) { .reservas-contenido { padding: 1.2rem 1rem; } }
+.reservas-contenido { max-width: 1440px; margin: 0 auto; padding: 2.2rem 2rem; }
+@media (max-width: 900px)  { .reservas-contenido { padding: 1.8rem 1.4rem; } }
+@media (max-width: 600px)  { .reservas-contenido { padding: 1.2rem 1rem; } }
 
 /* ==========================================
    Tarjetas estadísticas (KPIs) — barra de color abajo
@@ -92,7 +93,7 @@
     display: inline-flex; align-items: center; justify-content: center;
 }
 .reservas-scroll {
-    max-height: 560px; overflow-y: auto; padding: 0.9rem 1.1rem; scroll-behavior: smooth;
+    max-height: 660px; overflow-y: auto; padding: 1.1rem 1.2rem; scroll-behavior: smooth;
 }
 .reservas-scroll::-webkit-scrollbar { width: 7px; }
 .reservas-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -119,15 +120,17 @@
    ========================================== */
 .reservas-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
-    gap: 1rem; padding: 0.2rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));   /* 3 boletos por fila (3x3) */
+    gap: 1.1rem; padding: 0.2rem;
 }
+@media (max-width: 1080px) { .reservas-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 680px)  { .reservas-grid { grid-template-columns: 1fr; } }
 .reserva-pro {
     --rc: #1a237e; --rc2: #3949ab; --rcbg: #eef1ff;
     position: relative; overflow: hidden;
-    display: flex; align-items: flex-start; gap: 0.9rem;
+    display: flex; align-items: flex-start; gap: 1rem;
     background: #fff; border: 1px solid #eef0f5; border-radius: 16px;
-    padding: 1.05rem 1.15rem;
+    padding: 1.25rem 1.35rem;
     box-shadow: 0 2px 12px rgba(26,35,126,0.06);
     transition: transform 0.26s cubic-bezier(0.4,0,0.2,1), box-shadow 0.26s ease;
     animation: rpFadeUp 0.45s ease both;
@@ -158,9 +161,9 @@
     color: var(--rc); background: var(--rcbg); padding: 0.2rem 0.5rem; border-radius: 7px;
 }
 .rp-icono {
-    width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0; z-index: 1;
+    width: 58px; height: 58px; border-radius: 15px; flex-shrink: 0; z-index: 1;
     background: linear-gradient(135deg, var(--rc), var(--rc2)); color: #fff;
-    display: flex; align-items: center; justify-content: center; font-size: 1.45rem;
+    display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
     box-shadow: 0 6px 16px color-mix(in srgb, var(--rc) 35%, transparent);
     transition: transform 0.3s ease;
 }
@@ -169,17 +172,17 @@
 .rp-cuerpo { flex: 1; min-width: 0; z-index: 1; }
 .rp-head { display: flex; align-items: center; gap: 0.6rem; margin: 0.1rem 0 0.55rem; padding-right: 3.5rem; flex-wrap: wrap; }
 .rp-codigo {
-    font-family: 'Courier New', monospace; font-size: 1.12rem; font-weight: 800;
-    letter-spacing: 0.08em; color: #2b2f4a; display: inline-flex; align-items: center; gap: 0.35rem;
+    font-family: 'Courier New', monospace; font-size: 1.24rem; font-weight: 800;
+    letter-spacing: 0.09em; color: #2b2f4a; display: inline-flex; align-items: center; gap: 0.4rem;
 }
-.rp-codigo i { color: var(--rc); font-size: 0.95rem; }
+.rp-codigo i { color: var(--rc); font-size: 1.02rem; }
 .rp-chip {
     font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;
     background: var(--rcbg); color: var(--rc); border-radius: 999px; padding: 0.24rem 0.6rem; white-space: nowrap;
 }
-.rp-datos { display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; }
-.rp-datos span { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: #4a5563; font-weight: 600; }
-.rp-datos i { color: var(--rc); font-size: 0.82rem; }
+.rp-datos { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; }
+.rp-datos span { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.86rem; color: #4a5563; font-weight: 600; }
+.rp-datos i { color: var(--rc); font-size: 0.86rem; }
 
 .rp-cancelar {
     margin-top: 0.75rem; display: inline-flex; align-items: center; gap: 0.35rem;
