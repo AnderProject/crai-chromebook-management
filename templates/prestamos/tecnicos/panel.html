@@ -54,10 +54,22 @@
         </div>
 
         <div class="tec-stats">
-            <div class="tec-stat"><span class="tec-stat-num">{{ total }}</span><span class="tec-stat-lbl">Total</span></div>
-            <div class="tec-stat tec-stat-warn"><span class="tec-stat-num">{{ en_proceso }}</span><span class="tec-stat-lbl">En proceso</span></div>
-            <div class="tec-stat tec-stat-info"><span class="tec-stat-num">{{ por_confirmar }}</span><span class="tec-stat-lbl">Por confirmar</span></div>
-            <div class="tec-stat tec-stat-ok"><span class="tec-stat-num">{{ finalizados }}</span><span class="tec-stat-lbl">Finalizados</span></div>
+            <div class="tec-stat">
+                <div class="tec-stat-ico"><i class="bi bi-collection"></i></div>
+                <div><span class="tec-stat-num">{{ total }}</span><span class="tec-stat-lbl">Total</span></div>
+            </div>
+            <div class="tec-stat">
+                <div class="tec-stat-ico ico-warn"><i class="bi bi-wrench-adjustable"></i></div>
+                <div><span class="tec-stat-num">{{ en_proceso }}</span><span class="tec-stat-lbl">En proceso</span></div>
+            </div>
+            <div class="tec-stat">
+                <div class="tec-stat-ico ico-info"><i class="bi bi-hourglass-split"></i></div>
+                <div><span class="tec-stat-num">{{ por_confirmar }}</span><span class="tec-stat-lbl">Por confirmar</span></div>
+            </div>
+            <div class="tec-stat">
+                <div class="tec-stat-ico ico-ok"><i class="bi bi-check-circle"></i></div>
+                <div><span class="tec-stat-num">{{ finalizados }}</span><span class="tec-stat-lbl">Finalizados</span></div>
+            </div>
         </div>
 
         <div class="tec-lista">
@@ -155,44 +167,6 @@
     </div>
 
     <script src="{% static 'js/loader.js' %}"></script>
-    <script>
-    var _formPendiente = null;
-
-    function pedirConfirmacion(btn) {
-        var form = btn.closest('form');
-        if (!form.reportValidity()) return;   // valida descripción + evidencia
-        _formPendiente = form;
-        document.getElementById('confEquipo').textContent = btn.dataset.equipo || 'seleccionado';
-        document.getElementById('modalConfirmar').classList.add('visible');
-    }
-    function cerrarConfirmar() {
-        document.getElementById('modalConfirmar').classList.remove('visible');
-        _formPendiente = null;
-    }
-    function enviarConfirmacion() {
-        if (!_formPendiente) return;
-        document.getElementById('modalConfirmar').classList.remove('visible');
-        document.getElementById('tecLoading').classList.add('visible');
-        _formPendiente.submit();
-    }
-
-    // Cerrar el modal de confirmar al hacer clic fuera
-    document.getElementById('modalConfirmar').addEventListener('click', function (e) {
-        if (e.target === this) cerrarConfirmar();
-    });
-
-    // Mensajes del servidor → modal flotante (en vez de banner)
-    document.addEventListener('DOMContentLoaded', function () {
-        var data = document.querySelector('.tec-flash-data');
-        if (!data) return;
-        var flash = document.getElementById('tecFlash');
-        var esError = data.dataset.tipo === 'error';
-        flash.classList.toggle('flash-error', esError);
-        flash.querySelector('.tec-flash-ico i').className = esError ? 'bi bi-exclamation-circle-fill' : 'bi bi-check-circle-fill';
-        flash.querySelector('.tec-flash-msg').textContent = data.dataset.msg;
-        flash.classList.add('visible');
-        setTimeout(function () { flash.classList.remove('visible'); }, 5000);
-    });
-    </script>
+    <script src="{% static 'js/tecnicos_panel.js' %}?v={% now 'U' %}"></script>
 </body>
 </html>

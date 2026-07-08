@@ -102,7 +102,7 @@ function actualizarProgresos() {
     var cont = document.getElementById('reservasFiltros');
     if (!cont) return;
     var chips = cont.querySelectorAll('.filtro-chip');
-    var cards = document.querySelectorAll('.reserva-card-compact');
+    var cards = document.querySelectorAll('#reservasGrid [data-estado]');
 
     chips.forEach(function (chip) {
         chip.addEventListener('click', function () {

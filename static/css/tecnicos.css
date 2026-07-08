@@ -3,10 +3,11 @@
    ============================================================ */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
-    --azul: #0d2c54; --azul2: #14417b; --azul3: #1b5aa8; --dorado: #f2a900;
-    --verde: #1e7e46; --rojo: #b3261e; --ambar: #b26a00; --gris: #5a6473; --borde: #e3eaf4;
+    --azul: #1a237e; --azul2: #283593; --azul3: #3949ab; --dorado: #f2a900;
+    --verde: #1e7e46; --rojo: #b3261e; --ambar: #b26a00; --gris: #8a90a8; --borde: #eef0f5;
 }
-body { font-family: 'Segoe UI', system-ui, sans-serif; color: #1f2c3d; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; color: #2b2f4a; }
+@keyframes tecFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
 /* ============ LOGIN ============ */
 .tec-login-body {
@@ -78,21 +79,47 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; color: #1f2c3d; }
 .tec-user-btn:hover { background: rgba(255,255,255,0.28); color: #fff; }
 
 .tec-main { max-width: 1080px; margin: 0 auto; padding: 1.6rem 1.5rem 2.5rem; }
-.tec-saludo h1 { font-size: 1.4rem; font-weight: 800; }
+.tec-saludo { animation: tecFadeUp 0.4s ease both; }
+.tec-saludo h1 { font-size: 1.5rem; font-weight: 800; color: var(--azul); }
 .tec-saludo p { color: var(--gris); font-size: 0.9rem; margin-top: 0.2rem; }
 
-.tec-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem; margin: 1.2rem 0 1.5rem; }
-.tec-stat { background: #fff; border: 1px solid var(--borde); border-radius: 14px; padding: 0.9rem 1rem; text-align: center; position: relative; overflow: hidden; }
-.tec-stat::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--azul3); }
-.tec-stat-warn::after { background: var(--ambar); }
-.tec-stat-info::after { background: var(--azul3); }
-.tec-stat-ok::after { background: var(--verde); }
-.tec-stat-num { display: block; font-size: 1.6rem; font-weight: 800; }
-.tec-stat-lbl { font-size: 0.72rem; color: var(--gris); text-transform: uppercase; letter-spacing: 0.04em; }
+/* Mini-stats con icono en degradado (estilo Gestión de Personal) */
+.tec-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 1.2rem 0 1.6rem; }
+.tec-stat {
+    background: #fff; border: 1px solid var(--borde); border-radius: 16px;
+    padding: 1.05rem 1.15rem; display: flex; align-items: center; gap: 0.85rem;
+    box-shadow: 0 2px 10px rgba(26,35,126,0.05);
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s ease;
+    animation: tecFadeUp 0.45s ease both;
+}
+.tec-stat:nth-child(1) { animation-delay: 0.04s; }
+.tec-stat:nth-child(2) { animation-delay: 0.10s; }
+.tec-stat:nth-child(3) { animation-delay: 0.16s; }
+.tec-stat:nth-child(4) { animation-delay: 0.22s; }
+.tec-stat:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(26,35,126,0.14); }
+.tec-stat-ico {
+    width: 48px; height: 48px; border-radius: 13px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #fff;
+    background: linear-gradient(135deg, var(--azul), var(--azul3));
+    transition: transform 0.3s ease;
+}
+.tec-stat:hover .tec-stat-ico { transform: scale(1.08) rotate(-5deg); }
+.ico-warn { background: linear-gradient(135deg, #c77800, #f0a020) !important; }
+.ico-info { background: linear-gradient(135deg, #0e7490, #22b8cf) !important; }
+.ico-ok   { background: linear-gradient(135deg, #1e7e46, #2ea866) !important; }
+.tec-stat-num { display: block; font-size: 1.55rem; font-weight: 800; color: #2b2f4a; line-height: 1; }
+.tec-stat-lbl { font-size: 0.76rem; color: var(--gris); }
 @media (max-width: 620px) { .tec-stats { grid-template-columns: repeat(2, 1fr); } }
 
 .tec-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 1rem; }
-.tec-card { background: #fff; border: 1px solid var(--borde); border-radius: 16px; padding: 1.1rem 1.2rem; box-shadow: 0 3px 12px rgba(13,44,84,0.05); border-left: 5px solid var(--ambar); }
+.tec-card {
+    background: #fff; border: 1px solid var(--borde); border-radius: 16px;
+    padding: 1.1rem 1.2rem; box-shadow: 0 2px 12px rgba(26,35,126,0.05);
+    border-left: 5px solid var(--ambar);
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s ease;
+    animation: tecFadeUp 0.45s ease both;
+}
+.tec-card:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(26,35,126,0.12); }
 .tec-card-conf { border-left-color: var(--azul3); }
 .tec-card-fin { border-left-color: var(--verde); opacity: 0.92; }
 .tec-card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.7rem; }

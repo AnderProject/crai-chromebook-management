@@ -69,3 +69,9 @@ function abrirEditarTecnico(id, nombres, apellidos, cedula, telefono, correo, es
     document.getElementById('etecEspecialidad').value = especialidad || '';
     abrirModal('modalEditarTecnico');
 }
+
+// Muestra el modal flotante de resultado si el servidor dejó un mensaje
+document.addEventListener('DOMContentLoaded', function () {
+    var pm = document.getElementById('pmodalResultado');
+    if (pm) pm.classList.add('visible');
+});
