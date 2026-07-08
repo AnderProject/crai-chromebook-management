@@ -56,12 +56,19 @@
                 </div>
 
                 {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
-                            {{ message }}
-                            <button class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="pmodal-overlay" id="pmodalResultado" onclick="if(event.target===this)this.classList.remove('visible')">
+                    <div class="pmodal-card">
+                        {% for message in messages %}
+                        <div class="pmodal-ico {% if message.tags == 'error' %}pmodal-error{% else %}pmodal-ok{% endif %}">
+                            <i class="bi {% if message.tags == 'error' %}bi-exclamation-triangle-fill{% else %}bi-check-lg{% endif %}"></i>
                         </div>
-                    {% endfor %}
+                        <h5 class="pmodal-titulo">{% if message.tags == 'error' %}Atención{% else %}¡Operación exitosa!{% endif %}</h5>
+                        <p class="pmodal-texto">{{ message }}</p>
+                        {% endfor %}
+                        <button type="button" class="pmodal-btn" onclick="document.getElementById('pmodalResultado').classList.remove('visible')">Entendido</button>
+                    </div>
+                </div>
+                <script>document.addEventListener('DOMContentLoaded', function () { document.getElementById('pmodalResultado').classList.add('visible'); });</script>
                 {% endif %}
 
                 <!-- Mini-stats -->

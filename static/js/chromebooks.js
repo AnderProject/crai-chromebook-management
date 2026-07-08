@@ -83,7 +83,14 @@ function editarChromebook(id) {
                 var d = data.data;
                 document.getElementById('editId').value = id;
                 document.getElementById('editCodigo').value = d.codigo;
-                document.getElementById('editMarca').value = d.marca;
+                // Marca: si la del equipo no está en la lista, se inyecta para poder mostrarla.
+                var selMarca = document.getElementById('editMarca');
+                if (d.marca && !selMarca.querySelector('option[value="' + d.marca + '"]')) {
+                    var om = document.createElement('option');
+                    om.value = d.marca; om.textContent = d.marca;
+                    selMarca.appendChild(om);
+                }
+                selMarca.value = d.marca;
                 document.getElementById('editModelo').value = d.modelo;
                 document.getElementById('editSerie').value = d.serie;
                 // "Mantenimiento" no es una opción asignable; si el equipo ya está en
@@ -97,6 +104,10 @@ function editarChromebook(id) {
                 }
                 selEstado.value = d.estado;
                 document.getElementById('editCondicion').value = d.condicion;
+                // Refrescar los selects animados con los valores cargados.
+                ['editMarca', 'editEstado', 'editCondicion'].forEach(function (sid) {
+                    document.getElementById(sid).dispatchEvent(new Event('cs:refresh'));
+                });
                 document.getElementById('editNotas').value = d.notas || '';
 
                 // Fecha de compra y garantía

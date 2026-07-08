@@ -133,7 +133,7 @@
                     </div>
                     <div class="filtro-select-wrap">
                         <i class="bi bi-funnel filtro-select-icono"></i>
-                        <select class="filtro-select" id="filtroEstado" onchange="filtrarChromebooks()">
+                        <select class="cselect" id="filtroEstado" onchange="filtrarChromebooks()">
                             <option value="">Todos los estados</option>
                             <option value="disponible">Disponible</option>
                             <option value="pendiente_reserva">Pendiente a reserva</option>
@@ -143,7 +143,7 @@
                     </div>
                     <div class="filtro-select-wrap">
                         <i class="bi bi-tag filtro-select-icono"></i>
-                        <select class="filtro-select" id="filtroMarca" onchange="filtrarChromebooks()">
+                        <select class="cselect" id="filtroMarca" onchange="filtrarChromebooks()">
                             <option value="">Todas las marcas</option>
                             <option value="HP">HP</option>
                             <option value="Lenovo">Lenovo</option>
@@ -261,7 +261,7 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-semibold">Marca</label>
-                            <select id="editMarca" class="form-select">
+                            <select id="editMarca" class="cselect" data-allow-new="Marca">
                                 <option value="HP">HP</option><option value="Lenovo">Lenovo</option><option value="Dell">Dell</option>
                                 <option value="Acer">Acer</option><option value="ASUS">ASUS</option><option value="Samsung">Samsung</option>
                             </select>
@@ -276,7 +276,7 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-semibold">Estado</label>
-                            <select id="editEstado" class="form-select">
+                            <select id="editEstado" class="cselect">
                                 <option value="disponible">Disponible</option>
                                 <option value="prestado">Prestado</option>
                                 <!-- "Mantenimiento" NO se asigna desde aquí: debe registrarse en la
@@ -286,7 +286,7 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-semibold">Condición</label>
-                            <select id="editCondicion" class="form-select">
+                            <select id="editCondicion" class="cselect">
                                 <option value="bueno">Bueno</option><option value="regular">Regular</option><option value="malo">Malo</option>
                             </select>
                         </div>
