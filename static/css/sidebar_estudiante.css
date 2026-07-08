@@ -60,3 +60,12 @@
     .est-side-nav { flex-direction: row; gap: 0.4rem; }
     .est-side-salir { margin-top: 0; margin-left: auto; }
 }
+
+/* Marca CRAI en el navbar (reemplaza la flecha de retroceder) */
+.navbar-marca {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    color: #fff; text-decoration: none; font-weight: 700; font-size: 1.05rem;
+    letter-spacing: 0.3px; transition: opacity 0.15s ease;
+}
+.navbar-marca i { font-size: 1.3rem; }
+.navbar-marca:hover { color: #fff; opacity: 0.85; }

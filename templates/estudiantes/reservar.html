@@ -16,9 +16,7 @@
 <div class="reservar-layout">
     
     <nav class="reservar-navbar">
-        <a href="{% url 'estudiantes:portal_estudiante' %}" class="btn-volver">
-            <i class="bi bi-arrow-left"></i>
-        </a>
+        <a href="{% url 'estudiantes:portal_estudiante' %}" class="navbar-marca"><i class="bi bi-book"></i><span>CRAI</span></a>
         <span class="navbar-titulo">Reservar Chromebook</span>
         <div class="navbar-derecha">
             <div class="navbar-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>

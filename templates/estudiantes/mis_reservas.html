@@ -13,7 +13,7 @@
 <div class="reservas-layout">
     
     <nav class="reservas-navbar">
-        <a href="{% url 'estudiantes:portal_estudiante' %}" class="btn-volver"><i class="bi bi-arrow-left"></i></a>
+        <a href="{% url 'estudiantes:portal_estudiante' %}" class="navbar-marca"><i class="bi bi-book"></i><span>CRAI</span></a>
         <span class="navbar-titulo">Mis Reservas</span>
         <div class="navbar-derecha">
             {% if user.perfil.foto %}<div class="navbar-avatar"><img src="{{ user.perfil.foto.url }}" alt="Foto de perfil" class="avatar-img"></div>{% else %}<div class="navbar-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>{% endif %}
