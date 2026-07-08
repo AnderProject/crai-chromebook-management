@@ -7,9 +7,24 @@
     <title>Portal de Técnicos · CRAI UNEMI</title>
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
     <link href="{% static 'css/bootstrap-icons.css' %}" rel="stylesheet">
+    <link href="{% static 'css/loader.css' %}" rel="stylesheet">
     <link href="{% static 'css/tecnicos.css' %}?v={% now 'U' %}" rel="stylesheet">
 </head>
 <body class="tec-login-body">
+
+    <!-- Pantalla de carga del CRAI -->
+    <div class="crai-loader" id="craiLoader">
+        <div class="loader-contenido">
+            <div class="loader-logo"><i class="bi bi-book loader-icono"></i></div>
+            <div class="loader-ondas"><div class="onda onda-1"></div><div class="onda onda-2"></div><div class="onda onda-3"></div></div>
+            <div class="loader-texto">
+                <div class="loader-marca"><span class="letra">C</span><span class="letra">R</span><span class="letra">A</span><span class="letra">I</span></div>
+                <div class="loader-unemi"><span class="letra-unemi">U</span><span class="letra-unemi">N</span><span class="letra-unemi">E</span><span class="letra-unemi">M</span><span class="letra-unemi">I</span></div>
+            </div>
+            <div class="loader-cargando"><span>Cargando</span><span class="loader-puntos"></span></div>
+        </div>
+    </div>
+
     <div class="tec-login-card">
         <div class="tec-login-icono"><i class="bi bi-person-gear"></i></div>
         <div class="tec-login-marca">UNEMI</div>
@@ -40,5 +55,7 @@
 
         <a href="{% url 'autenticacion:seleccionar_perfil' %}" class="tec-login-volver"><i class="bi bi-arrow-left"></i> Volver al inicio del CRAI</a>
     </div>
+
+    <script src="{% static 'js/loader.js' %}"></script>
 </body>
 </html>

@@ -7,9 +7,23 @@
     <title>Mis Mantenimientos · Portal de Técnicos</title>
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
     <link href="{% static 'css/bootstrap-icons.css' %}" rel="stylesheet">
+    <link href="{% static 'css/loader.css' %}" rel="stylesheet">
     <link href="{% static 'css/tecnicos.css' %}?v={% now 'U' %}" rel="stylesheet">
 </head>
 <body class="tec-body">
+
+    <!-- Pantalla de carga del CRAI -->
+    <div class="crai-loader" id="craiLoader">
+        <div class="loader-contenido">
+            <div class="loader-logo"><i class="bi bi-book loader-icono"></i></div>
+            <div class="loader-ondas"><div class="onda onda-1"></div><div class="onda onda-2"></div><div class="onda onda-3"></div></div>
+            <div class="loader-texto">
+                <div class="loader-marca"><span class="letra">C</span><span class="letra">R</span><span class="letra">A</span><span class="letra">I</span></div>
+                <div class="loader-unemi"><span class="letra-unemi">U</span><span class="letra-unemi">N</span><span class="letra-unemi">E</span><span class="letra-unemi">M</span><span class="letra-unemi">I</span></div>
+            </div>
+            <div class="loader-cargando"><span>Cargando</span><span class="loader-puntos"></span></div>
+        </div>
+    </div>
     <header class="tec-header">
         <div class="tec-header-inner">
             <div class="tec-brand">
@@ -30,9 +44,7 @@
     <main class="tec-main">
         {% if messages %}
             {% for message in messages %}
-            <div class="tec-alerta tec-alerta-{% if message.tags == 'error' %}error{% else %}exito{% endif %}">
-                <i class="bi {% if message.tags == 'error' %}bi-exclamation-circle-fill{% else %}bi-check-circle-fill{% endif %}"></i> {{ message }}
-            </div>
+            <span class="tec-flash-data" data-tipo="{% if message.tags == 'error' %}error{% else %}exito{% endif %}" data-msg="{{ message }}"></span>
             {% endfor %}
         {% endif %}
 
@@ -68,14 +80,14 @@
                 <div class="tec-problema"><strong>Problema:</strong> {{ m.descripcion_problema|default:"No especificado" }}</div>
 
                 {% if m.estado == 'en_proceso' and not m.confirmado_por_tecnico %}
-                <form method="POST" action="{% url 'prestamos:tecnico_confirmar' %}" enctype="multipart/form-data" class="tec-form-conf" onsubmit="return confirmarEnvio(this)">
+                <form method="POST" action="{% url 'prestamos:tecnico_confirmar' %}" enctype="multipart/form-data" class="tec-form-conf">
                     {% csrf_token %}
                     <input type="hidden" name="mantenimiento_id" value="{{ m.id }}">
                     <label class="tec-label">¿Qué reparaste?</label>
                     <textarea name="descripcion_solucion" rows="2" placeholder="Ej.: Se reemplazó el teclado y se actualizó ChromeOS." required></textarea>
                     <label class="tec-label">Evidencia (foto o video) <span>*</span></label>
                     <input type="file" name="evidencia" accept="image/*,video/*" class="tec-file" required>
-                    <button type="submit" class="tec-btn-conf"><i class="bi bi-check-circle"></i> Confirmar reparación y enviar</button>
+                    <button type="button" class="tec-btn-conf" onclick="pedirConfirmacion(this)" data-equipo="{{ m.chromebook.codigo }}"><i class="bi bi-check-circle"></i> Confirmar reparación y enviar</button>
                 </form>
                 {% elif m.confirmado_por_tecnico %}
                 <div class="tec-confirmado">
@@ -114,10 +126,73 @@
         </div>
     </div>
 
+    <!-- Modal de confirmación (reemplaza al confirm() del navegador) -->
+    <div class="tec-modal" id="modalConfirmar">
+        <div class="tec-modal-card tec-modal-confirm">
+            <div class="tec-confirm-ico"><i class="bi bi-patch-question"></i></div>
+            <h3>¿Enviar la reparación?</h3>
+            <p class="tec-confirm-texto">Confirmas que terminaste el equipo <b id="confEquipo">—</b>. Se enviará al CRAI con tu evidencia para su revisión.</p>
+            <div class="tec-modal-acciones">
+                <button type="button" class="tec-btn-cancel" onclick="cerrarConfirmar()">Cancelar</button>
+                <button type="button" class="tec-btn-ok" id="btnConfirmarEnvio" onclick="enviarConfirmacion()"><i class="bi bi-send-check"></i> Sí, enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal flotante de resultado (reemplaza a los banners) -->
+    <div class="tec-flash" id="tecFlash">
+        <span class="tec-flash-ico"><i class="bi bi-check-circle-fill"></i></span>
+        <span class="tec-flash-msg"></span>
+        <button type="button" class="tec-flash-x" onclick="document.getElementById('tecFlash').classList.remove('visible')"><i class="bi bi-x"></i></button>
+    </div>
+
+    <!-- Overlay de carga -->
+    <div class="tec-loading" id="tecLoading">
+        <div class="tec-loading-box">
+            <div class="tec-spinner"></div>
+            <span>Enviando reparación…</span>
+        </div>
+    </div>
+
+    <script src="{% static 'js/loader.js' %}"></script>
     <script>
-    function confirmarEnvio(form) {
-        return confirm('¿Confirmas que terminaste esta reparación? Se enviará al CRAI con tu evidencia.');
+    var _formPendiente = null;
+
+    function pedirConfirmacion(btn) {
+        var form = btn.closest('form');
+        if (!form.reportValidity()) return;   // valida descripción + evidencia
+        _formPendiente = form;
+        document.getElementById('confEquipo').textContent = btn.dataset.equipo || 'seleccionado';
+        document.getElementById('modalConfirmar').classList.add('visible');
     }
+    function cerrarConfirmar() {
+        document.getElementById('modalConfirmar').classList.remove('visible');
+        _formPendiente = null;
+    }
+    function enviarConfirmacion() {
+        if (!_formPendiente) return;
+        document.getElementById('modalConfirmar').classList.remove('visible');
+        document.getElementById('tecLoading').classList.add('visible');
+        _formPendiente.submit();
+    }
+
+    // Cerrar el modal de confirmar al hacer clic fuera
+    document.getElementById('modalConfirmar').addEventListener('click', function (e) {
+        if (e.target === this) cerrarConfirmar();
+    });
+
+    // Mensajes del servidor → modal flotante (en vez de banner)
+    document.addEventListener('DOMContentLoaded', function () {
+        var data = document.querySelector('.tec-flash-data');
+        if (!data) return;
+        var flash = document.getElementById('tecFlash');
+        var esError = data.dataset.tipo === 'error';
+        flash.classList.toggle('flash-error', esError);
+        flash.querySelector('.tec-flash-ico i').className = esError ? 'bi bi-exclamation-circle-fill' : 'bi bi-check-circle-fill';
+        flash.querySelector('.tec-flash-msg').textContent = data.dataset.msg;
+        flash.classList.add('visible');
+        setTimeout(function () { flash.classList.remove('visible'); }, 5000);
+    });
     </script>
 </body>
 </html>
