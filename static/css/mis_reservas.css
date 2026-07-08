@@ -206,9 +206,23 @@
     transition: width 1s linear; box-shadow: 0 0 6px rgba(52,168,83,0.4);
 }
 @keyframes barraVerde { 0% { background-position: 200% 0; } 100% { background-position: 0 0; } }
-.progreso-live-time { font-size: 0.7rem; color: #1e7e34; font-weight: 700; display: flex; align-items: center; gap: 0.3rem; }
-.progreso-live-time::before { content: '⏱️'; font-size: 0.7rem; animation: relojPulse 1s ease infinite; }
+.progreso-live-time {
+    font-family: 'Courier New', monospace; font-variant-numeric: tabular-nums;
+    font-size: 0.86rem; color: #1e7e34; font-weight: 800; letter-spacing: 0.03em;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+}
+.progreso-live-time::before { content: '⏱️'; font-size: 0.85rem; animation: relojPulse 1s ease infinite; }
 @keyframes relojPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+
+/* Últimos 5 minutos: reloj y barra en rojo, parpadeo suave */
+.progreso-live.por-terminar .progreso-live-time { color: #ea4335; animation: relojUrgente 1s ease-in-out infinite; }
+.progreso-live.por-terminar .progreso-live-fill { background: linear-gradient(90deg, #ea4335, #ff6f60, #ea4335); box-shadow: 0 0 6px rgba(234,67,53,0.5); }
+@keyframes relojUrgente { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+/* Tiempo agotado */
+.progreso-live.terminado .progreso-live-time { color: #9aa5b1; }
+.progreso-live.terminado .progreso-live-time::before { content: '⏹️'; animation: none; }
+.progreso-live.terminado .progreso-live-fill { background: #c5ccd6; box-shadow: none; }
 
 /* Estado vacío */
 .estado-vacio { text-align: center; padding: 3rem 2rem; background: #fff; border-radius: 16px; border: 1px solid #eef0f5; }

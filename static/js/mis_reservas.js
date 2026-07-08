@@ -2,8 +2,19 @@
 // (.reservas-scroll), sin paginación.
 document.addEventListener('DOMContentLoaded', function() {
     actualizarProgresos();
-    setInterval(actualizarProgresos, 30000);
+    // Cada segundo, para que el reloj de cuenta regresiva "baje" en vivo.
+    setInterval(actualizarProgresos, 1000);
 });
+
+// Formatea milisegundos como reloj de cuenta regresiva (H:MM:SS o MM:SS).
+function formatoCuenta(ms) {
+    var s = Math.floor(ms / 1000);
+    var h = Math.floor(s / 3600); s %= 3600;
+    var m = Math.floor(s / 60); s %= 60;
+    var mm = (m < 10 ? '0' : '') + m;
+    var ss = (s < 10 ? '0' : '') + s;
+    return h > 0 ? (h + ':' + mm + ':' + ss) : (mm + ':' + ss);
+}
 
 // =============================================
 // CANCELAR RESERVA
@@ -82,17 +93,19 @@ function actualizarProgresos() {
         prog.querySelector('.progreso-live-fill').style.width = pct + '%';
 
         var tiempo = prog.querySelector('.progreso-live-time');
+        prog.classList.remove('por-terminar', 'terminado');
         if (ahora < dInicio) {
-            // Aún no inicia: mostrar cuánto falta para empezar.
-            var faltan = dInicio - ahora;
-            var dh = Math.floor(faltan / 3600000), dm = Math.floor((faltan % 3600000) / 60000);
-            tiempo.textContent = 'Inicia en ' + (dh > 0 ? dh + 'h ' : '') + dm + 'm';
+            // Aún no inicia: cuenta regresiva para empezar.
+            tiempo.textContent = 'Inicia en ' + formatoCuenta(dInicio - ahora);
         } else {
             var restante = dFin - ahora;
-            if (restante <= 0) { tiempo.textContent = 'Finalizado'; }
-            else {
-                var h = Math.floor(restante / 3600000), m = Math.floor((restante % 3600000) / 60000);
-                tiempo.textContent = h + 'h ' + m + 'm';
+            if (restante <= 0) {
+                tiempo.textContent = 'Finalizado';
+                prog.classList.add('terminado');
+            } else {
+                tiempo.textContent = 'Quedan ' + formatoCuenta(restante);
+                // Últimos 5 minutos: se resalta en rojo (urgencia).
+                if (restante <= 5 * 60000) prog.classList.add('por-terminar');
             }
         }
     });
