@@ -1,3 +1,8 @@
+/* =====================================================
+   Mis Reservas (estudiante) · CRAI UNEMI
+   Diseño estilo Gestión de Personal (indigo, tarjetas
+   profesionales) — responsive a cualquier tamaño.
+   ===================================================== */
 .reservas-layout { min-height: 100vh; background: #f5f6fa; }
 .reservas-navbar {
     background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
@@ -12,11 +17,18 @@
 .navbar-derecha { display: flex; align-items: center; gap: 0.6rem; }
 .btn-logout-nav { color: white; font-size: 1.2rem; text-decoration: none; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.15); transition: 0.2s; }
 .btn-logout-nav:hover { background: rgba(255,255,255,0.25); color: white; }
-.reservas-contenido { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem; }
+.reservas-contenido { max-width: 1180px; margin: 0 auto; padding: 2rem 1.5rem; }
+@media (max-width: 600px) { .reservas-contenido { padding: 1.2rem 1rem; } }
 
-/* Stats */
-.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
-/* Tarjetas estadísticas estilo panel de control (barra de color abajo + animación) */
+/* ==========================================
+   Tarjetas estadísticas (KPIs) — barra de color abajo
+   Rejilla fluida: se reacomoda sola a cualquier ancho.
+   ========================================== */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem; margin-bottom: 1.5rem;
+}
 .stat-item {
     --sc: #1a237e;
     position: relative; overflow: hidden;
@@ -35,7 +47,7 @@
 .stat-item.stat-vencida   { --sc: #ea4335; }
 .stat-item.stat-cancelada { --sc: #7b8794; }
 
-.stat-cuerpo { display: flex; align-items: center; gap: 0.8rem; padding: 1rem 1.15rem; position: relative; z-index: 1; }
+.stat-cuerpo { display: flex; align-items: center; gap: 0.7rem; padding: 0.85rem 1rem; position: relative; z-index: 1; min-width: 0; }
 
 .stat-glow {
     position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
@@ -48,29 +60,27 @@
 /* La barra de color, ABAJO de la tarjeta */
 .stat-barra { height: 5px; width: 100%; background: linear-gradient(90deg, var(--sc), color-mix(in srgb, var(--sc) 55%, #fff)); position: relative; z-index: 1; }
 
-.stat-icono { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: transform 0.3s ease; }
+.stat-icono { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; transition: transform 0.3s ease; }
 .bg-primary-light { background: #e8f0fe; color: #1a73e8; }
-.bg-warning-light { background: #fff3cd; color: #fbbc04; }
+.bg-warning-light { background: #fff3cd; color: #f9a825; }
 .bg-success-light { background: #e6f4ea; color: #34a853; }
-.stat-info { display: flex; flex-direction: column; }
-.stat-numero { font-size: 1.4rem; font-weight: 700; color: #212529; line-height: 1.2; }
-.stat-etiqueta { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+.bg-danger-light  { background: #fdecea; color: #ea4335; }
+.bg-muted-light   { background: #eef1f5; color: #5f6b7a; }
+.stat-info { display: flex; flex-direction: column; min-width: 0; }
+.stat-numero { font-size: 1.4rem; font-weight: 800; color: #2b2f4a; line-height: 1.15; }
+.stat-etiqueta { font-size: 0.66rem; color: #8a90a8; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ==========================================
-   PANEL DE RESERVAS (cartillas fijas + scroll)
+   Panel de reservas (cabecera + scroll)
    ========================================== */
 .reservas-panel {
-    background: #fff;
-    border: 1px solid #eef0f5;
-    border-radius: 16px;
-    box-shadow: 0 4px 14px rgba(26,35,126,0.05);
-    overflow: hidden;
+    background: #fff; border: 1px solid #eef0f5; border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(26,35,126,0.05); overflow: hidden;
 }
 .reservas-panel-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0.9rem 1.3rem;
-    border-bottom: 1px solid #eef0f5;
-    background: linear-gradient(135deg, #fbfcff, #f5f7ff);
+    display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+    padding: 0.9rem 1.3rem; border-bottom: 1px solid #eef0f5;
+    background: linear-gradient(135deg, #fbfcff, #f5f7ff); flex-wrap: wrap;
 }
 .reservas-panel-head h6 {
     margin: 0; font-size: 0.92rem; font-weight: 700; color: #1a237e;
@@ -81,549 +91,37 @@
     min-width: 24px; height: 24px; padding: 0 0.5rem; border-radius: 12px;
     display: inline-flex; align-items: center; justify-content: center;
 }
-/* Las tarjetas se deslizan dentro de este espacio; las cartillas (stats) quedan fijas arriba. */
 .reservas-scroll {
-    max-height: 460px;   /* ~5 tarjetas visibles; el resto con scroll en el mismo lugar */
-    overflow-y: auto;
-    padding: 0.9rem 1.1rem;
-    scroll-behavior: smooth;
+    max-height: 560px; overflow-y: auto; padding: 0.9rem 1.1rem; scroll-behavior: smooth;
 }
 .reservas-scroll::-webkit-scrollbar { width: 7px; }
 .reservas-scroll::-webkit-scrollbar-track { background: transparent; }
 .reservas-scroll::-webkit-scrollbar-thumb { background: #d7dbe8; border-radius: 4px; }
 .reservas-scroll::-webkit-scrollbar-thumb:hover { background: #b9bfd4; }
 
-/* ==========================================
-   GRID RECTANGULAR
-   ========================================== */
-.reservas-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-    gap: 1rem;
-    padding: 0.2rem;
-}
-@media (max-width: 800px) { .reservas-grid { grid-template-columns: 1fr; } }
-
-/* Card rectangular limpia (panel de control) */
-.reserva-card-compact {
-    border-radius: 14px; padding: 1rem 1.4rem;
-    border: 1px solid rgba(0,0,0,0.05);
-    box-shadow: 0 2px 6px rgba(26,35,126,0.05);
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-    display: flex; flex-direction: row; align-items: center; gap: 1.5rem;
-    position: relative; overflow: hidden;
-}
-
-/* Fondos pastel por estado */
-.borde-pendiente { background: linear-gradient(135deg, #fffbeb 0%, #fff7e0 100%); border-left: 4px solid #fbbc04; }
-.borde-activa { background: linear-gradient(135deg, #f0faf3 0%, #e8f5e9 100%); border-left: 4px solid #34a853; }
-.borde-completada { background: linear-gradient(135deg, #f5f8ff 0%, #e8f0fe 100%); border-left: 4px solid #1a73e8; }
-.borde-cancelada { background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%); border-left: 4px solid #999; }
-
-/* Brillo superior 3D */
-.reserva-card-compact::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0;
-    height: 40%; background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
-    border-radius: 14px 14px 0 0; pointer-events: none;
-}
-
-/* Hover: se eleva suave (sin torcerse) */
-.reserva-card-compact:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
-}
-
-.card-top { display: flex; align-items: center; gap: 0.5rem; position: relative; z-index: 1; min-width: 140px; }
-.card-id { font-weight: 700; font-size: 0.8rem; color: #555; }
-.card-estado-chip { font-size: 0.65rem; padding: 0.2em 0.6em; border-radius: 8px; font-weight: 600; }
-.chip-pendiente { background: rgba(251,188,4,0.15); color: #92600a; }
-.chip-activa { background: rgba(52,168,83,0.15); color: #1a6b30; }
-.chip-completada { background: rgba(26,115,232,0.15); color: #0d47a1; }
-.chip-cancelada { background: rgba(0,0,0,0.08); color: #666; }
-
-.card-body-compact { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem 1.5rem; position: relative; z-index: 1; flex: 1; }
-.card-line { font-size: 0.75rem; color: #666; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
-
-.card-line i { font-size: 0.85rem; width: 28px; height: 28px; border-radius: 8px; background: rgba(255,255,255,0.7); box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: 0.3s; }
-.reserva-card-compact:hover .card-line i { animation: iconPulse 0.6s ease; }
-
-@keyframes iconPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.3); }
-}
-
-.borde-pendiente .card-line i { color: #fbbc04; }
-.borde-activa .card-line i { color: #34a853; }
-.borde-completada .card-line i { color: #1a73e8; }
-
-.card-footer-compact {
-    display: flex; align-items: center; gap: 0.8rem;
-    position: relative; z-index: 1; min-width: 180px; justify-content: flex-end;
-}
-.card-footer-compact.done { color: #1a73e8; font-size: 0.8rem; font-weight: 600; gap: 0.3rem; }
-.card-footer-compact.done i { animation: checkBounce 1s ease infinite; }
-
-@keyframes checkBounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-}
-
-.codigo-txt {
-    background: rgba(255,255,255,0.8); padding: 0.3rem 0.6rem; border-radius: 6px;
-    font-weight: 700; font-size: 0.8rem; color: #1a237e; letter-spacing: 2px;
-    border: 1px solid rgba(26,35,126,0.15);
-}
-
-.btn-cancelar-reserva {
-    background: rgba(234,67,53,0.1); color: #ea4335;
-    border: 1px solid rgba(234,67,53,0.25);
-    width: 32px; height: 32px; border-radius: 8px;
-    display: inline-flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 0.8rem; transition: 0.2s; z-index: 1; flex-shrink: 0;
-}
-.btn-cancelar-reserva:hover { background: #ea4335; color: #fff; transform: scale(1.05); }
-
-/* ==========================================
-   MODAL CONFIRMAR CANCELACIÓN
-   ========================================== */
-.modal-cancelar-overlay {
-    position: fixed; inset: 0; z-index: 1000;
-    background: rgba(20, 22, 40, 0.45); backdrop-filter: blur(4px);
-    display: none; align-items: center; justify-content: center; padding: 1rem;
-}
-.modal-cancelar-overlay.visible { display: flex; animation: fadeOverlay 0.2s ease; }
-@keyframes fadeOverlay { from { opacity: 0; } to { opacity: 1; } }
-
-.modal-cancelar-card {
-    background: #fff; border-radius: 16px; padding: 1.8rem 1.6rem;
-    width: 100%; max-width: 380px; text-align: center;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
-    animation: popModal 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-}
-@keyframes popModal { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-.modal-cancelar-icono {
-    width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 1rem;
-    background: rgba(234,67,53,0.12); color: #ea4335;
-    display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
-}
-.modal-cancelar-titulo { font-weight: 700; color: #212529; margin-bottom: 0.4rem; }
-.modal-cancelar-texto { font-size: 0.85rem; color: #666; margin-bottom: 1.4rem; }
-
-.modal-cancelar-acciones { display: flex; gap: 0.7rem; }
-.btn-modal-no, .btn-modal-si {
-    flex: 1; padding: 0.6rem 1rem; border-radius: 10px;
-    font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; border: none;
-}
-.btn-modal-no { background: #f1f3f5; color: #444; }
-.btn-modal-no:hover { background: #e2e6ea; }
-.btn-modal-si { background: #ea4335; color: #fff; }
-.btn-modal-si:hover { background: #c5221f; }
-.btn-modal-si:disabled { opacity: 0.6; cursor: default; }
-
-/* Progreso live */
-.progreso-live { flex: 1; }
-.progreso-live-bar { 
-    height: 6px; background: rgba(52,168,83,0.12); border-radius: 4px; 
-    overflow: hidden; margin-bottom: 0.3rem; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-}
-.progreso-live-fill { 
-    height: 100%; border-radius: 4px; 
-    background: linear-gradient(90deg, #34a853, #40c463, #34a853);
-    background-size: 200% 100%; animation: barraVerde 2s linear infinite;
-    transition: width 1s linear; box-shadow: 0 0 6px rgba(52,168,83,0.4);
-}
-@keyframes barraVerde {
-    0% { background-position: 200% 0; }
-    100% { background-position: 0 0; }
-}
-.progreso-live-time { 
-    font-size: 0.7rem; color: #1e7e34; font-weight: 700;
-    display: flex; align-items: center; gap: 0.3rem;
-}
-.progreso-live-time::before {
-    content: '⏱️'; font-size: 0.7rem; animation: relojPulse 1s ease infinite;
-}
-@keyframes relojPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-}
-
-/* Íconos grandes de estado */
-.footer-icono-grande {
-    display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
-}
-.footer-icono-grande i { font-size: 1.8rem; animation: iconoBounce 2s ease infinite; }
-.footer-icono-grande span { font-size: 0.65rem; font-weight: 600; }
-
-@keyframes iconoBounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-}
-
-.pendiente-icon i { color: #fbbc04; }
-.pendiente-icon span { color: #92600a; }
-.activa-icon i { color: #34a853; }
-.activa-icon span { color: #1a6b30; }
-.completada-icon i { color: #1a73e8; font-size: 2.2rem; animation: checkGrande 1.5s ease infinite; }
-.completada-icon span { color: #0d47a1; }
-.vencida-icon i { color: #ea4335; animation: shakeIcon 0.5s ease infinite; }
-.vencida-icon span { color: #c62828; }
-
-@keyframes checkGrande {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-}
-@keyframes shakeIcon {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-3px); }
-    75% { transform: translateX(3px); }
-}
-
-/* Paginación */
-.paginacion { display: flex; justify-content: center; align-items: center; gap: 0.4rem; margin-top: 1.5rem; }
-.btn-pag { width: 36px; height: 36px; border-radius: 10px; border: 1px solid #e0e0e0; background: #fff; color: #555; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; transition: 0.2s; }
-.btn-pag:hover { background: #f0f0f0; transform: translateY(-1px); }
-.btn-pag:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-.btn-pag.activo { background: #1a237e; color: white; border-color: #1a237e; box-shadow: 0 2px 8px rgba(26,35,126,0.3); }
-.pag-nums { display: flex; gap: 0.3rem; }
-
-/* Vacío */
-.estado-vacio { text-align: center; padding: 3rem 2rem; background: #fff; border-radius: 16px; border: 1px solid #eef0f5; }
-.vacio-icono { font-size: 4rem; color: #ddd; margin-bottom: 1rem; }
-
-@media (max-width: 768px) {
-    .reserva-card-compact { flex-wrap: wrap; gap: 0.8rem; padding: 1rem; }
-    .card-footer-compact { min-width: auto; justify-content: center; }
-}
-@media (max-width: 480px) {
-    .stats-row { grid-template-columns: 1fr; }
-    .card-body-compact { flex-wrap: wrap; }
-}
-/* ===== CRAI Paquete A: Mis Reservas (etiquetas, tamano, hover) ===== */
-.reservas-contenido { max-width: 1180px; }
-.reservas-scroll { max-height: 560px; }
-
-.card-campo { display: inline-flex; flex-direction: column; gap: 0.1rem; }
-.card-campo-label, .card-line-label {
-    font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.4px;
-    color: #9aa0ad; font-weight: 700; line-height: 1;
-}
-.card-line { align-items: center; }
-.card-line-txt { display: inline-flex; flex-direction: column; line-height: 1.1; }
-.card-line-valor { font-size: 0.78rem; color: #444; font-weight: 600; }
-
-/* Hover con el color que combina con cada estado (igual que los iconos) */
-.reserva-card-compact.borde-pendiente:hover { border-color: rgba(251,188,4,0.45); box-shadow: 0 12px 24px rgba(251,188,4,0.18); }
-.reserva-card-compact.borde-activa:hover { border-color: rgba(52,168,83,0.45); box-shadow: 0 12px 24px rgba(52,168,83,0.18); }
-.reserva-card-compact.borde-completada:hover { border-color: rgba(26,115,232,0.45); box-shadow: 0 12px 24px rgba(26,115,232,0.18); }
-.reserva-card-compact.borde-cancelada:hover { box-shadow: 0 12px 24px rgba(0,0,0,0.12); }
-
-/* ===== Mis Reservas: KPIs en UNA sola fila (tipo panel de control) ===== */
-.stats-row-5 {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0.7rem;
-    margin-bottom: 1.5rem;
-}
-.stats-row-5 .stat-item {
-    min-width: 0;
-    padding: 0.7rem 0.85rem;      /* más compacto: reduce el alto */
-    gap: 0.6rem;
-    border-radius: 14px;
-    position: relative;
-    overflow: hidden;
-}
-/* Barrita de color arriba de cada KPI (sello de panel de control) */
-.stats-row-5 .stat-item::after {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
-    background: currentColor; opacity: 0.9;
-}
-.stats-row-5 .stat-item .stat-icono { width: 38px; height: 38px; font-size: 1.05rem; flex-shrink: 0; }
-.stats-row-5 .stat-item .stat-numero { font-size: 1.5rem; }
-.stats-row-5 .stat-item .stat-etiqueta { font-size: 0.62rem; }
-/* El color de la barrita lo hereda cada tile del icono */
-.stat-item:has(.bg-primary-light) { color: #1a73e8; }
-.stat-item:has(.bg-warning-light) { color: #f9a825; }
-.stat-item:has(.bg-success-light) { color: #34a853; }
-.stat-item:has(.bg-danger-light)  { color: #ea4335; }
-.stat-item:has(.bg-muted-light)   { color: #5f6b7a; }
-
-.bg-danger-light { background: #fdecea; color: #ea4335; }
-.bg-muted-light  { background: #eef1f5; color: #5f6b7a; }
-
-@media (max-width: 900px) { .stats-row-5 { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 560px) { .stats-row-5 { grid-template-columns: repeat(2, 1fr); } }
-
-.reservas-filtros {
-    display: flex;
-    gap: 0.4rem;
-    flex-wrap: wrap;
-    margin: 0 auto;
-}
-
+/* Filtros */
+.reservas-filtros { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0 auto; }
 .filtro-chip {
-    border: 1px solid #dbe3ee;
-    background: #ffffff;
-    color: #5a6473;
-    border-radius: 999px;
-    padding: 0.28rem 0.85rem;
-    font-size: 0.78rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.16s ease;
+    border: 1px solid #dbe3ee; background: #fff; color: #5a6473;
+    border-radius: 999px; padding: 0.28rem 0.85rem; font-size: 0.78rem;
+    font-weight: 600; cursor: pointer; transition: all 0.16s ease;
 }
-
-.filtro-chip:hover { border-color: #1a73e8; color: #1a73e8; }
-
-.filtro-chip.activo {
-    background: #1a73e8;
-    border-color: #1a73e8;
-    color: #fff;
-    box-shadow: 0 3px 10px rgba(26, 115, 232, 0.3);
-}
-
-.card-codigo-mini {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-family: 'Courier New', monospace;
-    font-weight: 700;
-    font-size: 0.78rem;
-    color: #1a73e8;
-    background: #eef4fd;
-    border-radius: 8px;
-    padding: 0.2rem 0.55rem;
-    letter-spacing: 0.08em;
-}
-
-/* Tarjeta oculta por el filtro activo */
-.reserva-card-compact.filtro-oculta { display: none; }
-
+.filtro-chip:hover { border-color: #1a237e; color: #1a237e; }
+.filtro-chip.activo { background: #1a237e; border-color: #1a237e; color: #fff; box-shadow: 0 3px 10px rgba(26,35,126,0.3); }
 @media (max-width: 720px) {
-    .reservas-panel-head { flex-wrap: wrap; gap: 0.5rem; }
+    .reservas-panel-head { flex-wrap: wrap; }
     .reservas-filtros { order: 3; width: 100%; margin: 0.3rem 0 0; }
 }
 
-/* ============================================================
-   NUEVO DISEÑO: BOLETO / TICKET DE RESERVA (mantiene los colores)
-   ============================================================ */
-.reserva-ticket {
-    --tk: #1a237e;
-    --tkbg: #e8eaf6;
-    position: relative;
-    display: flex;
-    align-items: stretch;
-    gap: 0;
-    padding: 0;
-    background: #fff;
-    border: 1px solid #eef0f5;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 3px 12px rgba(26, 35, 126, 0.06);
-    transition: transform 0.22s ease, box-shadow 0.22s ease;
-}
-.reserva-ticket::before { content: none; }   /* anula el brillo 3D heredado */
-.reserva-ticket:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 14px 30px rgba(26, 35, 126, 0.14);
-}
-
-/* Color por estado */
-.reserva-ticket.estado-pendiente  { --tk: #e08600; --tkbg: #fff5e0; }
-.reserva-ticket.estado-confirmada { --tk: #1e9e50; --tkbg: #e8f6ee; }
-.reserva-ticket.estado-completada { --tk: #1a73e8; --tkbg: #e8f0fe; }
-.reserva-ticket.estado-vencida    { --tk: #ea4335; --tkbg: #fdecea; }
-.reserva-ticket.estado-cancelada  { --tk: #7b8794; --tkbg: #eef1f5; }
-
-/* ---- Cuerpo del boleto ---- */
-.ticket-main {
-    flex: 1;
-    min-width: 0;
-    padding: 0.95rem 1.15rem 1.05rem;
-    border-left: 5px solid var(--tk);
-}
-
-.ticket-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-bottom: 0.7rem;
-}
-.ticket-estado-chip {
-    display: inline-flex; align-items: center; gap: 0.35rem;
-    background: var(--tkbg); color: var(--tk);
-    font-size: 0.72rem; font-weight: 800;
-    padding: 0.3rem 0.7rem; border-radius: 999px;
-    text-transform: uppercase; letter-spacing: 0.3px;
-}
-.ticket-num { font-family: 'Courier New', monospace; font-size: 0.72rem; font-weight: 700; color: #b0b7c3; }
-
-/* Zona del código (como número de boleto) */
-.ticket-codigo-zone {
-    text-align: center;
-    padding: 0.35rem 0 0.65rem;
-    border-bottom: 1px dashed #e3e7f0;
-    margin-bottom: 0.7rem;
-}
-.ticket-codigo-label {
-    display: block;
-    font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em;
-    color: #9aa0ad; font-weight: 700; margin-bottom: 0.15rem;
-}
-.ticket-codigo {
-    font-family: 'Courier New', monospace;
-    font-size: 1.65rem; font-weight: 800; letter-spacing: 0.28em;
-    color: var(--tk);
-    text-shadow: 0 1px 0 rgba(255,255,255,0.6);
-}
-
-/* Datos en dos columnas */
-.ticket-datos {
+/* ==========================================
+   Tarjetas de reserva profesionales (icono en degradado)
+   Rejilla fluida: se adapta a cualquier ancho de ventana.
+   ========================================== */
+.reservas-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.6rem 0.8rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    gap: 1rem; padding: 0.2rem;
 }
-.ticket-dato { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
-.ticket-dato > i {
-    width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
-    background: var(--tkbg); color: var(--tk);
-    display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem;
-}
-.ticket-dato small { display: block; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.04em; color: #9aa0ad; font-weight: 700; }
-.ticket-dato b { display: block; font-size: 0.82rem; color: #2b3648; font-weight: 700; line-height: 1.2; }
-
-/* ---- Talón (stub) con perforación ---- */
-.ticket-stub {
-    position: relative;
-    width: 132px; flex-shrink: 0;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem;
-    padding: 1rem 0.7rem;
-    border-left: 2px dashed #d7dbe8;
-    background: linear-gradient(180deg, #ffffff, var(--tkbg));
-    text-align: center;
-}
-/* Muescas circulares (aspecto de boleto troquelado) */
-.ticket-stub::before,
-.ticket-stub::after {
-    content: '';
-    position: absolute;
-    left: -10px;
-    width: 18px; height: 18px; border-radius: 50%;
-    background: #f5f6fa;   /* color del fondo de la página */
-}
-.ticket-stub::before { top: -9px; }
-.ticket-stub::after { bottom: -9px; }
-
-.ticket-stub-ico {
-    width: 46px; height: 46px; border-radius: 50%;
-    background: #fff; border: 2px solid var(--tk); color: var(--tk);
-    display: inline-flex; align-items: center; justify-content: center; font-size: 1.3rem;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
-}
-.ticket-stub-label { font-size: 0.74rem; font-weight: 800; color: var(--tk); }
-
-.ticket-cancelar {
-    margin-top: 0.15rem;
-    display: inline-flex; align-items: center; gap: 0.3rem;
-    background: #fff; color: #ea4335;
-    border: 1.5px solid #f2c4bf; border-radius: 999px;
-    padding: 0.28rem 0.7rem; font-size: 0.72rem; font-weight: 700; cursor: pointer;
-    transition: all 0.15s ease;
-}
-.ticket-cancelar:hover { background: #ea4335; color: #fff; border-color: #ea4335; box-shadow: 0 4px 10px rgba(234,67,53,0.3); }
-
-/* El progreso "en curso" dentro del talón */
-.ticket-stub .progreso-live { width: 100%; }
-
-/* Animación de entrada tipo boleto */
-.reserva-ticket { animation: ticketIn 0.4s ease both; }
-@keyframes ticketIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-
-/* Responsive: el talón pasa abajo con perforación horizontal */
-@media (max-width: 460px) {
-    .reserva-ticket { flex-direction: column; }
-    .ticket-stub {
-        width: 100%; flex-direction: row; justify-content: center; gap: 0.8rem;
-        border-left: none; border-top: 2px dashed #d7dbe8;
-    }
-    .ticket-stub::before { left: -9px; top: -10px; }
-    .ticket-stub::after { left: auto; right: -9px; top: -10px; bottom: auto; }
-    .ticket-stub .progreso-live { width: auto; flex: 1; }
-}
-
-/* ============================================================
-   VISTA COMPACTA: 4 BOLETOS POR FILA (verticales)
-   (sobrescribe la disposición horizontal anterior)
-   ============================================================ */
-.reservas-grid { grid-template-columns: repeat(4, 1fr); gap: 0.9rem; }
-@media (max-width: 1150px) { .reservas-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 860px)  { .reservas-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px)  { .reservas-grid { grid-template-columns: 1fr; } }
-
-/* Boleto en vertical: cuerpo arriba + talón abajo */
-.reserva-ticket { flex-direction: column; }
-
-.ticket-main {
-    border-left: none;
-    border-top: 4px solid var(--tk);
-    padding: 0.75rem 0.85rem 0.85rem;
-}
-.ticket-head { margin-bottom: 0.5rem; }
-.ticket-estado-chip { font-size: 0.62rem; padding: 0.22rem 0.55rem; gap: 0.25rem; }
-.ticket-num { font-size: 0.62rem; }
-
-.ticket-codigo-zone { padding: 0.15rem 0 0.5rem; margin-bottom: 0.5rem; }
-.ticket-codigo-label { font-size: 0.52rem; }
-.ticket-codigo { font-size: 1.25rem; letter-spacing: 0.18em; }
-
-.ticket-datos { gap: 0.4rem 0.55rem; }
-.ticket-dato { gap: 0.4rem; }
-.ticket-dato > i { width: 26px; height: 26px; font-size: 0.78rem; border-radius: 7px; }
-.ticket-dato small { font-size: 0.53rem; }
-.ticket-dato b { font-size: 0.72rem; }
-
-/* Talón como barra inferior con perforación horizontal */
-.ticket-stub {
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.4rem 0.55rem;
-    padding: 0.55rem 0.8rem;
-    border-left: none;
-    border-top: 2px dashed #d7dbe8;
-}
-.ticket-stub::before { left: -9px; top: -10px; }
-.ticket-stub::after  { left: auto; right: -9px; top: -10px; bottom: auto; }
-
-.ticket-stub-ico { width: 32px; height: 32px; font-size: 0.95rem; border-width: 1.5px; }
-.ticket-stub-label { font-size: 0.7rem; }
-.ticket-cancelar { margin-top: 0; margin-left: auto; padding: 0.24rem 0.6rem; font-size: 0.68rem; }
-.ticket-stub .progreso-live { flex: 1 1 100%; width: auto; }
-
-/* Panel acotado: ~2 filas de boletos visibles y el resto con scroll interno */
-.reservas-scroll { max-height: 520px; }
-
-/* Fondo del área de boletos (no blanco, para que las tarjetas resalten) */
-.reservas-scroll {
-    background: linear-gradient(180deg, #e7ebf5 0%, #eef1f8 100%);
-    border-top: 1px solid #e0e5f0;
-}
-
-/* Las muescas del boleto deben igualar el nuevo fondo del área (para que se vean como recortes) */
-.ticket-stub::before,
-.ticket-stub::after { background: #ebeef7; }
-
-/* ============================================================
-   Tarjetas de reserva PROFESIONALES (estilo Gestión de Personal)
-   Reemplazan a los boletos: icono en degradado, sombra, animación
-   ============================================================ */
-.reservas-grid { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; }
-@media (max-width: 760px) { .reservas-grid { grid-template-columns: 1fr; } }
-
 .reserva-pro {
     --rc: #1a237e; --rc2: #3949ab; --rcbg: #eef1ff;
     position: relative; overflow: hidden;
@@ -647,7 +145,6 @@
 .reserva-pro.estado-vencida    { --rc: #c0392b; --rc2: #e5534b; --rcbg: #fdecea; }
 .reserva-pro.estado-cancelada  { --rc: #6b7280; --rc2: #9aa5b1; --rcbg: #eef1f5; }
 
-/* Resplandor al hover */
 .rp-glow {
     position: absolute; top: -60%; right: -30%; width: 180%; height: 200%;
     background: radial-gradient(circle, color-mix(in srgb, var(--rc) 16%, transparent) 0%, transparent 55%);
@@ -660,7 +157,6 @@
     font-size: 0.62rem; font-weight: 800; letter-spacing: 0.06em;
     color: var(--rc); background: var(--rcbg); padding: 0.2rem 0.5rem; border-radius: 7px;
 }
-
 .rp-icono {
     width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0; z-index: 1;
     background: linear-gradient(135deg, var(--rc), var(--rc2)); color: #fff;
@@ -671,7 +167,7 @@
 .reserva-pro:hover .rp-icono { transform: scale(1.09) rotate(-6deg); }
 
 .rp-cuerpo { flex: 1; min-width: 0; z-index: 1; }
-.rp-head { display: flex; align-items: center; gap: 0.6rem; margin: 0.1rem 0 0.55rem; padding-right: 3.5rem; }
+.rp-head { display: flex; align-items: center; gap: 0.6rem; margin: 0.1rem 0 0.55rem; padding-right: 3.5rem; flex-wrap: wrap; }
 .rp-codigo {
     font-family: 'Courier New', monospace; font-size: 1.12rem; font-weight: 800;
     letter-spacing: 0.08em; color: #2b2f4a; display: inline-flex; align-items: center; gap: 0.35rem;
@@ -681,7 +177,6 @@
     font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;
     background: var(--rcbg); color: var(--rc); border-radius: 999px; padding: 0.24rem 0.6rem; white-space: nowrap;
 }
-
 .rp-datos { display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; }
 .rp-datos span { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: #4a5563; font-weight: 600; }
 .rp-datos i { color: var(--rc); font-size: 0.82rem; }
@@ -694,3 +189,59 @@
 }
 .rp-cancelar:hover { background: #c0392b; color: #fff; border-color: #c0392b; box-shadow: 0 6px 14px rgba(192,57,43,0.3); }
 .rp-progreso { margin-top: 0.75rem; }
+
+/* Progreso "en curso" en vivo */
+.progreso-live { flex: 1; }
+.progreso-live-bar {
+    height: 6px; background: rgba(52,168,83,0.12); border-radius: 4px;
+    overflow: hidden; margin-bottom: 0.3rem; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+.progreso-live-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, #34a853, #40c463, #34a853);
+    background-size: 200% 100%; animation: barraVerde 2s linear infinite;
+    transition: width 1s linear; box-shadow: 0 0 6px rgba(52,168,83,0.4);
+}
+@keyframes barraVerde { 0% { background-position: 200% 0; } 100% { background-position: 0 0; } }
+.progreso-live-time { font-size: 0.7rem; color: #1e7e34; font-weight: 700; display: flex; align-items: center; gap: 0.3rem; }
+.progreso-live-time::before { content: '⏱️'; font-size: 0.7rem; animation: relojPulse 1s ease infinite; }
+@keyframes relojPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+
+/* Estado vacío */
+.estado-vacio { text-align: center; padding: 3rem 2rem; background: #fff; border-radius: 16px; border: 1px solid #eef0f5; }
+.vacio-icono { font-size: 4rem; color: #ddd; margin-bottom: 1rem; }
+
+/* ==========================================
+   Modal de confirmación de cancelación
+   ========================================== */
+.modal-cancelar-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(20, 22, 40, 0.45); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-cancelar-overlay.visible { display: flex; animation: fadeOverlay 0.2s ease; }
+@keyframes fadeOverlay { from { opacity: 0; } to { opacity: 1; } }
+.modal-cancelar-card {
+    background: #fff; border-radius: 16px; padding: 1.8rem 1.6rem;
+    width: 100%; max-width: 380px; text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    animation: popModal 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+@keyframes popModal { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-cancelar-icono {
+    width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 1rem;
+    background: rgba(234,67,53,0.12); color: #ea4335;
+    display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+}
+.modal-cancelar-titulo { font-weight: 700; color: #212529; margin-bottom: 0.4rem; }
+.modal-cancelar-texto { font-size: 0.85rem; color: #666; margin-bottom: 1.4rem; }
+.modal-cancelar-acciones { display: flex; gap: 0.7rem; }
+.btn-modal-no, .btn-modal-si {
+    flex: 1; padding: 0.6rem 1rem; border-radius: 10px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; border: none;
+}
+.btn-modal-no { background: #f1f3f5; color: #444; }
+.btn-modal-no:hover { background: #e2e6ea; }
+.btn-modal-si { background: #ea4335; color: #fff; }
+.btn-modal-si:hover { background: #c5221f; }
+.btn-modal-si:disabled { opacity: 0.6; cursor: default; }
