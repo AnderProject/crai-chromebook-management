@@ -27,8 +27,8 @@
    ========================================== */
 .stats-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 0.75rem; margin-bottom: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+    gap: 1rem; margin-bottom: 1.6rem;
 }
 .stat-item {
     --sc: #1a237e;
@@ -48,7 +48,7 @@
 .stat-item.stat-vencida   { --sc: #ea4335; }
 .stat-item.stat-cancelada { --sc: #7b8794; }
 
-.stat-cuerpo { display: flex; align-items: center; gap: 0.7rem; padding: 0.85rem 1rem; position: relative; z-index: 1; min-width: 0; }
+.stat-cuerpo { display: flex; align-items: center; gap: 0.95rem; padding: 1.25rem 1.35rem; position: relative; z-index: 1; min-width: 0; }
 
 .stat-glow {
     position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
@@ -59,17 +59,17 @@
 .stat-item:hover .stat-icono { transform: scale(1.1) rotate(-5deg); }
 
 /* La barra de color, ABAJO de la tarjeta */
-.stat-barra { height: 5px; width: 100%; background: linear-gradient(90deg, var(--sc), color-mix(in srgb, var(--sc) 55%, #fff)); position: relative; z-index: 1; }
+.stat-barra { height: 6px; width: 100%; background: linear-gradient(90deg, var(--sc), color-mix(in srgb, var(--sc) 55%, #fff)); position: relative; z-index: 1; }
 
-.stat-icono { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; transition: transform 0.3s ease; }
+.stat-icono { width: 54px; height: 54px; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: transform 0.3s ease; }
 .bg-primary-light { background: #e8f0fe; color: #1a73e8; }
 .bg-warning-light { background: #fff3cd; color: #f9a825; }
 .bg-success-light { background: #e6f4ea; color: #34a853; }
 .bg-danger-light  { background: #fdecea; color: #ea4335; }
 .bg-muted-light   { background: #eef1f5; color: #5f6b7a; }
 .stat-info { display: flex; flex-direction: column; min-width: 0; }
-.stat-numero { font-size: 1.4rem; font-weight: 800; color: #2b2f4a; line-height: 1.15; }
-.stat-etiqueta { font-size: 0.66rem; color: #8a90a8; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat-numero { font-size: 2rem; font-weight: 800; color: #2b2f4a; line-height: 1.1; }
+.stat-etiqueta { font-size: 0.74rem; color: #8a90a8; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ==========================================
    Panel de reservas (cabecera + scroll)
@@ -141,6 +141,14 @@
 .reserva-pro:nth-child(5){animation-delay:.19s}.reserva-pro:nth-child(6){animation-delay:.23s}
 .reserva-pro:hover { transform: translateY(-5px); box-shadow: 0 16px 30px rgba(26,35,126,0.14); }
 .reserva-pro.filtro-oculta { display: none; }
+
+/* Efecto directorio: barra superior en degradado que se llena al hover */
+.reserva-pro::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 3;
+    background: linear-gradient(90deg, var(--rc), var(--rc2));
+    transform: scaleX(0); transform-origin: left; transition: transform 0.28s ease;
+}
+.reserva-pro:hover::after { transform: scaleX(1); }
 
 .reserva-pro.estado-pendiente  { --rc: #c77800; --rc2: #f0a020; --rcbg: #fff4e0; }
 .reserva-pro.estado-confirmada { --rc: #0e7490; --rc2: #22b8cf; --rcbg: #e2f6fb; }
