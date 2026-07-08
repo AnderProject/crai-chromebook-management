@@ -20,6 +20,8 @@ function confirmarDevolucion(prestamoId, codigo) {
     document.getElementById('vistaPreviaContainerDev').style.display = 'none';
     document.getElementById('qrImagenDev').style.opacity = '1';
     document.getElementById('btnConfirmarDev').disabled = true;
+    // Arranca en la opción QR (por defecto).
+    mostrarOpcionQRDev();
 
     generarQRDevolucion();
 
@@ -29,6 +31,7 @@ function confirmarDevolucion(prestamoId, codigo) {
     document.getElementById('modalQREvidenciaDev').addEventListener('hidden.bs.modal', function() {
         clearInterval(devIntervaloVerif);
         clearInterval(devIntervaloQR);
+        detenerWebcamDev();
     }, { once: true });
 }
 
@@ -97,6 +100,93 @@ function verificarEvidenciaDev() {
             document.getElementById('qrContainerDev').style.display = 'none';
             document.getElementById('vistaPreviaContainerDev').style.display = 'block';
         }
+    });
+}
+
+// =============================================
+// OPCIÓN CÁMARA WEB (devolución)
+// =============================================
+var devWebcamStream = null;
+
+function mostrarOpcionQRDev() {
+    document.getElementById('segQRDev').classList.add('activo');
+    document.getElementById('segWebcamDev').classList.remove('activo');
+    document.getElementById('vistaQRDev').style.display = 'block';
+    document.getElementById('vistaWebcamDev').style.display = 'none';
+    detenerWebcamDev();
+}
+
+function mostrarOpcionWebcamDev() {
+    document.getElementById('segWebcamDev').classList.add('activo');
+    document.getElementById('segQRDev').classList.remove('activo');
+    document.getElementById('vistaQRDev').style.display = 'none';
+    document.getElementById('vistaWebcamDev').style.display = 'block';
+    // Al usar la cámara web dejamos de depender del QR.
+    clearInterval(devIntervaloVerif);
+    clearInterval(devIntervaloQR);
+
+    var video = document.getElementById('webcamVideoDev');
+    var err = document.getElementById('webcamErrorDev');
+    err.textContent = '';
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        err.innerHTML = '<span class="text-danger">Este dispositivo no permite acceder a la cámara.</span>';
+        return;
+    }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(function (stream) {
+            devWebcamStream = stream;
+            video.srcObject = stream;
+            video.play();
+        })
+        .catch(function () {
+            err.innerHTML = '<span class="text-danger">No se pudo acceder a la cámara. Usa la opción del celular (QR).</span>';
+        });
+}
+
+function detenerWebcamDev() {
+    if (devWebcamStream) {
+        devWebcamStream.getTracks().forEach(function (t) { t.stop(); });
+        devWebcamStream = null;
+    }
+}
+
+function capturarFotoWebcamDev() {
+    var video = document.getElementById('webcamVideoDev');
+    var canvas = document.getElementById('webcamCanvasDev');
+    if (!video.videoWidth) {
+        document.getElementById('webcamErrorDev').innerHTML = '<span class="text-warning">La cámara aún no está lista.</span>';
+        return;
+    }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    var dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    detenerWebcamDev();
+
+    document.getElementById('estadoEvidenciaDev').innerHTML =
+        '<span class="text-info"><i class="bi bi-hourglass-split"></i> Subiendo foto...</span>';
+
+    fetch('/prestamos/api/subir-evidencia-webcam/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+        body: JSON.stringify({ temp_key: 'dev' + prestamoADevolver + '_' + Date.now(), imagen: dataUrl })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        if (data.success) {
+            devFotoNombre = data.nombre_archivo;
+            document.getElementById('vistaWebcamDev').style.display = 'none';
+            document.getElementById('vistaPreviaContainerDev').style.display = 'block';
+            document.getElementById('btnConfirmarDev').disabled = false;
+            document.getElementById('estadoEvidenciaDev').innerHTML =
+                '<span class="text-success"><i class="bi bi-check-circle"></i> ¡Foto tomada! Confirma la devolución.</span>';
+        } else {
+            document.getElementById('webcamErrorDev').innerHTML =
+                '<span class="text-danger">' + (data.message || 'No se pudo guardar la foto.') + '</span>';
+        }
+    })
+    .catch(function () {
+        document.getElementById('webcamErrorDev').innerHTML = '<span class="text-danger">Error al subir la foto.</span>';
     });
 }
 

@@ -462,10 +462,29 @@
             </div>
             <div class="mp-body text-center">
                 <p class="mp-evidencia-nota" id="devEquipoTexto">Toma una foto del equipo antes de devolverlo</p>
-                <p class="mp-evidencia-nota">Escanea el QR con tu celular para tomar la foto del equipo</p>
 
-                <div id="qrContainerDev" class="mp-qr-box" style="display: inline-block;">
-                    <img id="qrImagenDev" src="" alt="QR">
+                <div class="mp-segment">
+                    <button type="button" id="segWebcamDev" onclick="mostrarOpcionWebcamDev()"><i class="bi bi-webcam"></i>Cámara web</button>
+                    <button type="button" id="segQRDev" class="activo" onclick="mostrarOpcionQRDev()"><i class="bi bi-phone"></i>Celular (QR)</button>
+                </div>
+
+                <!-- Opción QR -->
+                <div id="vistaQRDev">
+                    <p class="mp-evidencia-nota">Escanea el QR con tu celular para tomar la foto del equipo</p>
+                    <div id="qrContainerDev" class="mp-qr-box" style="display: inline-block;">
+                        <img id="qrImagenDev" src="" alt="QR">
+                    </div>
+                    <p class="mp-evidencia-nota"><i class="bi bi-clock"></i> El QR se renueva automáticamente</p>
+                </div>
+
+                <!-- Opción Webcam -->
+                <div id="vistaWebcamDev" style="display: none;">
+                    <video id="webcamVideoDev" class="mp-webcam-video" autoplay playsinline muted></video>
+                    <canvas id="webcamCanvasDev" style="display: none;"></canvas>
+                    <button type="button" class="mp-btn mp-btn-primary mp-btn-full" style="margin-top: 0.8rem;" onclick="capturarFotoWebcamDev()">
+                        <i class="bi bi-camera-fill"></i>Capturar foto
+                    </button>
+                    <p class="mp-evidencia-nota" id="webcamErrorDev"></p>
                 </div>
 
                 <div id="vistaPreviaContainerDev" class="mp-preview" style="display: none;">
@@ -473,7 +492,6 @@
                     <p class="small text-success fw-bold mt-2 mb-0">¡Foto recibida correctamente!</p>
                 </div>
 
-                <p class="mp-evidencia-nota"><i class="bi bi-clock"></i> El QR se renueva automáticamente</p>
                 <p class="mp-estado" id="estadoEvidenciaDev">Esperando foto...</p>
 
                 <button class="mp-btn mp-btn-success mp-btn-full" onclick="confirmarDevolucionFinal()" id="btnConfirmarDev" disabled>
