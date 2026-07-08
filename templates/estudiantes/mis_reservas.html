@@ -21,9 +21,11 @@
             </a>
         </div>
     </nav>
-    
+
+    <div class="est-shell">
+    {% include 'estudiantes/_sidebar_estudiante.html' with activo='reservas' %}
     <div class="reservas-contenido">
-        
+
         <!-- Stats (estilo panel de control: barra de color abajo + animación) -->
         <div class="stats-row stats-row-5">
             <div class="stat-item stat-total">
@@ -66,17 +68,6 @@
                 </div>
                 <div class="stat-barra"></div>
             </div>
-        </div>
-
-        <div class="reservas-topbar">
-            <a href="{% url 'estudiantes:reservar' %}" class="btn-nueva-reserva">
-                <span class="bnr-ico"><i class="bi bi-plus-lg"></i></span>
-                <span class="bnr-txt">
-                    <strong>Reservar Chromebook</strong>
-                    <small>Agenda un equipo para tu próxima sesión</small>
-                </span>
-                <i class="bi bi-chevron-right bnr-flecha"></i>
-            </a>
         </div>
 
         {% if reservas %}
@@ -145,8 +136,9 @@
             <a href="{% url 'estudiantes:reservar' %}" class="btn btn-primary mt-3"><i class="bi bi-laptop me-2"></i>Reservar Ahora</a>
         </div>
         {% endif %}
-        
-    </div>
+
+    </div><!-- /reservas-contenido -->
+    </div><!-- /est-shell -->
 
 </div>
 

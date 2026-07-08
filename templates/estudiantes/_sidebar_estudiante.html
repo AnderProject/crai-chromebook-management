@@ -1,0 +1,33 @@
+{% load static %}
+<aside class="est-sidebar">
+    <div class="est-side-user">
+        {% if user.perfil.foto %}
+        <div class="est-side-avatar"><img src="{{ user.perfil.foto.url }}" alt="Foto de perfil" class="avatar-img"></div>
+        {% else %}
+        <div class="est-side-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+        {% endif %}
+        <div class="est-side-ident">
+            <strong>{{ user.first_name }}</strong>
+            <small>Estudiante</small>
+        </div>
+    </div>
+
+    <nav class="est-side-nav">
+        <a class="est-side-link{% if activo == 'inicio' %} active{% endif %}" href="{% url 'estudiantes:portal_estudiante' %}">
+            <i class="bi bi-house-door"></i><span>Inicio</span>
+        </a>
+        <a class="est-side-link{% if activo == 'reservar' %} active{% endif %}" href="{% url 'estudiantes:reservar' %}">
+            <i class="bi bi-laptop"></i><span>Reservar</span>
+        </a>
+        <a class="est-side-link{% if activo == 'reservas' %} active{% endif %}" href="{% url 'estudiantes:mis_reservas' %}">
+            <i class="bi bi-collection"></i><span>Mis Reservas</span>
+        </a>
+        <a class="est-side-link{% if activo == 'perfil' %} active{% endif %}" href="{% url 'estudiantes:perfil' %}">
+            <i class="bi bi-person"></i><span>Mi Perfil</span>
+        </a>
+    </nav>
+
+    <a class="est-side-link est-side-salir" href="{% url 'autenticacion:cerrar_sesion' %}">
+        <i class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span>
+    </a>
+</aside>
