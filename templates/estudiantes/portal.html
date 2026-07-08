@@ -5,6 +5,7 @@
 
 {% block estilos_extra %}
 <link href="{% static 'css/base.css' %}" rel="stylesheet">
+<link href="{% static 'css/sidebar_estudiante.css' %}?v={% now 'U' %}" rel="stylesheet">
 <link href="{% static 'css/portal_estudiante.css' %}?v={% now 'U' %}" rel="stylesheet">
 {% endblock %}
 
@@ -29,6 +30,8 @@
     </nav>
     
     <!-- Contenido principal -->
+    <div class="est-shell">
+    {% include 'estudiantes/_sidebar_estudiante.html' with activo='inicio' %}
     <main class="portal-contenido">
         
         <!-- Header con saludo -->
@@ -108,8 +111,9 @@
                 {% include 'estudiantes/_actividad_lista.html' %}
             </div>
         </div>
-        
+
     </main>
+    </div><!-- /est-shell -->
 
     <!-- ========================================== -->
     <!-- MODAL DE SOPORTE                            -->

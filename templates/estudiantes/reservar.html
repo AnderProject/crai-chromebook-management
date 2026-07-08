@@ -5,6 +5,7 @@
 
 {% block estilos_extra %}
 <link href="{% static 'css/base.css' %}" rel="stylesheet">
+<link href="{% static 'css/sidebar_estudiante.css' %}?v={% now 'U' %}" rel="stylesheet">
 <link href="{% static 'css/timepicker.css' %}" rel="stylesheet">
 <link href="{% static 'css/reservar.css' %}" rel="stylesheet">
 {% endblock %}
@@ -26,9 +27,11 @@
             </a>
         </div>
     </nav>
-    
+
+    <div class="est-shell">
+    {% include 'estudiantes/_sidebar_estudiante.html' with activo='reservar' %}
     <div class="reservar-contenido">
-        
+
         <div class="reservar-formulario">
             
             <div class="pasos-indicador">
@@ -170,8 +173,9 @@
                 <div class="res-nota"><i class="bi bi-qr-code-scan"></i> Preséntate en el CRAI con tu código para retirar el equipo.</div>
             </div>
         </div>
-        
-    </div>
+
+    </div><!-- /reservar-contenido -->
+    </div><!-- /est-shell -->
 
 </div>
 

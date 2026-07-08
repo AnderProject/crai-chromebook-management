@@ -1,0 +1,62 @@
+/* ============================================================
+   Barra lateral de navegación del ESTUDIANTE (como el admin)
+   Compartida por: portal, reservar, mis reservas y perfil.
+   ============================================================ */
+.est-shell { display: flex; align-items: flex-start; }
+
+.est-sidebar {
+    width: 240px; flex-shrink: 0;
+    background: #fff; border-right: 1px solid #eef0f5;
+    padding: 1.4rem 0.9rem;
+    display: flex; flex-direction: column; gap: 0.25rem;
+    position: sticky; top: 62px;                 /* justo debajo del navbar */
+    height: calc(100vh - 62px); overflow-y: auto;
+}
+.est-side-user {
+    display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.3rem 0.6rem 1rem; margin-bottom: 0.5rem;
+    border-bottom: 1px solid #f0f2f7;
+}
+.est-side-avatar {
+    width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+    background: linear-gradient(135deg, #1a237e, #3949ab); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem;
+    overflow: hidden; box-shadow: 0 5px 12px rgba(26,35,126,0.25);
+}
+.est-side-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+.est-side-ident { display: flex; flex-direction: column; min-width: 0; }
+.est-side-ident strong { font-size: 0.92rem; color: #1f2c3d; }
+.est-side-ident small { font-size: 0.72rem; color: #8a90a8; }
+
+.est-side-nav { display: flex; flex-direction: column; gap: 0.25rem; }
+.est-side-link {
+    display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;
+    padding: 0.7rem 0.85rem; border-radius: 11px;
+    color: #4a5364; font-weight: 700; font-size: 0.9rem; text-decoration: none; white-space: nowrap;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.est-side-link i { font-size: 1.1rem; width: 22px; text-align: center; color: #9aa3b8; transition: color 0.15s ease; }
+.est-side-link:hover { background: #f2f5ff; color: #1a237e; }
+.est-side-link:hover i { color: #1a237e; }
+.est-side-link.active { background: linear-gradient(135deg, #1a237e, #3949ab); color: #fff; box-shadow: 0 6px 16px rgba(26,35,126,0.28); }
+.est-side-link.active i { color: #fff; }
+.est-side-salir { margin-top: auto; color: #c0392b; }
+.est-side-salir i { color: #d9756c; }
+.est-side-salir:hover { background: #fdecea; color: #b3261e; }
+.est-side-salir:hover i { color: #b3261e; }
+
+/* El contenido (cualquiera que sea) ocupa el resto del ancho */
+.est-shell > :not(.est-sidebar) { flex: 1; min-width: 0; max-width: none; margin: 0; }
+
+/* Responsive: la barra pasa arriba como fila de accesos con scroll horizontal */
+@media (max-width: 860px) {
+    .est-shell { flex-direction: column; }
+    .est-sidebar {
+        width: 100%; height: auto; position: static; flex-direction: row; align-items: center;
+        border-right: none; border-bottom: 1px solid #eef0f5;
+        padding: 0.6rem 0.9rem; gap: 0.4rem; overflow-x: auto;
+    }
+    .est-side-user { display: none; }
+    .est-side-nav { flex-direction: row; gap: 0.4rem; }
+    .est-side-salir { margin-top: 0; margin-left: auto; }
+}
