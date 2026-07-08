@@ -153,9 +153,25 @@
                     <li><i class="bi bi-person-badge me-2"></i>Presentar credencial y código</li>
                 </ul>
             </div>
-            <div class="ilustracion-card">
-                <i class="bi bi-laptop ilustracion-icono"></i>
-                <p class="ilustracion-texto">Retira tu equipo y disfruta de tu sesión de trabajo</p>
+            <div class="dispo-card">
+                <h6><i class="bi bi-laptop-fill me-2"></i>Disponibilidad de equipos</h6>
+                <div class="dispo-dias">
+                    <div class="dispo-dia {% if disponibles > 0 %}hay{% else %}no{% endif %}">
+                        <i class="bi {% if disponibles > 0 %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %} dispo-dia-ico"></i>
+                        <span class="dispo-dia-num">{{ disponibles }}</span>
+                        <span class="dispo-dia-lbl">Hoy</span>
+                    </div>
+                    <div class="dispo-dia {% if disponibles_manana > 0 %}hay{% else %}no{% endif %}">
+                        <i class="bi {% if disponibles_manana > 0 %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %} dispo-dia-ico"></i>
+                        <span class="dispo-dia-num">{{ disponibles_manana }}</span>
+                        <span class="dispo-dia-lbl">Mañana</span>
+                    </div>
+                </div>
+                <div class="dispo-tips">
+                    <div class="dispo-tip"><i class="bi bi-lightbulb-fill"></i> Reserva con anticipación para asegurar tu equipo.</div>
+                    <div class="dispo-tip"><i class="bi bi-clock-history"></i> Llega puntual: la reserva se libera <strong>15 min</strong> después de la hora de inicio.</div>
+                    <div class="dispo-tip"><i class="bi bi-shield-check"></i> Puedes tener hasta <strong>2 reservas</strong> activas a la vez.</div>
+                </div>
             </div>
         </div>
         
