@@ -85,11 +85,13 @@ function abrirPerfil(id) {
 function renderResumen(r) {
     var html =
         '<button type="button" class="perfil-resumen-card filtro-historial activo" data-filtro="total" onclick="filtrarHistorial(\'total\', this)">' +
-            '<div class="perfil-resumen-num text-primary">' + (r.total || 0) + '</div><span class="perfil-resumen-lbl">Registros</span></button>' +
+            '<div class="perfil-resumen-num n-total">' + (r.total || 0) + '</div><span class="perfil-resumen-lbl">Registros</span></button>' +
         '<button type="button" class="perfil-resumen-card filtro-historial" data-filtro="activos" onclick="filtrarHistorial(\'activos\', this)">' +
             '<div class="perfil-resumen-num text-warning">' + (r.activos || 0) + '</div><span class="perfil-resumen-lbl">Activos</span></button>' +
         '<button type="button" class="perfil-resumen-card filtro-historial" data-filtro="vencidos" onclick="filtrarHistorial(\'vencidos\', this)">' +
-            '<div class="perfil-resumen-num text-danger">' + (r.vencidos || 0) + '</div><span class="perfil-resumen-lbl">Vencidos</span></button>';
+            '<div class="perfil-resumen-num text-danger">' + (r.vencidos || 0) + '</div><span class="perfil-resumen-lbl">Vencidos</span></button>' +
+        '<button type="button" class="perfil-resumen-card filtro-historial" data-filtro="cancelados" onclick="filtrarHistorial(\'cancelados\', this)">' +
+            '<div class="perfil-resumen-num n-cancel">' + (r.cancelados || 0) + '</div><span class="perfil-resumen-lbl">Cancelados</span></button>';
     document.getElementById('perfilResumen').innerHTML = html;
 }
 
@@ -104,14 +106,15 @@ function filtrarHistorial(filtro, btn) {
         var cat = c.getAttribute('data-cat');
         var mostrar = filtro === 'total' ||
             (filtro === 'activos' && cat === 'activo') ||
-            (filtro === 'vencidos' && cat === 'vencido');
+            (filtro === 'vencidos' && cat === 'vencido') ||
+            (filtro === 'cancelados' && cat === 'cancelado');
         c.style.display = mostrar ? '' : 'none';
         if (mostrar) visibles++;
     });
 
     var vacio = document.getElementById('perfilHistorialVacioFiltro');
     if (vacio) {
-        var etiquetas = { activos: 'activos', vencidos: 'vencimientos' };
+        var etiquetas = { activos: 'activos', vencidos: 'vencimientos', cancelados: 'cancelaciones' };
         vacio.style.display = (cards.length > 0 && visibles === 0) ? 'block' : 'none';
         vacio.textContent = 'Sin ' + (etiquetas[filtro] || 'registros') + ' para este estudiante';
     }
@@ -141,21 +144,11 @@ function renderHistorial(historial) {
         var esReserva = h.tipo === 'reserva';
         var codigo = escapeHtml(esReserva ? 'Reserva' : h.codigo);
 
-        // Categoría usada por los filtros del resumen (Total / Activos / Vencidos).
+        // Categoría usada por los filtros del resumen (Total / Activos / Vencidos / Cancelados).
         var cat = 'otros';
         if (h.estado === 'activo') cat = 'activo';
         else if (h.estado === 'vencido' || h.estado === 'vencida') cat = 'vencido';
-
-        var foto;
-        if (esReserva) {
-            foto = '<div class="historial-foto-vacia"><i class="bi bi-calendar-check"></i></div>';
-        } else if (h.foto_url) {
-            var etiqueta = h.foto_tipo === 'devolucion' ? 'Devolución' : 'Entrega';
-            foto = '<img src="' + encodeURI(h.foto_url) + '" class="historial-foto" alt="Evidencia" ' +
-                   'onclick="verFotoEvidencia(\'' + encodeURI(h.foto_url) + '\', \'' + etiqueta + ' · ' + codigo + '\')">';
-        } else {
-            foto = '<div class="historial-foto-vacia"><i class="bi bi-camera"></i></div>';
-        }
+        else if (h.estado === 'cancelada') cat = 'cancelado';
 
         var tipoTag = esReserva
             ? '<span class="historial-tipo-tag"><i class="bi bi-calendar-event"></i> Reserva</span>'
@@ -166,26 +159,54 @@ function renderHistorial(historial) {
             meta += '<br><i class="bi bi-arrow-return-left"></i> Devuelto: ' + escapeHtml(h.fecha_devuelto);
         }
 
-        html +=
-            '<div class="historial-card ' + clase + '" data-cat="' + cat + '">' +
-                foto +
-                '<div class="historial-info">' +
-                    '<div class="d-flex justify-content-between align-items-center mb-1">' +
-                        '<span class="historial-codigo">' + codigo + '</span>' +
-                        '<span class="historial-badge ' + clase + '">' + escapeHtml(h.estado) + '</span>' +
-                    '</div>' +
-                    '<div class="historial-meta">' + tipoTag + ' · ' + meta + '</div>' +
+        var infoBlock =
+            '<div class="historial-info">' +
+                '<div class="d-flex justify-content-between align-items-center mb-1">' +
+                    '<span class="historial-codigo">' + codigo + '</span>' +
+                    '<span class="historial-badge ' + clase + '">' + escapeHtml(h.estado) + '</span>' +
                 '</div>' +
+                '<div class="historial-meta">' + tipoTag + ' · ' + meta + '</div>' +
             '</div>';
+
+        if (!esReserva && h.foto_url) {
+            // Con evidencia: ícono que despliega la foto EN LÍNEA debajo de la información.
+            var etiqueta = h.foto_tipo === 'devolucion' ? 'Devolución' : 'Entrega';
+            html +=
+                '<div class="historial-card ' + clase + ' con-evidencia" data-cat="' + cat + '">' +
+                    '<div class="historial-fila">' +
+                        '<button type="button" class="historial-foto-btn" onclick="toggleEvidencia(this)" title="Ver evidencia">' +
+                            '<i class="bi bi-image"></i><span class="foto-lupa"><i class="bi bi-arrows-angle-expand"></i></span>' +
+                        '</button>' +
+                        infoBlock +
+                    '</div>' +
+                    '<div class="historial-evidencia"><div class="historial-evidencia-inner">' +
+                        '<div class="historial-evidencia-cap"><i class="bi bi-camera-fill"></i> Evidencia · ' + etiqueta + '</div>' +
+                        '<img src="' + encodeURI(h.foto_url) + '" class="historial-evidencia-img" alt="Evidencia" loading="lazy">' +
+                    '</div></div>' +
+                '</div>';
+        } else {
+            // Sin evidencia (o reserva): ícono estático a la izquierda.
+            var fotoVacia = esReserva
+                ? '<div class="historial-foto-vacia"><i class="bi bi-calendar-check"></i></div>'
+                : '<div class="historial-foto-vacia"><i class="bi bi-camera"></i></div>';
+            html +=
+                '<div class="historial-card ' + clase + '" data-cat="' + cat + '">' +
+                    fotoVacia + infoBlock +
+                '</div>';
+        }
     });
     html += '<div id="perfilHistorialVacioFiltro" class="historial-vacio" style="display:none;"></div>';
     cont.innerHTML = html;
 }
 
-function verFotoEvidencia(url, titulo) {
-    document.getElementById('fotoEvidenciaImg').src = url;
-    document.getElementById('fotoEvidenciaTitulo').textContent = titulo || 'Evidencia';
-    new bootstrap.Modal(document.getElementById('modalFotoEvidencia')).show();
+// Despliega/oculta la evidencia EN LÍNEA, debajo de la información (sin modal flotante).
+function toggleEvidencia(btn) {
+    var card = btn.closest('.historial-card');
+    if (!card) { return; }
+    var panel = card.querySelector('.historial-evidencia');
+    if (!panel) { return; }
+    var abierto = panel.classList.toggle('abierta');
+    btn.classList.toggle('abierta', abierto);
 }
 
 function cerrarPerfil() {

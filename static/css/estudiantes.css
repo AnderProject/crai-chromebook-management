@@ -416,7 +416,7 @@
 /* Encabezado del perfil */
 .perfil-header {
     position: relative;
-    background: linear-gradient(135deg, #1a73e8, #4a90ff);
+    background: linear-gradient(135deg, #1a237e, #283593);
     color: #fff;
     padding: 2rem 1.5rem 1.75rem;
     text-align: center;
@@ -488,8 +488,8 @@
 /* Resumen (mini-cards) */
 .perfil-resumen {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.6rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
     margin-bottom: 1.25rem;
     flex-shrink: 0;
 }
@@ -857,8 +857,60 @@
 }
 
 .perfil-resumen-card.filtro-historial.activo {
-    border-color: #1a73e8;
-    box-shadow: 0 0 0 2px rgba(26,115,232,0.18);
+    border-color: #1a237e;
+    box-shadow: 0 0 0 2px rgba(26,35,126,0.18);
+}
+
+/* Resumen más compacto (para que quepan 4 cards) */
+.perfil-resumen-card { padding: 0.7rem 0.35rem; }
+.perfil-resumen-num { font-size: 1.2rem; }
+.perfil-resumen-lbl { font-size: 0.6rem; }
+.perfil-resumen-num.n-total  { color: #1a237e; }
+.perfil-resumen-num.n-cancel { color: #6b7280; }
+
+/* ==========================================
+   Evidencia en línea (se despliega debajo de la info)
+   ========================================== */
+.historial-foto-btn {
+    width: 54px; height: 54px; border-radius: 10px; flex-shrink: 0;
+    background: #e8eaf6; color: #1a237e; border: 1px solid #d6d9ee;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem; cursor: pointer; position: relative;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+.historial-foto-btn:hover { background: #1a237e; color: #fff; transform: translateY(-2px); }
+.historial-foto-btn .foto-lupa {
+    position: absolute; right: -4px; bottom: -4px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #1a237e; color: #fff; border: 2px solid #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 0.62rem;
+}
+.historial-foto-btn.abierta { background: #1a237e; color: #fff; }
+.historial-foto-btn.abierta .foto-lupa { background: #fff; color: #1a237e; }
+
+/* La tarjeta pasa a columna cuando se despliega la evidencia */
+.historial-card.con-evidencia { flex-direction: column; align-items: stretch; }
+.historial-card.con-evidencia .historial-fila { display: flex; gap: 0.8rem; align-items: center; }
+
+.historial-evidencia {
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.25s ease, margin-top 0.25s ease;
+    margin-top: 0;
+}
+.historial-evidencia.abierta { max-height: 420px; opacity: 1; margin-top: 0.7rem; }
+.historial-evidencia-inner {
+    border-top: 1px dashed #e3e6ee; padding-top: 0.7rem;
+}
+.historial-evidencia-cap {
+    display: flex; align-items: center; gap: 0.35rem;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
+    color: #6a7086; margin-bottom: 0.5rem;
+}
+.historial-evidencia-cap i { color: #1a237e; }
+.historial-evidencia-img {
+    width: 100%; max-height: 320px; object-fit: contain;
+    border-radius: 10px; background: #f4f6fb; border: 1px solid #e3e6ee;
+    display: block;
 }
 
 .overlay {

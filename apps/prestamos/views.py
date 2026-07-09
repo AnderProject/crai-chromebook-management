@@ -1697,6 +1697,7 @@ def api_perfil_estudiante(request, id):
         total = 0
         activos = 0
         vencidos = 0
+        cancelados = 0
 
         for p in prestamos:
             total += 1
@@ -1720,6 +1721,8 @@ def api_perfil_estudiante(request, id):
             total += 1
             if r.estado == 'vencida':
                 vencidos += 1
+            elif r.estado == 'cancelada':
+                cancelados += 1
             clave = timezone.make_aware(datetime.combine(r.fecha_uso, r.hora_inicio))
             entradas.append((clave, {
                 'tipo': 'reserva',
@@ -1743,7 +1746,7 @@ def api_perfil_estudiante(request, id):
             'carrera': estudiante.carrera.nombre,
             'semestre': estudiante.semestre,
             'email': user.email or '-',
-            'resumen': {'total': total, 'activos': activos, 'vencidos': vencidos},
+            'resumen': {'total': total, 'activos': activos, 'vencidos': vencidos, 'cancelados': cancelados},
             'historial': historial,
         })
     except Estudiante.DoesNotExist:
