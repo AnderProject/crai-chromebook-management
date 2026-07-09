@@ -3,7 +3,7 @@
    ===================================================== */
 
 .personal-panel {
-    max-width: 1380px;
+    max-width: 1240px;
     margin: 0 auto;
     animation: fadeIn 0.4s ease;
 }
@@ -20,14 +20,15 @@
 
 .personal-titulo {
     font-weight: 800;
-    font-size: 1.8rem;
+    font-size: 1.55rem;
     color: #1a237e;
     margin: 0;
 }
 
 .personal-subtitulo {
-    color: #8a90a8;
-    font-size: 0.95rem;
+    color: #6a7086;
+    font-size: 0.88rem;
+    font-weight: 600;
     margin: 0.2rem 0 0;
 }
 
@@ -35,10 +36,10 @@
     background: linear-gradient(135deg, #1a237e, #283593);
     color: #fff;
     border: none;
-    border-radius: 12px;
-    padding: 0.8rem 1.5rem;
+    border-radius: 11px;
+    padding: 0.7rem 1.35rem;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 4px 14px rgba(26, 35, 126, 0.22);
@@ -61,23 +62,23 @@
     background: #fff;
     border: 1px solid #eef0f5;
     border-radius: 16px;
-    padding: 1.3rem 1.45rem;
+    padding: 1.1rem 1.25rem;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.9rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
     transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
 .stat-mini:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(26,35,126,0.12); }
 
 .stat-mini-icono {
-    width: 56px;
-    height: 56px;
-    border-radius: 14px;
+    width: 50px;
+    height: 50px;
+    border-radius: 13px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     color: #fff;
     flex-shrink: 0;
     transition: transform 0.3s ease;
@@ -90,14 +91,14 @@
 
 .stat-mini-num {
     display: block;
-    font-size: 1.75rem;
+    font-size: 1.55rem;
     font-weight: 800;
     color: #2b2f4a;
     line-height: 1;
 }
 
 .stat-mini-lbl {
-    font-size: 0.84rem;
+    font-size: 0.8rem;
     color: #8a90a8;
 }
 
@@ -122,15 +123,15 @@
     letter-spacing: 0.04em;
     color: #37415a;
     font-weight: 800;
-    padding: 1.05rem 1.15rem;
+    padding: 0.9rem 1.05rem;
     border-bottom: 1px solid #eef0f5;
     white-space: nowrap;          /* que los títulos no se partan en dos líneas */
 }
 
 .tabla-personal tbody td {
-    padding: 1rem 1.15rem;
+    padding: 0.85rem 1.05rem;
     border-bottom: 1px solid #f4f5fa;
-    font-size: 0.94rem;
+    font-size: 0.9rem;
     color: #3a3f5a;
     vertical-align: middle;
 }
@@ -154,12 +155,12 @@
     font-weight: 600;
     color: #2b2f4a;
     white-space: nowrap;   /* el nombre no se parte en varias líneas */
-    font-size: 0.98rem;
+    font-size: 0.92rem;
 }
 
 .persona-avatar {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: #e8edff;
     color: #1a237e;
@@ -167,7 +168,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     flex-shrink: 0;
 }
 
@@ -477,9 +478,9 @@ body.modo-oscuro .campo select {
 .carga-badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.35rem 0.85rem;
+    padding: 0.32rem 0.8rem;
     border-radius: 999px;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 700;
     white-space: nowrap;
 }
