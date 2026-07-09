@@ -3,7 +3,7 @@
    ===================================================== */
 
 .personal-panel {
-    max-width: 1260px;
+    max-width: 1380px;
     margin: 0 auto;
     animation: fadeIn 0.4s ease;
 }
@@ -19,15 +19,15 @@
 }
 
 .personal-titulo {
-    font-weight: 700;
-    font-size: 1.6rem;
+    font-weight: 800;
+    font-size: 1.8rem;
     color: #1a237e;
     margin: 0;
 }
 
 .personal-subtitulo {
     color: #8a90a8;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     margin: 0.2rem 0 0;
 }
 
@@ -35,10 +35,10 @@
     background: linear-gradient(135deg, #1a237e, #283593);
     color: #fff;
     border: none;
-    border-radius: 11px;
-    padding: 0.7rem 1.3rem;
+    border-radius: 12px;
+    padding: 0.8rem 1.5rem;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 4px 14px rgba(26, 35, 126, 0.22);
@@ -113,6 +113,7 @@
 .tabla-personal {
     width: 100%;
     border-collapse: collapse;
+    min-width: 860px;   /* deja respirar las columnas; si no cabe, la tarjeta hace scroll */
 }
 
 .tabla-personal thead th {
@@ -152,6 +153,8 @@
     gap: 0.7rem;
     font-weight: 600;
     color: #2b2f4a;
+    white-space: nowrap;   /* el nombre no se parte en varias líneas */
+    font-size: 0.98rem;
 }
 
 .persona-avatar {
