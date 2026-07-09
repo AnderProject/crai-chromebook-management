@@ -53,7 +53,7 @@
                         <div class="estudiantes-header">
                             <div>
                                 <h5 class="fw-bold mb-0"><i class="bi bi-people-fill me-2 text-primary"></i>Historial de Préstamos</h5>
-                                <small class="text-muted">Por estudiante y monitoreo en tiempo real</small>
+                                <small class="text-muted fw-bold">Por estudiante y monitoreo en tiempo real</small>
                             </div>
                         </div>
 
@@ -105,9 +105,8 @@
                                 <i class="bi bi-search filtro-icono"></i>
                                 <input type="text" class="filtro-input" placeholder="Buscar por nombre, cédula o carrera..." id="buscarEstudiante" onkeyup="filtrarEstudiantes()" autocomplete="off">
                             </div>
-                            <div class="filtro-select-wrap">
-                                <i class="bi bi-mortarboard filtro-select-icono"></i>
-                                <select class="filtro-select" id="filtroCarrera" onchange="filtrarEstudiantes()">
+                            <div class="directorio-carrera">
+                                <select class="cselect" id="filtroCarrera" onchange="filtrarEstudiantes()">
                                     <option value="">Todas las carreras</option>
                                     {% for carrera in carreras %}
                                     <option value="{{ carrera.nombre }}">{{ carrera.nombre }}</option>

@@ -28,9 +28,9 @@
 .tab-btn {
     border: none;
     background: transparent;
-    padding: 0.5rem 1rem;
-    font-weight: 500;
-    font-size: 0.85rem;
+    padding: 0.55rem 1.15rem;
+    font-weight: 700;
+    font-size: 0.9rem;
     color: var(--texto-claro);
     border-bottom: 2px solid transparent;
     transition: all 0.2s;
@@ -40,6 +40,7 @@
 .tab-btn.active {
     color: var(--info);
     border-bottom-color: var(--info);
+    font-weight: 800;
 }
 
 .tab-btn:hover {
@@ -176,6 +177,7 @@
     flex-wrap: wrap;
 }
 .directorio-buscar { flex: 1 1 320px; }
+.directorio-carrera { flex: 0 1 280px; min-width: 220px; }
 
 /* Rejilla de fichas: tarjetas que aprovechan el ancho disponible. */
 .fichas-grid {
@@ -244,7 +246,7 @@
     gap: 0.3rem;
     font-size: 0.76rem;
     color: var(--texto-claro);
-    font-weight: 500;
+    font-weight: 700;
 }
 .ficha-cedula i { font-size: 0.8rem; }
 
@@ -253,9 +255,9 @@
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #41506b;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #33415c;
     background: #f1f5fb;
     border: 1px solid #e6edf7;
     border-radius: 8px;
