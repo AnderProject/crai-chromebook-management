@@ -170,26 +170,32 @@
 .busqueda-icono {
     position: absolute;
     left: 0.9rem;
-    color: #9aa5b1;
+    color: #1a237e;
     font-size: 0.95rem;
     pointer-events: none;
 }
 
 .busqueda-input {
     width: 100%;
-    border: 1px solid #e3e8ef;
+    border: 1.5px solid #c3cbe4;
     border-radius: 12px;
     padding: 0.6rem 2.4rem 0.6rem 2.4rem;
     font-size: 0.9rem;
-    background: #fafbff;
+    font-weight: 600;
+    color: #2b2f4a;
+    background: #fff;
+    box-shadow: 0 3px 10px rgba(26, 35, 126, 0.08);
     transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
+.busqueda-input::placeholder { color: #8a90a8; font-weight: 500; }
+
+.busqueda-input:hover { border-color: #9aa6d3; }
 
 .busqueda-input:focus {
     outline: none;
-    border-color: #1a73e8;
+    border-color: #1a237e;
     background: #fff;
-    box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.12);
+    box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.14);
 }
 
 .busqueda-limpiar {
