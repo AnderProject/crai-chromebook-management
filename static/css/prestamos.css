@@ -317,19 +317,24 @@
 
 /* Input elegante */
 .input-elegante {
-    border: 1px solid var(--borde);
-    border-radius: 8px;
-    padding: 0.5rem 0.8rem;
+    border: 1.5px solid #c3cbe4;
+    border-radius: 10px;
+    padding: 0.55rem 0.85rem;
     font-size: 0.9rem;
+    font-weight: 600;
+    color: #2b2f4a;
     transition: all 0.2s;
-    background: #fafafa;
+    background: #fff;
+    box-shadow: 0 3px 10px rgba(26, 35, 126, 0.08);
     flex-grow: 1;
 }
+.input-elegante::placeholder { color: #8a90a8; font-weight: 500; }
+.input-elegante:hover { border-color: #9aa6d3; }
 
 .input-elegante:focus {
-    border-color: var(--info);
-    box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
-    background: var(--blanco);
+    border-color: #1a237e;
+    box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.14);
+    background: #fff;
     outline: none;
 }
 

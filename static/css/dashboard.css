@@ -291,32 +291,52 @@
 }
 
 /* Badges de estado */
+/* ==========================================
+   ETIQUETAS DE ESTADO (píldora profesional con punto + animación)
+   Se usan en Últimos Préstamos, Reservaciones y Mantenimiento.
+   ========================================== */
 .badge-estado {
-    font-size: 0.75rem;
-    padding: 0.35em 0.65em;
-    border-radius: 20px;
-    font-weight: 500;
+    display: inline-flex; align-items: center; gap: 0.42rem;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.015em;
+    padding: 0.4rem 0.78rem; border-radius: 999px;
+    border: 1px solid transparent; line-height: 1;
+    animation: badgeIn 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
 }
+.badge-estado:hover { transform: translateY(-1px); filter: saturate(1.1); }
+.badge-estado::before {
+    content: ''; width: 7px; height: 7px; border-radius: 50%;
+    background: currentColor; flex-shrink: 0;
+}
+@keyframes badgeIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: none; } }
 
-.badge-activo {
-    background-color: #d4edda;
-    color: #155724;
-}
+.badge-activo    { background: #e6f4ea; color: #1e7e46; border-color: #c6e8d1; }
+.badge-proximo   { background: #fff4d6; color: #9a6700; border-color: #ffe2a3; }
+.badge-vencido   { background: #fdecea; color: #c0392b; border-color: #f5c9c4; }
+.badge-reservado { background: #e4f0fd; color: #0b5cad; border-color: #cfe4fb; }
+.badge-devuelto  { background: #eef1f5; color: #5a6473; border-color: #dde2ea; }
 
-.badge-proximo {
-    background-color: #fff3cd;
-    color: #856404;
+/* Badges de Bootstrap dentro de las tablas (Mantenimiento: tipo/garantía/estado):
+   se pintan en pastel legible con el mismo estilo de píldora + punto. */
+.tabla-prestamos td .badge {
+    display: inline-flex !important; align-items: center; gap: 0.42rem;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.015em;
+    padding: 0.4rem 0.78rem; border-radius: 999px; border: 1px solid transparent;
+    animation: badgeIn 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+    transition: transform 0.16s ease, filter 0.16s ease;
 }
-
-.badge-vencido {
-    background-color: #f8d7da;
-    color: #721c24;
+.tabla-prestamos td .badge:hover { transform: translateY(-1px); filter: saturate(1.1); }
+.tabla-prestamos td .badge::before {
+    content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0;
 }
-
-.badge-reservado {
-    background-color: #cfe2ff;
-    color: #084298;
-}
+.tabla-prestamos td .badge.bg-info      { background: #e4f0fd !important; color: #0b5cad !important; border-color: #cfe4fb; }
+.tabla-prestamos td .badge.bg-success   { background: #e6f4ea !important; color: #1e7e46 !important; border-color: #c6e8d1; }
+.tabla-prestamos td .badge.bg-danger    { background: #fdecea !important; color: #c0392b !important; border-color: #f5c9c4; }
+.tabla-prestamos td .badge.bg-warning   { background: #fff4d6 !important; color: #9a6700 !important; border-color: #ffe2a3; }
+.tabla-prestamos td .badge.bg-secondary { background: #eef1f5 !important; color: #5a6473 !important; border-color: #dde2ea; }
+.tabla-prestamos td .badge.bg-primary   { background: #e8eaf6 !important; color: #1a237e !important; border-color: #d3d8f0; }
+/* El badge del técnico confirmó ya trae su propio ícono: sin punto extra. */
+.tabla-prestamos td .badge.badge-tecnico-confirmo::before { display: none; }
 
 /* ==========================================
    BOTONES DEL DASHBOARD
@@ -975,28 +995,33 @@ tr:hover .badge-estado {
 
 .buscador-reservas-icono {
     position: absolute;
-    left: 0.7rem;
-    color: #9aa0c0;
+    left: 0.85rem;
+    color: #1a237e;
     font-size: 0.9rem;
     pointer-events: none;
 }
 
 .buscador-reservas-input {
-    border: 1px solid #e3e7f5;
+    border: 1.5px solid #c3cbe4;
     border-radius: 999px;
-    padding: 0.4rem 0.9rem 0.4rem 2rem;
+    padding: 0.45rem 0.95rem 0.45rem 2rem;
     font-size: 0.85rem;
+    font-weight: 600;
+    color: #2b2f4a;
     width: 250px;
     max-width: 100%;
-    background: #f8f9fb;
+    background: #fff;
+    box-shadow: 0 3px 10px rgba(26, 35, 126, 0.08);
     transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
+.buscador-reservas-input::placeholder { color: #8a90a8; font-weight: 500; }
+.buscador-reservas-input:hover { border-color: #9aa6d3; }
 
 .buscador-reservas-input:focus {
     outline: none;
-    border-color: #1a73e8;
+    border-color: #1a237e;
     background: #fff;
-    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
+    box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.14);
 }
 
 .tabla-prestamos .table thead {

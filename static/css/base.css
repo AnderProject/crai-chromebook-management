@@ -457,51 +457,25 @@ body.modo-oscuro .border-start {
 /* ==========================================
    ANIMACIÓN DE ESTADO ACTIVO (PULSO)
    ========================================== */
+/* Pulso sutil en "Activo" (señal discreta de préstamo en curso) */
 .badge-estado.badge-activo {
-    animation: pulseActivo 2s infinite;
     position: relative;
+    animation: pulseActivo 2.2s ease-in-out infinite;
 }
 
 @keyframes pulseActivo {
-    0% {
-        box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.5);
-    }
-    70% {
-        box-shadow: 0 0 0 8px rgba(25, 135, 84, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(25, 135, 84, 0);
-    }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(30, 126, 70, 0.35); }
+    50%      { box-shadow: 0 0 0 5px rgba(30, 126, 70, 0); }
 }
 
-/* Efecto de brillo para "Devuelto" */
-.badge-estado.badge-devuelto {
-    animation: brilloDevuelto 3s ease-in-out infinite;
-}
-
-@keyframes brilloDevuelto {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.3);
-    }
-    50% {
-        box-shadow: 0 0 0 6px rgba(13, 110, 253, 0);
-    }
-}
-
-/* Efecto de alerta para "Vencido" */
+/* Pulso de alerta discreto en "Vencido" (sin parpadear el fondo) */
 .badge-estado.badge-vencido {
-    animation: alertaVencido 1s ease-in-out infinite;
+    animation: alertaVencido 1.9s ease-in-out infinite;
 }
 
 @keyframes alertaVencido {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.6);
-        background-color: #f8d7da;
-    }
-    50% {
-        box-shadow: 0 0 0 8px rgba(220, 53, 69, 0);
-        background-color: #f5c6cb;
-    }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.42); }
+    50%      { box-shadow: 0 0 0 5px rgba(192, 57, 43, 0); }
 }
 
 

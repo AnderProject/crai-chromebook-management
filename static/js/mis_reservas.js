@@ -111,21 +111,49 @@ function actualizarProgresos() {
     });
 }
 // ===== Filtros por estado en "Mis Reservas" =====
+// Al abrir, se ubica por defecto en "Pendientes"; si una sección no tiene
+// reservas, muestra un estado vacío con ícono en vez de una lista en blanco.
 (function () {
     var cont = document.getElementById('reservasFiltros');
     if (!cont) return;
     var chips = cont.querySelectorAll('.filtro-chip');
     var cards = document.querySelectorAll('#reservasGrid [data-estado]');
+    var vacio = document.getElementById('reservasVacioFiltro');
+
+    // Texto/ícono del estado vacío según la sección activa.
+    var VACIO = {
+        todas:      { i: 'bi-inbox',                  t: 'Sin reservas',            p: 'Todavía no tienes reservas registradas.' },
+        pendiente:  { i: 'bi-hourglass-split',        t: 'Sin reservas pendientes', p: 'Aquí aparecerán tus reservas pendientes.' },
+        completada: { i: 'bi-check-circle',           t: 'Sin completadas',         p: 'Aún no tienes reservas completadas.' },
+        vencida:    { i: 'bi-exclamation-triangle',   t: 'Sin vencidas',            p: '¡Bien! No tienes reservas vencidas.' },
+        cancelada:  { i: 'bi-x-circle',               t: 'Sin canceladas',          p: 'No has cancelado ninguna reserva.' }
+    };
+
+    function aplicarFiltro(filtro) {
+        var visibles = 0;
+        cards.forEach(function (card) {
+            var ok = filtro === 'todas' || card.getAttribute('data-estado') === filtro;
+            card.classList.toggle('filtro-oculta', !ok);
+            if (ok) visibles++;
+        });
+        if (vacio) {
+            var info = VACIO[filtro] || VACIO.todas;
+            vacio.querySelector('.rvf-icono i').className = 'bi ' + info.i;
+            vacio.querySelector('.rvf-titulo').textContent = info.t;
+            vacio.querySelector('.rvf-texto').textContent = info.p;
+            vacio.style.display = (visibles === 0) ? '' : 'none';
+        }
+    }
 
     chips.forEach(function (chip) {
         chip.addEventListener('click', function () {
             chips.forEach(function (c) { c.classList.remove('activo'); });
             chip.classList.add('activo');
-            var filtro = chip.getAttribute('data-filtro');
-            cards.forEach(function (card) {
-                var visible = filtro === 'todas' || card.getAttribute('data-estado') === filtro;
-                card.classList.toggle('filtro-oculta', !visible);
-            });
+            aplicarFiltro(chip.getAttribute('data-filtro'));
         });
     });
+
+    // Estado inicial: el chip marcado como activo (Pendientes por defecto).
+    var inicial = cont.querySelector('.filtro-chip.activo') || chips[0];
+    if (inicial) aplicarFiltro(inicial.getAttribute('data-filtro'));
 })();

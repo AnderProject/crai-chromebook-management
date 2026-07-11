@@ -76,8 +76,8 @@
             <div class="reservas-panel-head">
                 <h6><i class="bi bi-collection"></i> Tus reservas</h6>
                 <div class="reservas-filtros" id="reservasFiltros">
-                    <button type="button" class="filtro-chip activo" data-filtro="todas">Todas</button>
-                    <button type="button" class="filtro-chip" data-filtro="pendiente">Pendientes</button>
+                    <button type="button" class="filtro-chip" data-filtro="todas">Todas</button>
+                    <button type="button" class="filtro-chip activo" data-filtro="pendiente">Pendientes</button>
                     <button type="button" class="filtro-chip" data-filtro="completada">Completadas</button>
                     <button type="button" class="filtro-chip" data-filtro="vencida">Vencidas</button>
                     <button type="button" class="filtro-chip" data-filtro="cancelada">Canceladas</button>
@@ -125,6 +125,11 @@
                 </div>
             </div>
             {% endfor %}
+            </div>
+            <div id="reservasVacioFiltro" class="reservas-vacio-filtro" style="display:none;">
+                <div class="rvf-icono"><i class="bi bi-hourglass-split"></i></div>
+                <h6 class="rvf-titulo">Sin reservas pendientes</h6>
+                <p class="rvf-texto">Aquí aparecerán tus reservas pendientes.</p>
             </div>
             </div><!-- /reservas-scroll -->
         </div><!-- /reservas-panel -->
