@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
             CraiTP.onChange('horaInicio', function (e) { if (e.detail.byUser) { activarPaso(2); } actualizarResumen(); });
             CraiTP.onChange('horaFin', function (e) { if (e.detail.byUser) { activarPaso(2); } actualizarResumen(); });
         }
-        seleccionarFecha('hoy');
+        seleccionarFecha();
     });
 
     var motivo = document.querySelector('textarea[name="motivo"]');
@@ -96,25 +96,16 @@ function activarPaso(numero) {
 // =============================================
 // FECHA
 // =============================================
-function seleccionarFecha(tipo) {
-    var ec = ahoraEcuador();
-    var fecha = ec.fecha;
+// La fecha viene del botón (data-fecha lo calcula el backend: lun-vie, el
+// segundo botón salta el fin de semana). Si se llama sin botón, usa el primero.
+function seleccionarFecha(btn) {
+    if (!btn || !btn.getAttribute) { btn = document.querySelector('.btn-fecha'); }
+    if (!btn) { return; }
 
-    if (tipo === 'manana') {
-        var p = ec.fecha.split('-');
-        var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
-        d.setUTCDate(d.getUTCDate() + 1);
-        fecha = d.toISOString().split('T')[0];
-    }
-
-    document.getElementById('fechaSeleccionada').value = fecha;
+    document.getElementById('fechaSeleccionada').value = btn.getAttribute('data-fecha') || '';
 
     document.querySelectorAll('.btn-fecha').forEach(function (b) { b.classList.remove('activo'); });
-    if (typeof event !== 'undefined' && event && event.target && event.target.classList.contains('btn-fecha')) {
-        event.target.classList.add('activo');
-    } else {
-        document.querySelector('.btn-fecha').classList.add('activo');
-    }
+    btn.classList.add('activo');
 
     actualizarHorasPorFecha();
     actualizarDisponibilidad();
@@ -136,10 +127,10 @@ function actualizarResumen() {
     var inicio = document.getElementById('horaInicio').value;
     var fin = document.getElementById('horaFin').value;
 
-    // Día (Hoy / Mañana + fecha corta)
+    // Día: reutiliza la etiqueta del botón activo (Hoy / Mañana / Lunes…) + fecha corta.
     if (fecha) {
-        var ec = ahoraEcuador();
-        var etiqueta = (fecha === ec.fecha) ? 'Hoy' : (fecha === fechaManana() ? 'Mañana' : 'Fecha');
+        var btnAct = document.querySelector('.btn-fecha.activo');
+        var etiqueta = btnAct ? btnAct.textContent.trim() : 'Fecha';
         var p = fecha.split('-');
         elDia.textContent = etiqueta + ' · ' + p[2] + '/' + p[1];
     } else {
@@ -172,7 +163,10 @@ function actualizarDisponibilidad() {
     var prev = document.getElementById('equipoPreview');
     if (!prev) { return 0; }
     var sel = document.getElementById('fechaSeleccionada').value;
-    var n = (sel === ahoraEcuador().fecha)
+    // El primer botón (data-fecha) es el "slot1"; su disponibilidad es dispHoy.
+    var primerBtn = document.querySelector('.btn-fecha');
+    var fechaSlot1 = primerBtn ? primerBtn.getAttribute('data-fecha') : ahoraEcuador().fecha;
+    var n = (sel === fechaSlot1)
         ? parseInt(prev.dataset.dispHoy, 10)
         : parseInt(prev.dataset.dispManana, 10);
     if (isNaN(n)) { n = 0; }
@@ -278,7 +272,7 @@ function nuevaReserva() {
     document.getElementById('confirmacionReserva').style.display = 'none';
     document.getElementById('formReserva').style.display = 'block';
     document.getElementById('formReserva').reset();
-    seleccionarFecha('hoy');
+    seleccionarFecha();
     activarPaso(1);
 }
 

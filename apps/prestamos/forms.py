@@ -1,7 +1,21 @@
+import re
 from django import forms
 from .models import Chromebook
 
 class ChromebookForm(forms.ModelForm):
+
+    def clean_codigo(self):
+        """Normaliza el código al formato CB-### (ej.: '012', '12', 'cb12' -> 'CB-012').
+
+        Así el inventario queda consistente y la foto (que se busca por
+        chromebooks/<codigo>.jpg) se encuentra correctamente.
+        """
+        codigo = (self.cleaned_data.get('codigo') or '').strip().upper()
+        m = re.search(r'(\d+)', codigo)
+        if m:
+            codigo = f'CB-{int(m.group(1)):03d}'
+        return codigo
+
     class Meta:
         model = Chromebook
         fields = ['codigo', 'marca', 'modelo', 'serie', 'estado', 'condicion',

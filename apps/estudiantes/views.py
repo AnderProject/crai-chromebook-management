@@ -209,6 +209,37 @@ def actualizar_foto_perfil_estudiante(request):
             messages.success(request, 'Foto de perfil actualizada.')
     return redirect('estudiantes:perfil')
 
+def _proximo_dia_habil(d):
+    """Siguiente día hábil (lunes a viernes) estrictamente después de d."""
+    from datetime import timedelta
+    d = d + timedelta(days=1)
+    while d.weekday() >= 5:      # 5 = sábado, 6 = domingo
+        d += timedelta(days=1)
+    return d
+
+
+def fechas_reserva_validas(hoy):
+    """Las dos fechas reservables (lun-vie): hoy —o el próximo día hábil si hoy
+    cae en fin de semana— y el siguiente día hábil. Así el viernes, el segundo
+    botón apunta al lunes y no se permiten reservas para sábado ni domingo."""
+    from datetime import timedelta
+    slot1 = hoy
+    while slot1.weekday() >= 5:
+        slot1 += timedelta(days=1)
+    return [slot1, _proximo_dia_habil(slot1)]
+
+
+def _etiqueta_dia(fecha, hoy):
+    """Etiqueta del botón/resumen: 'Hoy', 'Mañana' o el nombre del día."""
+    from datetime import timedelta
+    if fecha == hoy:
+        return 'Hoy'
+    if fecha == hoy + timedelta(days=1):
+        return 'Mañana'
+    dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+    return dias[fecha.weekday()]
+
+
 @login_required
 def reservar_chromebook(request):
     """Vista para reservar un Chromebook"""
@@ -234,9 +265,11 @@ def reservar_chromebook(request):
         # Obtener disponibilidad real (por fecha: hoy y mañana)
         from apps.prestamos.views import _disponibles_efectivos
         from django.utils import timezone
+        hoy = timezone.localdate()
+        slot1, slot2 = fechas_reserva_validas(hoy)
         total = Chromebook.objects.count()
-        disponibles = _disponibles_efectivos()
-        disponibles_manana = _disponibles_efectivos(timezone.localdate() + timedelta(days=1))
+        disponibles = _disponibles_efectivos(slot1)
+        disponibles_manana = _disponibles_efectivos(slot2)
         prestados = Chromebook.objects.filter(estado='prestado').count()
 
         contexto = {
@@ -245,6 +278,11 @@ def reservar_chromebook(request):
             'disponibles': disponibles,
             'disponibles_manana': disponibles_manana,
             'prestados': prestados,
+            # Fechas reservables (lun-vie): el segundo botón salta el fin de semana.
+            'fecha_slot1': slot1.strftime('%Y-%m-%d'),
+            'fecha_slot2': slot2.strftime('%Y-%m-%d'),
+            'label_slot1': _etiqueta_dia(slot1, hoy),
+            'label_slot2': _etiqueta_dia(slot2, hoy),
         }
         return render(request, 'estudiantes/reservar.html', contexto)
     
@@ -328,11 +366,18 @@ def reservar_chromebook(request):
                     'message': 'No puedes reservar en una fecha pasada.'
                 })
 
-            # Máximo un día de anticipación: solo hoy o mañana.
-            if fecha > hoy + timedelta(days=1):
+            # Solo de lunes a viernes: no se reservan sábados ni domingos.
+            if fecha.weekday() >= 5:
                 return JsonResponse({
                     'success': False,
-                    'message': 'Solo puedes reservar para hoy o para mañana (máximo un día de anticipación).'
+                    'message': 'No se atienden reservas los sábados ni domingos. Elige un día de lunes a viernes.'
+                })
+
+            # Solo hoy o el siguiente día hábil (el viernes, "mañana" es el lunes).
+            if fecha not in fechas_reserva_validas(hoy):
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Solo puedes reservar para hoy o el siguiente día hábil.'
                 })
 
             # Para hoy, el turno no puede haber empezado ya (evita reservas que nacen vencidas).
