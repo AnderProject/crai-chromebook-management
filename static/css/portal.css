@@ -325,15 +325,18 @@
 
 /* ---------- Footer ---------- */
 .portal-footer {
-    background: #fff;
-    border-top: 1px solid #e0e0e0;
-    padding: 0.8rem 0;
+    background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    border-top: none;
+    padding: 1rem 0;
     margin-top: auto;
+    box-shadow: 0 -2px 14px rgba(26, 35, 126, 0.18);
 }
 
 .texto-footer {
-    color: #adb5bd;
-    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
 }
 
 .texto-oscuro { color: #212529; }

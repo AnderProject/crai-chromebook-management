@@ -1672,21 +1672,24 @@ tr:hover .badge-cancelable { transform: none; }
     position: relative;
     display: flex; align-items: center;
     background: #fff;
-    border: 1.5px solid #e3e8ef;
+    border: 1.5px solid #c3cbe4;
     border-radius: 999px;
-    padding: 0 0.4rem 0 0.85rem;
+    padding: 0 0.4rem 0 0.95rem;
     min-width: 260px; max-width: 340px; flex: 1 1 260px;
+    box-shadow: 0 3px 10px rgba(26, 35, 126, 0.08);
     transition: border-color 0.16s ease, box-shadow 0.16s ease;
 }
+.up-buscador:hover { border-color: #9aa6d3; }
 .up-buscador:focus-within {
-    border-color: #1a73e8;
-    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.14);
+    border-color: #1a237e;
+    box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.14);
 }
-.up-buscador > i { color: #9aa5b1; font-size: 0.9rem; }
+.up-buscador > i { color: #1a237e; font-size: 0.9rem; }
 .up-buscador input {
     flex: 1; border: none; outline: none; background: transparent;
-    padding: 0.5rem 0.5rem; font-size: 0.86rem; min-width: 0;
+    padding: 0.5rem 0.5rem; font-size: 0.86rem; font-weight: 600; color: #2b2f4a; min-width: 0;
 }
+.up-buscador input::placeholder { color: #8a90a8; font-weight: 500; }
 .up-buscar-limpiar {
     border: none; background: transparent; color: #9aa5b1; cursor: pointer;
     width: 28px; height: 28px; border-radius: 50%; visibility: hidden;
