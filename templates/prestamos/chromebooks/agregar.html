@@ -52,7 +52,7 @@
                 
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
-                        <form method="POST" id="formAgregarChromebook" onsubmit="return validarFormulario()">
+                        <form method="POST" id="formAgregarChromebook" enctype="multipart/form-data" onsubmit="return validarFormulario()">
                             {% csrf_token %}
                             <div class="row g-3">
                                 <div class="col-md-4">

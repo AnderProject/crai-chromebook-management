@@ -68,6 +68,7 @@ urlpatterns = [
     path('tecnicos/password/', views_tecnicos.tecnico_cambiar_password, name='tecnico_cambiar_password'),
     path('api/detalle-chromebook/<int:id>/', views.api_detalle_chromebook, name='api_detalle_chromebook'),
     path('api/editar-chromebook/<int:id>/', views.api_editar_chromebook, name='api_editar_chromebook'),
+    path('api/eliminar-chromebook/<int:id>/', views.api_eliminar_chromebook, name='api_eliminar_chromebook'),
     path('api/generar-qr-foto-chromebook/', views.api_generar_qr_foto_chromebook, name='api_generar_qr_foto'),
     path('subir-foto-chromebook/<str:token>/', views.subir_foto_chromebook, name='subir_foto_chromebook'),
 

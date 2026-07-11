@@ -640,3 +640,20 @@
     color: #fff;
     box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
 }
+
+/* ============================================================
+   Nueva reserva/préstamo: los prefijos CB- y credencial más notorios
+   (combinan con el borde marcado de los inputs)
+   ============================================================ */
+.paso-card .input-group-text {
+    background: #eef1ff !important;
+    color: #1a237e !important;
+    border: 1.5px solid #c3cbe4 !important;
+    border-right: none !important;
+    font-weight: 800;
+    font-size: 0.98rem;
+    box-shadow: 0 3px 10px rgba(26, 35, 126, 0.08);
+}
+.paso-card .input-group-text i { font-size: 1.05rem; }
+/* El input pegado al prefijo no repite el borde izquierdo */
+.paso-card .input-group .input-elegante { border-left: none; }

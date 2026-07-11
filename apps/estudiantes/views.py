@@ -412,7 +412,9 @@ def reservar_chromebook(request):
             Notificacion.objects.create(
                 usuario=usuario,
                 titulo='Reserva Registrada',
-                mensaje=f'Tu reserva ha sido registrada. Código: {codigo}. Preséntalo en el CRAI.',
+                mensaje=(f'Tu reserva para el {reserva.fecha_uso:%d/%m/%Y} de '
+                         f'{reserva.hora_inicio:%H:%M} a {reserva.hora_fin:%H:%M} quedó registrada. '
+                         'Preséntate en el CRAI para retirar tu equipo.'),
                 tipo='reserva'
             )
             
@@ -1276,7 +1278,9 @@ def api_crear_reserva(request):
     Notificacion.objects.create(
         usuario=perfil.user,
         titulo='Reserva Registrada',
-        mensaje=f'Tu reserva ha sido registrada. Código: {codigo}. Preséntalo en el CRAI.',
+        mensaje=(f'Tu reserva para el {reserva.fecha_uso:%d/%m/%Y} de '
+                 f'{reserva.hora_inicio:%H:%M} a {reserva.hora_fin:%H:%M} quedó registrada. '
+                 'Preséntate en el CRAI para retirar tu equipo.'),
         tipo='reserva',
     )
 

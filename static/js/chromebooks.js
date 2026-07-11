@@ -172,6 +172,43 @@ function guardarEdicion() {
     });
 }
 
+// ===== ELIMINAR CHROMEBOOK =====
+// Abre el modal de confirmación con el código del equipo que se está editando.
+function eliminarChromebook() {
+    var codigo = document.getElementById('editCodigo').value || 'este equipo';
+    document.getElementById('delCbCodigo').textContent = codigo;
+    var edit = bootstrap.Modal.getInstance(document.getElementById('modalEditarChromebook'));
+    if (edit) edit.hide();
+    new bootstrap.Modal(document.getElementById('modalEliminarChromebook')).show();
+}
+
+function confirmarEliminarChromebook() {
+    var id = document.getElementById('editId').value;
+    var btn = document.getElementById('btnConfirmarEliminarCb');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Eliminando...'; }
+
+    fetch('/prestamos/api/eliminar-chromebook/' + id + '/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            mostrarToastTrasReload(data.message || 'Equipo eliminado', 'success');
+            location.reload();
+        } else {
+            var modal = bootstrap.Modal.getInstance(document.getElementById('modalEliminarChromebook'));
+            if (modal) modal.hide();
+            mostrarToast(data.message || 'No se pudo eliminar', 'error');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-trash me-1"></i>Sí, eliminar'; }
+        }
+    })
+    .catch(function() {
+        mostrarToast('Error de conexión al eliminar.', 'error');
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-trash me-1"></i>Sí, eliminar'; }
+    });
+}
+
 function getCSRFToken() {
     var cookies = document.cookie.split(';');
     for (var i = 0; i < cookies.length; i++) {

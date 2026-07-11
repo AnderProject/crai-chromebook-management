@@ -104,9 +104,18 @@ class Estudiante(models.Model):
 # CHROMEBOOK (SE MANTIENE IGUAL)
 # ==========================================
 
+def _foto_chromebook_path(instance, filename):
+    """La foto se guarda con el código del equipo (chromebooks/CB-012.jpg) para
+    que el detalle ("ojito") la detecte automáticamente y el inventario quede
+    ordenado, sin importar cómo se llamara el archivo original."""
+    import os
+    ext = (os.path.splitext(filename)[1] or '.jpg').lower()
+    return f'chromebooks/{instance.codigo}{ext}'
+
+
 class Chromebook(models.Model):
     """Inventario de Chromebooks"""
-    
+
     ESTADOS = [
         ('disponible', 'Disponible'),
         ('prestado', 'Prestado'),
@@ -132,12 +141,24 @@ class Chromebook(models.Model):
     notas = models.TextField(blank=True, null=True)
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
-    foto = models.ImageField(upload_to='chromebooks/', blank=True, null=True, verbose_name='Foto del equipo')
+    foto = models.ImageField(upload_to=_foto_chromebook_path, blank=True, null=True, verbose_name='Foto del equipo')
     ultimo_heartbeat = models.DateTimeField(null=True, blank=True, verbose_name='Última conexión del kiosko')
 
     # Segundos de margen para considerar el equipo "en línea". La app kiosko hace
     # polling cada ~8-12s; con 60s damos holgura para reintentos/latencia.
     HEARTBEAT_UMBRAL_SEG = 60
+
+    def save(self, *args, **kwargs):
+        # Si se sube una foto nueva, borra la anterior con el mismo código para
+        # conservar el nombre chromebooks/<codigo>.<ext> (sin sufijos aleatorios).
+        if self.foto and not self.foto._committed and self.codigo:
+            import os
+            from django.core.files.storage import default_storage
+            ext = (os.path.splitext(self.foto.name)[1] or '.jpg').lower()
+            destino = f'chromebooks/{self.codigo}{ext}'
+            if default_storage.exists(destino):
+                default_storage.delete(destino)
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'tb_chromebook'

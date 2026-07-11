@@ -2924,7 +2924,42 @@ def api_editar_chromebook(request, id):
             return JsonResponse({'success': True})
         except Chromebook.DoesNotExist:
             return JsonResponse({'success': False})
-        
+
+
+def api_eliminar_chromebook(request, id):
+    """Elimina un Chromebook del inventario (con protecciones)."""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido.'}, status=405)
+    try:
+        cb = Chromebook.objects.get(id=id)
+    except Chromebook.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Equipo no encontrado.'}, status=404)
+
+    # No se elimina un equipo en uso.
+    if cb.estado in ('prestado', 'mantenimiento'):
+        return JsonResponse({
+            'success': False,
+            'message': 'No puedes eliminar un equipo prestado o en mantenimiento. Primero devuélvelo o finaliza su mantenimiento.'
+        })
+
+    # Preservar el historial: si tiene préstamos o mantenimientos registrados, no se borra.
+    if Prestamo.objects.filter(chromebook=cb).exists():
+        return JsonResponse({
+            'success': False,
+            'message': 'Este equipo tiene préstamos en su historial, por eso no se puede eliminar (se perdería el registro).'
+        })
+    if cb.mantenimientos.exists():
+        return JsonResponse({
+            'success': False,
+            'message': 'Este equipo tiene mantenimientos registrados, por eso no se puede eliminar.'
+        })
+
+    codigo = cb.codigo
+    if cb.foto:
+        cb.foto.delete(save=False)
+    cb.delete()
+    return JsonResponse({'success': True, 'message': f'{codigo} eliminado del inventario.'})
+
 
 @csrf_exempt
 def api_generar_qr_foto_chromebook(request):
