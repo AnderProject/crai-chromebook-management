@@ -27,8 +27,8 @@
 }
 
 .cs-btn-txt { display: inline-flex; align-items: center; gap: 0.55rem; min-width: 0; overflow: hidden; }
-.cs-btn-txt > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cs-btn.cs-vacio .cs-ph { color: #9aa5b1; }
+.cs-btn-txt > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.cs-btn.cs-vacio .cs-ph { color: #5a6473; font-weight: 600; }
 
 .cs-caret { color: #8a93a6; font-size: 0.8rem; transition: transform 0.22s ease; flex-shrink: 0; }
 .cs-wrap.abierto .cs-caret { transform: rotate(180deg); }
