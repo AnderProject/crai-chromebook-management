@@ -4,9 +4,12 @@
    ========================================== */
 
 .registro-container {
-    max-width: 900px;
+    max-width: 1050px;
     margin: 0 auto;
 }
+
+.registro-titulo h5 { font-size: 1.4rem; }
+.registro-titulo small { font-size: 0.85rem; }
 
 .registro-header {
     display: flex;
@@ -24,14 +27,14 @@
 }
 
 .registro-titulo-icono {
-    width: 46px;
-    height: 46px;
+    width: 54px;
+    height: 54px;
     flex-shrink: 0;
-    border-radius: 13px;
+    border-radius: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    font-size: 1.65rem;
     color: #fff;
     background: linear-gradient(135deg, #1a73e8, #1557b0);
     box-shadow: 0 6px 16px rgba(26, 115, 232, 0.32);
@@ -284,10 +287,10 @@
 .paso-card {
     background: var(--blanco);
     border-radius: var(--radius);
-    padding: 1.2rem;
+    padding: 1.5rem 1.6rem;
     border: 1px solid #e9ecef;
     transition: all 0.2s;
-    margin-bottom: 0.8rem;
+    margin-bottom: 1rem;
 }
 
 .paso-card:hover {
@@ -298,29 +301,31 @@
 .paso-header {
     display: flex;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.7rem;
 }
 
+.paso-header .fw-semibold { font-size: 0.9rem !important; letter-spacing: 0.03em; }
+
 .paso-numero {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     background: #e8f0fe;
     color: var(--info);
-    border-radius: 8px;
+    border-radius: 9px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.8rem;
-    margin-right: 0.6rem;
+    font-size: 0.95rem;
+    margin-right: 0.7rem;
 }
 
 /* Input elegante */
 .input-elegante {
     border: 1.5px solid #c3cbe4;
     border-radius: 10px;
-    padding: 0.55rem 0.85rem;
-    font-size: 0.9rem;
+    padding: 0.7rem 1rem;
+    font-size: 0.98rem;
     font-weight: 600;
     color: #2b2f4a;
     transition: all 0.2s;
@@ -654,6 +659,37 @@
     font-size: 0.98rem;
     box-shadow: 0 3px 10px rgba(26, 35, 126, 0.08);
 }
-.paso-card .input-group-text i { font-size: 1.05rem; }
+.paso-card .input-group-text i { font-size: 1.15rem; }
 /* El input pegado al prefijo no repite el borde izquierdo */
 .paso-card .input-group .input-elegante { border-left: none; }
+
+/* ============================================================
+   Botones "Verificar" / "Buscar" más notorios (icono + texto)
+   ============================================================ */
+.paso-card .input-group .btn-elegante {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    background: linear-gradient(135deg, #1a73e8, #1557b0) !important;
+    color: #fff !important;
+    border: 1.5px solid #1557b0 !important;
+    font-weight: 700;
+    font-size: 0.96rem;
+    padding: 0.6rem 1.35rem;
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.28);
+    white-space: nowrap;
+}
+.paso-card .input-group .btn-elegante i {
+    font-size: 1.15rem;
+    margin: 0 !important; /* el gap del flex ya separa el icono del texto */
+}
+.paso-card .input-group .btn-elegante:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(26, 115, 232, 0.4);
+}
+.paso-card .input-group .btn-elegante:active {
+    transform: translateY(0);
+    filter: brightness(0.98);
+}

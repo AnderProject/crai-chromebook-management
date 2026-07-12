@@ -221,3 +221,130 @@ body.modo-oscuro .ajustes-container h6 {
 .btn-toggle-api:active {
     transform: translateY(0);
 }
+
+/* ==========================================
+   MODAL DE CONFIRMACIÓN (toggle API)
+   ========================================== */
+.ajustes-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    background: rgba(20, 22, 40, 0.55);
+    backdrop-filter: blur(3px);
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.ajustes-modal.visible {
+    display: flex;
+    animation: ajustesModalFade 0.2s ease;
+}
+
+@keyframes ajustesModalFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.ajustes-modal-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 2rem 1.8rem 1.6rem;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+    animation: ajustesModalPop 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes ajustesModalPop {
+    from { opacity: 0; transform: translateY(14px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.ajustes-modal-ico {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.9rem;
+    color: #fff;
+    background: linear-gradient(135deg, #43a047, #2e7d32);
+}
+
+.ajustes-modal-ico.peligro {
+    background: linear-gradient(135deg, #e53935, #c62828);
+}
+
+.ajustes-modal-titulo {
+    font-weight: 700;
+    color: #1a237e;
+    margin-bottom: 0.5rem;
+}
+
+.ajustes-modal-texto {
+    color: #5a5f73;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.ajustes-modal-acciones {
+    display: flex;
+    gap: 0.7rem;
+    justify-content: center;
+}
+
+.ajustes-btn-cancel,
+.ajustes-btn-ok {
+    border: none;
+    border-radius: 12px;
+    padding: 0.6rem 1.3rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.ajustes-btn-cancel {
+    background: #eef0f5;
+    color: #4a4f63;
+}
+
+.ajustes-btn-ok {
+    color: #fff;
+    background: linear-gradient(135deg, #43a047, #2e7d32);
+    box-shadow: 0 5px 14px rgba(67, 160, 71, 0.32);
+}
+
+.ajustes-btn-ok.peligro {
+    background: linear-gradient(135deg, #e53935, #c62828);
+    box-shadow: 0 5px 14px rgba(229, 57, 53, 0.32);
+}
+
+.ajustes-btn-cancel:hover,
+.ajustes-btn-ok:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+
+/* Modo oscuro */
+body.modo-oscuro .ajustes-modal-card {
+    background: #252540;
+}
+
+body.modo-oscuro .ajustes-modal-titulo {
+    color: #c5cae9;
+}
+
+body.modo-oscuro .ajustes-modal-texto {
+    color: #b0b3c7;
+}
+
+body.modo-oscuro .ajustes-btn-cancel {
+    background: #333355;
+    color: #e0e0e0;
+}

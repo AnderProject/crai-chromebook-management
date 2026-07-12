@@ -963,19 +963,22 @@ def reportes(request):
 
 
 def exportar_reportes(request):
-    """Exporta los datos del panel de Reportes a CSV.
+    """Exporta los datos del panel de Reportes a un Excel (.xlsx) profesional.
 
-    Genera un ZIP con un CSV por cada tabla/gráfico que se ve en pantalla
-    (temporal, distribución, rankings de estudiantes, mantenimiento y
-    operativo). Cada CSV lleva BOM UTF-8 para que Excel respete los acentos.
+    Genera un único libro con una hoja por cada tabla/gráfico que se ve en
+    pantalla (temporal, distribución, rankings de estudiantes, mantenimiento y
+    operativo), más una portada. Cada hoja lleva título, encabezados con estilo
+    corporativo (indigo UNEMI), filas cebra, bordes, anchos automáticos y
+    encabezado congelado, listo para leerse en Excel/LibreOffice sin ajustes.
     Reaprovecha exactamente las mismas consultas que la vista `reportes`.
     """
-    import csv
     import io
-    import zipfile
     from django.http import HttpResponse
     from .models import Chromebook, Prestamo, Mantenimiento
     from django.db.models import Count, Sum, Q, F
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
 
     if not (request.user.is_superuser or
             request.user.groups.filter(name__in=['Administrador', 'Tics']).exists()):
@@ -1080,21 +1083,157 @@ def exportar_reportes(request):
     hojas.append(('operativo_vencidos.csv',
                   ['Estudiante', 'Chromebook', 'Vencía', 'Horas de atraso'], filas_venc))
 
-    # ---- Empaquetar en ZIP ----
-    buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for nombre, encabezados, filas in hojas:
-            texto = io.StringIO()
-            writer = csv.writer(texto)
-            writer.writerow(encabezados)
-            writer.writerows(filas)
-            # BOM para que Excel reconozca UTF-8 y muestre bien los acentos.
-            zf.writestr(nombre, '﻿' + texto.getvalue())
+    # ---- Construir el Excel profesional ----
+    # Metadatos de cada hoja: (nombre de pestaña, título visible).
+    META = {
+        'resumen.csv': ('Resumen', 'Resumen general de indicadores'),
+        'prestamos_por_carrera.csv': ('Por carrera', 'Préstamos por carrera'),
+        'prestamos_por_facultad.csv': ('Por facultad', 'Préstamos por facultad'),
+        'prestamos_por_marca.csv': ('Por marca', 'Préstamos por marca de equipo'),
+        'inventario.csv': ('Inventario', 'Inventario por estado'),
+        'condicion_equipos.csv': ('Condición', 'Condición de los equipos'),
+        'top_estudiantes.csv': ('Top estudiantes', 'Estudiantes con más préstamos'),
+        'estudiantes_con_vencidos.csv': ('Con vencidos', 'Estudiantes con préstamos vencidos'),
+        'mantenimiento_tecnicos.csv': ('Técnicos', 'Mantenimiento por técnico'),
+        'operativo_activos.csv': ('Activos', 'Préstamos activos en curso'),
+        'operativo_vencidos.csv': ('Vencidos', 'Préstamos vencidos'),
+    }
 
+    # Paleta corporativa (indigo UNEMI).
+    INDIGO = '1A237E'
+    INDIGO_CLARO = 'E8EAF6'
+    CEBRA = 'F5F6FA'
+    _lado = Side(style='thin', color='D5D8E4')
+    BORDE = Border(left=_lado, right=_lado, top=_lado, bottom=_lado)
+    GENERADO = f'CRAI UNEMI · Generado el {timezone.localtime().strftime("%d/%m/%Y %H:%M")}'
+
+    def _estilar_hoja(ws, titulo, encabezados, filas):
+        ncol = max(len(encabezados), 1)
+        # Fila 1: banda de título.
+        ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=ncol)
+        c = ws.cell(row=1, column=1, value=titulo)
+        c.font = Font(name='Calibri', size=14, bold=True, color='FFFFFF')
+        c.fill = PatternFill('solid', fgColor=INDIGO)
+        c.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+        ws.row_dimensions[1].height = 30
+        # Fila 2: subtítulo con la marca y fecha de generación.
+        ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=ncol)
+        s = ws.cell(row=2, column=1, value=GENERADO)
+        s.font = Font(name='Calibri', size=9, italic=True, color='5A5F73')
+        s.fill = PatternFill('solid', fgColor=INDIGO_CLARO)
+        s.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+        ws.row_dimensions[2].height = 18
+        # Fila 3: encabezados de columna.
+        fila_enc = 3
+        for j, h in enumerate(encabezados, start=1):
+            cell = ws.cell(row=fila_enc, column=j, value=h)
+            cell.font = Font(bold=True, color='FFFFFF', size=11)
+            cell.fill = PatternFill('solid', fgColor=INDIGO)
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+            cell.border = BORDE
+        ws.row_dimensions[fila_enc].height = 22
+        # Datos con filas cebra.
+        for i, fila in enumerate(filas):
+            r = fila_enc + 1 + i
+            for j, val in enumerate(fila, start=1):
+                cell = ws.cell(row=r, column=j, value=val)
+                cell.border = BORDE
+                if i % 2:
+                    cell.fill = PatternFill('solid', fgColor=CEBRA)
+                if isinstance(val, (int, float)) and not isinstance(val, bool):
+                    cell.alignment = Alignment(horizontal='center', vertical='center')
+                else:
+                    cell.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+        # Aviso cuando la tabla no tiene datos.
+        if not filas:
+            ws.merge_cells(start_row=fila_enc + 1, start_column=1,
+                           end_row=fila_enc + 1, end_column=ncol)
+            v = ws.cell(row=fila_enc + 1, column=1, value='Sin datos para mostrar')
+            v.font = Font(italic=True, color='9AA0B4')
+            v.alignment = Alignment(horizontal='center', vertical='center')
+        # Anchos automáticos según el contenido.
+        for j in range(1, ncol + 1):
+            largo = len(str(encabezados[j - 1])) if j - 1 < len(encabezados) else 0
+            for fila in filas:
+                if j - 1 < len(fila):
+                    largo = max(largo, len(str(fila[j - 1])))
+            ws.column_dimensions[get_column_letter(j)].width = min(max(largo + 4, 12), 48)
+        # Congelar la banda de título + encabezados.
+        ws.freeze_panes = ws.cell(row=fila_enc + 1, column=1)
+
+    wb = Workbook()
+    wb.remove(wb.active)
+
+    # ---- Portada / índice ----
+    portada = wb.create_sheet(title='Portada')
+    portada.sheet_view.showGridLines = False
+    portada.merge_cells('A1:C1')
+    t = portada.cell(row=1, column=1, value='Reportes CRAI UNEMI')
+    t.font = Font(name='Calibri', size=20, bold=True, color='FFFFFF')
+    t.fill = PatternFill('solid', fgColor=INDIGO)
+    t.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+    portada.row_dimensions[1].height = 44
+    portada.merge_cells('A2:C2')
+    st = portada.cell(row=2, column=1, value=GENERADO)
+    st.font = Font(size=10, italic=True, color='5A5F73')
+    st.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+    portada.row_dimensions[2].height = 20
+    idx_enc = ['#', 'Sección', 'Registros']
+    for j, h in enumerate(idx_enc, start=1):
+        cell = portada.cell(row=4, column=j, value=h)
+        cell.font = Font(bold=True, color='FFFFFF')
+        cell.fill = PatternFill('solid', fgColor=INDIGO)
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+        cell.border = BORDE
+
+    # Hoja "Consolidado": se llena tras recorrer las secciones; va justo tras la portada.
+    ws_cons = wb.create_sheet(title='Consolidado')
+
+    # ---- Una hoja por cada tabla + acumular TODOS los datos en el consolidado ----
+    consolidado = []      # formato largo: [Sección, Elemento, Parámetro, Valor]
+    filas_indice = []     # (título, nº de registros) para la portada
+    for nombre, encabezados, filas in hojas:
+        pestana, titulo = META.get(nombre, (nombre[:28], nombre))
+        ws = wb.create_sheet(title=pestana)
+        _estilar_hoja(ws, titulo, encabezados, filas)
+        filas_indice.append((titulo, len(filas)))
+        # Vuelca cada celda al consolidado: una fila por (elemento, parámetro).
+        for fila in filas:
+            elemento = str(fila[0]) if fila else ''
+            for j in range(1, len(encabezados)):
+                valor = fila[j] if j < len(fila) else ''
+                consolidado.append([titulo, elemento, encabezados[j], valor])
+
+    _estilar_hoja(ws_cons, 'Todos los parámetros (consolidado)',
+                  ['Sección', 'Elemento', 'Parámetro', 'Valor'], consolidado)
+
+    # ---- Índice en la portada: Consolidado primero, luego cada sección ----
+    filas_idx = [('Todos los parámetros (consolidado)', len(consolidado))] + filas_indice
+    for i, (titulo, registros) in enumerate(filas_idx, start=1):
+        r = 4 + i
+        valores = [i, titulo, registros]
+        for j, val in enumerate(valores, start=1):
+            cell = portada.cell(row=r, column=j, value=val)
+            cell.border = BORDE
+            if i % 2:
+                cell.fill = PatternFill('solid', fgColor=CEBRA)
+            cell.alignment = Alignment(
+                horizontal='center' if j != 2 else 'left',
+                vertical='center', indent=0 if j != 2 else 1)
+
+    portada.column_dimensions['A'].width = 6
+    portada.column_dimensions['B'].width = 42
+    portada.column_dimensions['C'].width = 14
+    portada.freeze_panes = 'A5'
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
     buffer.seek(0)
-    nombre_zip = f'reportes_crai_{hoy.strftime("%Y%m%d")}.zip'
-    respuesta = HttpResponse(buffer.getvalue(), content_type='application/zip')
-    respuesta['Content-Disposition'] = f'attachment; filename="{nombre_zip}"'
+    nombre_archivo = f'reportes_crai_{hoy.strftime("%Y%m%d")}.xlsx'
+    respuesta = HttpResponse(
+        buffer.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    respuesta['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
     return respuesta
 
 

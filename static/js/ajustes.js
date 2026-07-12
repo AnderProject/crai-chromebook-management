@@ -103,8 +103,38 @@ function getCSRFToken() {
 function toggleApiMatriculas() {
     var btn = document.getElementById('btnToggleApi');
     var desconectando = btn.classList.contains('desconectar');
-    var verbo = desconectando ? 'desconectar' : 'conectar';
-    if (!confirm('¿Seguro que deseas ' + verbo + ' la API de matrículas?')) { return; }
+
+    // Personaliza el modal según la acción (conectar / desconectar).
+    var ico = document.getElementById('modalApiIco');
+    var titulo = document.getElementById('modalApiTitulo');
+    var texto = document.getElementById('modalApiTexto');
+    var confirmar = document.getElementById('modalApiConfirmar');
+    if (desconectando) {
+        ico.className = 'ajustes-modal-ico peligro';
+        ico.querySelector('i').className = 'bi bi-plug';
+        titulo.textContent = '¿Desconectar la API?';
+        texto.textContent = 'Se dejará de sincronizar con el sistema de matrículas de la UNEMI.';
+        confirmar.className = 'ajustes-btn-ok peligro';
+        confirmar.textContent = 'Sí, desconectar';
+    } else {
+        ico.className = 'ajustes-modal-ico';
+        ico.querySelector('i').className = 'bi bi-broadcast';
+        titulo.textContent = '¿Conectar la API?';
+        texto.textContent = 'Se reanudará la sincronización con el sistema de matrículas de la UNEMI.';
+        confirmar.className = 'ajustes-btn-ok';
+        confirmar.textContent = 'Sí, conectar';
+    }
+
+    document.getElementById('modalToggleApi').classList.add('visible');
+}
+
+function cerrarConfirmarApi() {
+    document.getElementById('modalToggleApi').classList.remove('visible');
+}
+
+function ejecutarToggleApi() {
+    cerrarConfirmarApi();
+    if (typeof mostrarLoader === 'function') mostrarLoader();
 
     fetch('/prestamos/api/toggle-matriculas/', {
         method: 'POST',
@@ -114,6 +144,7 @@ function toggleApiMatriculas() {
     .then(function (r) { return r.json(); })
     .then(function (data) {
         var estado = document.getElementById('apiConexionEstado');
+        var btn = document.getElementById('btnToggleApi');
         var texto = document.getElementById('btnToggleApiTexto');
         if (data.activa) {
             estado.innerHTML = '<span class="badge-conexion conectada"><i class="bi bi-broadcast"></i>Conectada</span>';
@@ -129,5 +160,11 @@ function toggleApiMatriculas() {
             if (typeof mostrarToast === 'function') mostrarToast('API de matrículas desconectada.', 'warning');
         }
         document.getElementById('apiStatus').innerHTML = '';
+    })
+    .catch(function () {
+        if (typeof mostrarToast === 'function') mostrarToast('Error de red al cambiar el estado de la API.', 'error');
+    })
+    .finally(function () {
+        if (typeof ocultarLoader === 'function') ocultarLoader();
     });
 }

@@ -44,14 +44,6 @@ function esperarTimepicker(cb) {
 function pad(n) { return (n < 10 ? '0' : '') + n; }
 function minutosAStr(min) { return pad(Math.floor(min / 60)) + ':' + pad(min % 60); }
 
-// Fecha de mañana (YYYY-MM-DD) en zona horaria de Ecuador
-function fechaManana() {
-    var p = ahoraEcuador().fecha.split('-');
-    var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
-    d.setUTCDate(d.getUTCDate() + 1);
-    return d.toISOString().split('T')[0];
-}
-
 // Fecha y hora actuales en zona horaria de Ecuador (independiente del equipo)
 function ahoraEcuador() {
     var fmt = new Intl.DateTimeFormat('en-CA', {
@@ -228,8 +220,11 @@ function enviarReserva(event) {
     var fin = document.getElementById('horaFin').value;
 
     if (!fecha) { mostrarAlerta('Selecciona la fecha de uso.'); return; }
-    if (fecha < ahoraEcuador().fecha) { mostrarAlerta('No puedes reservar en una fecha pasada.'); return; }
-    if (fecha > fechaManana()) { mostrarAlerta('Solo puedes reservar para hoy o para mañana (máximo un día de anticipación).'); return; }
+    // Los días válidos son los que ofrecen los botones (los calcula el backend: lun-vie).
+    var fechasValidas = Array.prototype.map.call(
+        document.querySelectorAll('.btn-fecha'),
+        function (b) { return b.getAttribute('data-fecha'); });
+    if (fechasValidas.indexOf(fecha) === -1) { mostrarAlerta('Elige uno de los días disponibles (de lunes a viernes).'); return; }
     if (!inicio || !fin) { mostrarAlerta('Selecciona la hora de inicio y la hora de fin.'); return; }
     if (fin <= inicio) { mostrarAlerta('La hora de fin debe ser mayor que la hora de inicio.'); return; }
     if (inicio < '08:00' || fin > '17:00') { mostrarAlerta('El horario de reservas es de 08:00 a 17:00.'); return; }
