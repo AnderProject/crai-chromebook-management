@@ -5,26 +5,50 @@
     position: fixed;
     right: 24px;
     bottom: 24px;
-    width: 60px;
-    height: 60px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     border: none;
     background: linear-gradient(135deg, #1a237e, #3949ab);
     color: #fff;
-    font-size: 1.5rem;
-    box-shadow: 0 10px 26px rgba(26, 35, 126, 0.42);
+    font-size: 1.2rem;
+    box-shadow: 0 8px 20px rgba(26, 35, 126, 0.4);
     cursor: pointer;
     z-index: 1200;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    /* Latido suave permanente (reposo) */
+    animation: asesoriaRespira 3s ease-in-out infinite;
 }
-.asesoria-fab:hover { transform: translateY(-3px) scale(1.05); }
-.asesoria-fab.con-aviso { animation: asesoriaLatir 1.4s ease-in-out infinite; }
+.asesoria-fab:hover { transform: translateY(-3px) scale(1.08); }
+.asesoria-fab:active { transform: scale(0.94); }
+
+/* El ícono se balancea suavemente (siempre) */
+.asesoria-fab i {
+    display: inline-block;
+    animation: asesoriaBalanceo 2.6s ease-in-out infinite;
+    transform-origin: top center;
+}
+
+@keyframes asesoriaRespira {
+    0%, 100% { box-shadow: 0 8px 20px rgba(26, 35, 126, 0.38); }
+    50% { box-shadow: 0 10px 26px rgba(26, 35, 126, 0.55); }
+}
+@keyframes asesoriaBalanceo {
+    0%, 60%, 100% { transform: rotate(0); }
+    70% { transform: rotate(-12deg); }
+    80% { transform: rotate(10deg); }
+    90% { transform: rotate(-6deg); }
+}
+
+/* Con aviso: latido más intenso (rojo) y balanceo más rápido del ícono */
+.asesoria-fab.con-aviso { animation: asesoriaLatir 1.2s ease-in-out infinite; }
+.asesoria-fab.con-aviso i { animation-duration: 1s; }
 @keyframes asesoriaLatir {
-    0%, 100% { box-shadow: 0 10px 26px rgba(26, 35, 126, 0.42); }
-    50% { box-shadow: 0 0 0 10px rgba(229, 57, 53, 0.18), 0 10px 26px rgba(26, 35, 126, 0.42); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.35), 0 8px 20px rgba(26, 35, 126, 0.42); }
+    50% { box-shadow: 0 0 0 10px rgba(229, 57, 53, 0), 0 8px 20px rgba(26, 35, 126, 0.42); }
 }
 
 .asesoria-fab-badge {
