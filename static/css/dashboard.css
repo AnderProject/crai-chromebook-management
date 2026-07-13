@@ -87,6 +87,41 @@
     display: block;
 }
 
+/* Celda de usuario con foto + nombre (tablas de préstamos y reservas) */
+.celda-usuario {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+.avatar-tabla {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a237e, #3949ab);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(26, 35, 126, 0.28);
+    border: 2px solid #fff;
+    outline: 1px solid #e8eaf6;
+}
+
+.celda-usuario-nombre {
+    font-weight: 500;
+    color: #2b3448;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Dropdown del usuario */
 .dropdown-perfil .dropdown-header {
     font-size: 0.85rem;
@@ -867,6 +902,36 @@ tr:hover .badge-estado {
 .bg-naranja { background: #fff3e0; color: #ff9800; }
 .bg-cyan { background: #e0f7fa; color: #00bcd4; }
 .bg-verde { background: #e6f4ea; color: #34a853; }
+.bg-rojo { background: #fdecea; color: #ea4335; }
+
+/* ==========================================
+   KPI dashboard: acabado pastel (referencia)
+   — tarjeta tintada + ícono en círculo a la derecha (solo CSS)
+   ========================================== */
+.dashboard-stat-card:has(.stat-icono-dash.bg-azul)    { background: linear-gradient(135deg, #f6f9ff, #ecf3ff); border-color: #dfe9ff; }
+.dashboard-stat-card:has(.stat-icono-dash.bg-naranja) { background: linear-gradient(135deg, #fffaf2, #fff2e0); border-color: #ffe6c6; }
+.dashboard-stat-card:has(.stat-icono-dash.bg-cyan)    { background: linear-gradient(135deg, #f1fdff, #e2f8fc); border-color: #c7edf3; }
+.dashboard-stat-card:has(.stat-icono-dash.bg-verde)   { background: linear-gradient(135deg, #f3fbf6, #e7f6ec); border-color: #cceed6; }
+.dashboard-stat-card:has(.stat-icono-dash.bg-rojo)    { background: linear-gradient(135deg, #fff5f4, #ffe9e7); border-color: #ffd4cf; }
+
+.dashboard-stat-card .stat-card-content { justify-content: space-between; }
+.dashboard-stat-card .stat-info-dash { order: 1; align-items: flex-start; }
+.dashboard-stat-card .stat-icono-dash {
+    order: 2;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 6px 14px rgba(26, 35, 126, 0.12);
+}
+
+/* Texto con más peso y color más marcado para que resalte sobre el pastel
+   (evita que el subtítulo se pierda con el color de la tarjeta). */
+.dashboard-stat-card .stat-numero-dash { font-weight: 800; color: #1f2533; }
+.dashboard-stat-card .stat-label-dash { color: #5b6270; font-weight: 700; }
+.dashboard-stat-card .stat-sub-dash { font-weight: 700; }
+.dashboard-stat-card .stat-sub-dash.text-success { color: #1e7e34 !important; }
+.dashboard-stat-card .stat-sub-dash.text-warning { color: #b26a00 !important; }
+.dashboard-stat-card .stat-sub-dash.text-info { color: #0b7285 !important; }
+.dashboard-stat-card .stat-sub-dash.text-danger { color: #c62828 !important; }
 
 .stat-info-dash {
     display: flex;
@@ -907,6 +972,7 @@ tr:hover .badge-estado {
 .dashboard-stat-card .stat-card-bar.bg-naranja { background: linear-gradient(90deg, #ff9800, #ffb74d); }
 .dashboard-stat-card .stat-card-bar.bg-cyan { background: linear-gradient(90deg, #00bcd4, #4dd0e1); }
 .dashboard-stat-card .stat-card-bar.bg-verde { background: linear-gradient(90deg, #34a853, #66bb6a); }
+.dashboard-stat-card .stat-card-bar.bg-rojo { background: linear-gradient(90deg, #ea4335, #ff6b6b); }
 
 .dashboard-stat-card:nth-child(1) { animation: fadeInCard 0.5s ease-out; }
 .dashboard-stat-card:nth-child(2) { animation: fadeInCard 0.5s ease-out 0.1s both; }

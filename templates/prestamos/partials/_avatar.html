@@ -5,4 +5,4 @@ Parámetros (vía {% include ... with %}):
   nombre    -> nombre para la inicial. Opcional.
   apellido  -> apellido para la inicial. Opcional.
   clase     -> clases CSS del contenedor (p.ej. 'avatar-dashboard').
-{% endcomment %}{% if foto %}<div class="{{ clase }}"><img src="{{ foto.url }}" alt="Foto de perfil" class="avatar-img"></div>{% else %}<div class="{{ clase }}">{{ nombre|first|upper }}{{ apellido|first|upper }}</div>{% endif %}
+{% endcomment %}{% if foto %}<div class="{{ clase }}"><img src="{{ foto.url }}" alt="Foto de perfil" class="avatar-img" onerror="var d=this.parentNode;d.removeChild(this);d.appendChild(document.createTextNode('{{ nombre|first|upper|escapejs }}{{ apellido|first|upper|escapejs }}'));"></div>{% else %}<div class="{{ clase }}">{{ nombre|first|upper }}{{ apellido|first|upper }}</div>{% endif %}

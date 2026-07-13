@@ -6,7 +6,12 @@
             <button type="button" class="btn-revelar" title="Revelar con cédula" onclick="activarRevelarInline({{ r.id }})"><i class="bi bi-eye"></i></button>
         </div>
     </td>
-    <td><strong>{{ r.estudiante.usuario.user.get_full_name }}</strong></td>
+    <td>
+        <div class="celda-usuario">
+            {% include 'prestamos/partials/_avatar.html' with foto=r.estudiante.usuario.foto nombre=r.estudiante.usuario.user.first_name apellido=r.estudiante.usuario.user.last_name clase='avatar-tabla' %}
+            <span class="celda-usuario-nombre"><strong>{{ r.estudiante.usuario.user.get_full_name }}</strong></span>
+        </div>
+    </td>
     <td><small class="text-muted">{{ r.estudiante.carrera.nombre|default:'—' }}</small></td>
     <td>{{ r.fecha_uso|date:"d/m/Y" }}</td>
     <td>{{ r.hora_inicio|time:"H:i" }} – {{ r.hora_fin|time:"H:i" }}</td>

@@ -587,12 +587,16 @@ def _cancelar_reserva_por_codigo(estudiante, codigo):
             'así que no se puede cancelar.')
 
 
-def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
+def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id, canal='web', telefono=''):
     """Lógica central del chatbot, compartida por el portal web y por WhatsApp.
 
     Recibe el estudiante/perfil ya identificados (por sesión en el portal, por
     teléfono en WhatsApp) y devuelve ``(respuesta, accion_realizada)``. No depende
     de ``request`` ni de la sesión, para poder reutilizarse desde cualquier canal.
+
+    ``canal`` y ``telefono`` permiten gestionar el modo de asesoría humana
+    (handoff): si el estudiante pide un asesor real, se abre una
+    ``SolicitudAsesoria`` y el bot deja de responder esa conversación.
     """
     import json
     import re
@@ -612,6 +616,46 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id):
                            or perfil.user.username)
         cedula = perfil.cedula or ''
     primer_nombre = nombre_completo.split(' ')[0] if nombre_completo else ''
+
+    # ========== ASESORÍA HUMANA (handoff) ==========
+    # Se evalúa ANTES que cualquier otra lógica: si ya hay una asesoría abierta,
+    # el bot guarda el mensaje para el asesor y no responde; si el estudiante pide
+    # un asesor real, se abre la solicitud y el panel del CRAI recibe el aviso.
+    from apps.prestamos.models import SolicitudAsesoria, MensajeAsesoria
+    sid = str(session_id or 'anon')
+
+    asesoria = SolicitudAsesoria.objects.filter(
+        session_id=sid, estado__in=['pendiente', 'activa']).first()
+    if asesoria:
+        if mensaje in ('salir', 'terminar', 'volver', 'bot', 'chatbot', 'cerrar', 'menu', 'menú'):
+            asesoria.estado = 'cerrada'
+            asesoria.save(update_fields=['estado', 'actualizada'])
+            return ('Listo, ya vuelvo a atenderte yo 🤖. ¿En qué más te ayudo?', 'asesoria_cerrada')
+        # Modo humano: se guarda el mensaje para el asesor y el bot permanece en silencio.
+        MensajeAsesoria.objects.create(
+            solicitud=asesoria, remitente='estudiante',
+            texto=(mensaje_raw or '').strip(), leido=False)
+        asesoria.save(update_fields=['actualizada'])
+        return ('', 'asesoria_humana')
+
+    _KEYS_ASESOR = [
+        'asesor', 'hablar con alguien', 'hablar con una persona', 'con una persona real',
+        'persona real', 'ser humano', 'un humano', 'con un humano', 'atencion humana',
+        'atención humana', 'agente real', 'quiero hablar con un', 'necesito hablar con un',
+    ]
+    if any(k in mensaje for k in _KEYS_ASESOR):
+        asesoria = SolicitudAsesoria.objects.create(
+            session_id=sid, canal=canal, estudiante=estudiante,
+            usuario=(perfil.user if perfil else None),
+            telefono=telefono or '', nombre=(nombre_completo or 'Estudiante'),
+            estado='pendiente')
+        MensajeAsesoria.objects.create(
+            solicitud=asesoria, remitente='estudiante',
+            texto=(mensaje_raw or '').strip(), leido=False)
+        cuerpo = ('te comunico con un asesor del CRAI 👩‍💼. En un momento te responden por aquí. '
+                  'Cuando quieras volver a hablar conmigo, escribe "salir".')
+        respuesta = f'{primer_nombre}, {cuerpo}' if primer_nombre else cuerpo[0].upper() + cuerpo[1:]
+        return (respuesta, 'solicitar_asesoria')
 
     # ========== PALABRAS CLAVE — respuesta directa (sin n8n) ==========
     accion_realizada = None
@@ -849,7 +893,8 @@ def api_chatbot(request):
     perfil = PerfilUsuario.objects.filter(user=request.user).first()
     estudiante = Estudiante.objects.filter(usuario=perfil).first() if perfil else None
 
-    respuesta, accion = _procesar_chatbot(mensaje_raw, estudiante, perfil, str(request.user.id))
+    respuesta, accion = _procesar_chatbot(mensaje_raw, estudiante, perfil, str(request.user.id),
+                                          canal='web')
 
     ChatbotConversacion.objects.create(
         usuario=request.user,
@@ -897,7 +942,8 @@ def api_chatbot_whatsapp(request):
         if m:
             estudiante, perfil = _buscar_estudiante_n8n(cedula=m.group(1))
 
-    respuesta, accion = _procesar_chatbot(mensaje_raw, estudiante, perfil, telefono or 'wa-anon')
+    respuesta, accion = _procesar_chatbot(mensaje_raw, estudiante, perfil, telefono or 'wa-anon',
+                                          canal='whatsapp', telefono=telefono)
 
     ChatbotConversacion.objects.create(
         usuario=perfil.user if perfil else None,
@@ -906,7 +952,8 @@ def api_chatbot_whatsapp(request):
         canal='whatsapp',
         intencion_detectada=accion or 'conversacion',
     )
-    return JsonResponse({'respuesta': respuesta, 'accion': accion})
+    # En modo humano el bot no responde: n8n no debe enviar nada al estudiante.
+    return JsonResponse({'respuesta': respuesta, 'accion': accion, 'silencio': (accion == 'asesoria_humana')})
 
 
 # ==========================================
@@ -1103,7 +1150,8 @@ def webhook_whatsapp(request):
         )
         return HttpResponse(status=200)
 
-    respuesta, accion = _procesar_chatbot(mensaje_raw, estudiante, perfil, telefono or 'wa-anon')
+    respuesta, accion = _procesar_chatbot(mensaje_raw, estudiante, perfil, telefono or 'wa-anon',
+                                          canal='whatsapp', telefono=telefono)
 
     ChatbotConversacion.objects.create(
         usuario=perfil.user if perfil else None,
@@ -1112,6 +1160,11 @@ def webhook_whatsapp(request):
         canal='whatsapp',
         intencion_detectada=accion or 'conversacion',
     )
+
+    # En modo asesoría humana el bot permanece en silencio (el asesor responde
+    # por su cuenta desde el panel del CRAI): no se envía nada al estudiante.
+    if accion == 'asesoria_humana' or not (respuesta or '').strip():
+        return HttpResponse(status=200)
 
     # Tras completar una acción (reserva creada o cancelada, que empiezan con ✅),
     # acompañamos la confirmación con el menú de botones a modo de "¿algo más?".
@@ -1393,3 +1446,22 @@ def api_mis_reservas(request):
     } for p in prestamos]
 
     return JsonResponse({'reservas': reservas_data, 'prestamos': prestamos_data})
+
+@login_required
+def api_asesoria_mis_mensajes(request):
+    """Polling del estudiante web: mensajes nuevos del asesor de su asesoría activa."""
+    from apps.prestamos.models import SolicitudAsesoria
+    from django.utils import timezone
+    try:
+        desde = int(request.GET.get('desde', 0) or 0)
+    except (ValueError, TypeError):
+        desde = 0
+    s = SolicitudAsesoria.objects.filter(
+        session_id=str(request.user.id), estado__in=['pendiente', 'activa']).first()
+    if not s:
+        return JsonResponse({'activa': False, 'mensajes': [], 'ultimo_id': desde})
+    qs = s.mensajes.filter(remitente='asesor', id__gt=desde).order_by('id')
+    msgs = [{'id': m.id, 'texto': m.texto,
+             'hora': timezone.localtime(m.creado).strftime('%H:%M')} for m in qs]
+    ultimo_id = msgs[-1]['id'] if msgs else desde
+    return JsonResponse({'activa': True, 'mensajes': msgs, 'ultimo_id': ultimo_id})

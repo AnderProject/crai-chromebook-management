@@ -86,6 +86,12 @@ urlpatterns = [
     path('api/prestamos-hoy/', views.api_prestamos_hoy, name='api_prestamos_hoy'),
     path('notificaciones/marcar-leida/<int:id>/', views.marcar_notificacion_leida, name='marcar_notificacion_leida'),
     path('notificaciones/marcar-leidas/', views.marcar_notificaciones_leidas, name='marcar_notificaciones_leidas'),
+
+    # Asesoría en vivo (handoff del chatbot a un asesor real)
+    path('api/asesoria/pendientes/', views.api_asesoria_pendientes, name='api_asesoria_pendientes'),
+    path('api/asesoria/<int:id>/mensajes/', views.api_asesoria_mensajes, name='api_asesoria_mensajes'),
+    path('api/asesoria/<int:id>/responder/', views.api_asesoria_responder, name='api_asesoria_responder'),
+    path('api/asesoria/<int:id>/cerrar/', views.api_asesoria_cerrar, name='api_asesoria_cerrar'),
     path('notificaciones/detalle/<int:id>/', views.api_detalle_notificacion, name='api_detalle_notificacion'),
     path('api/chromebooks-estado/', views.api_chromebooks_estado, name='api_chromebooks_estado'),
     path('api/monitoreo/', views.api_monitoreo, name='api_monitoreo'),

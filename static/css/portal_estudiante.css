@@ -926,3 +926,26 @@
     background: #e7f6ee; border: 1px solid #bfe6d0; border-radius: 999px; padding: 0.28rem 0.7rem;
 }
 .actividad-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #1e9e50; box-shadow: 0 0 0 3px rgba(30,158,80,0.18); animation: pulse 2s infinite; }
+
+/* ==========================================
+   ASESORÍA HUMANA: banner en el chat del estudiante
+   ========================================== */
+.chat-asesor-banner {
+    background: linear-gradient(135deg, #e8f5e9, #d7eede);
+    color: #1b5e20;
+    border: 1px solid #bfe3c4;
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    margin: 0 0 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    animation: bannerAsesorIn 0.25s ease;
+}
+.chat-asesor-banner i { font-size: 0.95rem; }
+@keyframes bannerAsesorIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}

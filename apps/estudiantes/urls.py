@@ -21,6 +21,9 @@ urlpatterns = [
     # Actividad reciente (refresco en vivo del portal)
     path('api/actividad/', views.api_actividad, name='api_actividad'),
 
+    # Asesoría en vivo: polling del estudiante para recibir mensajes del asesor
+    path('api/asesoria/mis-mensajes/', views.api_asesoria_mis_mensajes, name='api_asesoria_mis_mensajes'),
+
     # APIs de consulta para n8n
     path('api/disponibilidad/', views.api_disponibilidad, name='api_disponibilidad'),
     path('api/mis-reservas/', views.api_mis_reservas, name='api_mis_reservas_n8n'),

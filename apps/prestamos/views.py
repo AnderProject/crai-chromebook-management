@@ -3162,3 +3162,95 @@ def subir_foto_chromebook(request, token):
     response = render(request, 'prestamos/evidencia/subir.html', {'token': token})
     response['ngrok-skip-browser-warning'] = 'true'
     return response
+
+# ==========================================
+# ASESORÍA EN VIVO (handoff chatbot -> asesor real)
+# ==========================================
+def _es_staff_crai(user):
+    return user.is_authenticated and (
+        user.is_superuser or user.groups.filter(name__in=['Administrador', 'Tics']).exists())
+
+
+@login_required
+def api_asesoria_pendientes(request):
+    """Asesorías activas/pendientes para el panel (polling + badge + sonido)."""
+    from .models import SolicitudAsesoria
+    if not _es_staff_crai(request.user):
+        return JsonResponse({'ok': False}, status=403)
+    sols = SolicitudAsesoria.objects.filter(estado__in=['pendiente', 'activa']).order_by('-actualizada')
+    data = []
+    total_no_leidos = 0
+    for s in sols:
+        nl = s.no_leidos
+        total_no_leidos += nl
+        ultimo = s.mensajes.last()
+        data.append({
+            'id': s.id, 'nombre': s.nombre or 'Estudiante', 'canal': s.canal,
+            'estado': s.estado, 'no_leidos': nl,
+            'ultimo': (ultimo.texto[:60] if ultimo else ''),
+            'actualizada': timezone.localtime(s.actualizada).strftime('%d/%m %H:%M'),
+        })
+    return JsonResponse({'ok': True, 'solicitudes': data,
+                         'total': len(data), 'no_leidos': total_no_leidos})
+
+
+@login_required
+def api_asesoria_mensajes(request, id):
+    """Mensajes de una asesoría; marca como leídos los del estudiante."""
+    from .models import SolicitudAsesoria
+    if not _es_staff_crai(request.user):
+        return JsonResponse({'ok': False}, status=403)
+    s = SolicitudAsesoria.objects.filter(id=id).first()
+    if not s:
+        return JsonResponse({'ok': False}, status=404)
+    s.mensajes.filter(remitente='estudiante', leido=False).update(leido=True)
+    msgs = [{'remitente': m.remitente, 'texto': m.texto,
+             'hora': timezone.localtime(m.creado).strftime('%H:%M')} for m in s.mensajes.all()]
+    return JsonResponse({'ok': True, 'estado': s.estado, 'canal': s.canal,
+                         'nombre': s.nombre or 'Estudiante', 'mensajes': msgs})
+
+
+@login_required
+def api_asesoria_responder(request, id):
+    """El asesor responde al estudiante (web: queda para su polling; WhatsApp: se envía)."""
+    from .models import SolicitudAsesoria, MensajeAsesoria
+    if not _es_staff_crai(request.user):
+        return JsonResponse({'ok': False}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=405)
+    s = SolicitudAsesoria.objects.filter(id=id).first()
+    if not s or s.estado == 'cerrada':
+        return JsonResponse({'ok': False, 'error': 'Asesoría no disponible'}, status=404)
+    try:
+        texto = (json.loads(request.body).get('texto') or '').strip()
+    except (ValueError, TypeError):
+        texto = ''
+    if not texto:
+        return JsonResponse({'ok': False, 'error': 'Escribe un mensaje'})
+    MensajeAsesoria.objects.create(solicitud=s, remitente='asesor', texto=texto, leido=True)
+    if s.estado == 'pendiente':
+        s.estado = 'activa'
+    s.save(update_fields=['estado', 'actualizada'])
+    if s.canal == 'whatsapp' and s.telefono:
+        from apps.estudiantes.views import _enviar_whatsapp
+        _enviar_whatsapp(s.telefono, texto)
+    return JsonResponse({'ok': True})
+
+
+@login_required
+def api_asesoria_cerrar(request, id):
+    """Cierra la asesoría; el bot vuelve a atender esa conversación."""
+    from .models import SolicitudAsesoria
+    if not _es_staff_crai(request.user):
+        return JsonResponse({'ok': False}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=405)
+    s = SolicitudAsesoria.objects.filter(id=id).first()
+    if not s:
+        return JsonResponse({'ok': False}, status=404)
+    s.estado = 'cerrada'
+    s.save(update_fields=['estado', 'actualizada'])
+    if s.canal == 'whatsapp' and s.telefono:
+        from apps.estudiantes.views import _enviar_whatsapp
+        _enviar_whatsapp(s.telefono, 'La asesoría ha finalizado. Si necesitas algo más, escríbeme cuando quieras 🙂')
+    return JsonResponse({'ok': True})

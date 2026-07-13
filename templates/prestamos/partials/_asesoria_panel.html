@@ -1,0 +1,48 @@
+{% load static %}
+{% comment %}
+    Panel flotante de asesoría en vivo (handoff del chatbot a un asesor real).
+    Aparece en todas las plantillas del panel administrativo (se incluye desde
+    _navbar.html). Hace polling a /prestamos/api/asesoria/pendientes/, suena al
+    llegar una nueva solicitud y permite conversar con el estudiante.
+{% endcomment %}
+<link href="{% static 'css/asesoria.css' %}?v={% now 'U' %}" rel="stylesheet">
+
+<!-- Botón flotante -->
+<button type="button" class="asesoria-fab" id="asesoriaFab" title="Asesorías en vivo" onclick="asesoriaTogglePanel()">
+    <i class="bi bi-headset"></i>
+    <span class="asesoria-fab-badge" id="asesoriaFabBadge" hidden>0</span>
+</button>
+
+<!-- Panel -->
+<div class="asesoria-panel" id="asesoriaPanel" aria-hidden="true">
+    <div class="asesoria-panel-header">
+        <span class="asesoria-panel-titulo"><i class="bi bi-headset"></i> Asesorías en vivo</span>
+        <button type="button" class="asesoria-cerrar-panel" onclick="asesoriaTogglePanel()" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <!-- Vista: lista de solicitudes -->
+    <div class="asesoria-vista" id="asesoriaVistaLista">
+        <div class="asesoria-lista" id="asesoriaLista">
+            <div class="asesoria-vacio"><i class="bi bi-cup-hot"></i><p>No hay solicitudes de asesoría</p></div>
+        </div>
+    </div>
+
+    <!-- Vista: conversación -->
+    <div class="asesoria-vista" id="asesoriaVistaChat" hidden>
+        <div class="asesoria-chat-top">
+            <button type="button" class="asesoria-volver" onclick="asesoriaVolverLista()"><i class="bi bi-arrow-left"></i></button>
+            <div class="asesoria-chat-info">
+                <strong id="asesoriaChatNombre">Estudiante</strong>
+                <small id="asesoriaChatCanal"></small>
+            </div>
+            <button type="button" class="asesoria-finalizar" onclick="asesoriaFinalizar()" title="Finalizar asesoría"><i class="bi bi-check2-circle"></i> Finalizar</button>
+        </div>
+        <div class="asesoria-mensajes" id="asesoriaMensajes"></div>
+        <div class="asesoria-input-wrap">
+            <input type="text" id="asesoriaInput" class="asesoria-input" placeholder="Escribe tu respuesta…" onkeydown="if(event.key==='Enter')asesoriaEnviar()">
+            <button type="button" class="asesoria-enviar" onclick="asesoriaEnviar()"><i class="bi bi-send-fill"></i></button>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/asesoria.js' %}?v={% now 'U' %}"></script>

@@ -2,7 +2,12 @@
     {% for prestamo in ultimos_prestamos %}
     <tr>
         <td><span class="badge bg-secondary">#{{ prestamo.id|stringformat:"03d" }}</span></td>
-        <td>{{ prestamo.estudiante.get_full_name|default:prestamo.estudiante.username }}</td>
+        <td>
+            <div class="celda-usuario">
+                {% include 'prestamos/partials/_avatar.html' with foto=prestamo.estudiante.perfil.foto nombre=prestamo.estudiante.first_name apellido=prestamo.estudiante.last_name clase='avatar-tabla' %}
+                <span class="celda-usuario-nombre">{{ prestamo.estudiante.get_full_name|default:prestamo.estudiante.username }}</span>
+            </div>
+        </td>
         <td><strong>{{ prestamo.chromebook.codigo }}</strong></td>
         <td>{{ prestamo.fecha_prestamo|date:"d/m/Y H:i" }}</td>
         <td>

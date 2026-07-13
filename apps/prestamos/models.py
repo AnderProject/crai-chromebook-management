@@ -538,3 +538,70 @@ class ConfiguracionSistema(models.Model):
         """Devuelve (creando si hace falta) la única fila de configuración."""
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+
+class SolicitudAsesoria(models.Model):
+    """Solicitud de asesoría en vivo con un asesor real (handoff del chatbot).
+
+    Se crea cuando el estudiante pide hablar con un asesor, tanto desde el chat
+    web como desde WhatsApp. Mientras está pendiente/activa, el bot deja de
+    responder esa conversación (modo humano) y el asesor conversa por el panel.
+    """
+    ESTADOS = [
+        ('pendiente', 'Pendiente'),
+        ('activa', 'Activa'),
+        ('cerrada', 'Cerrada'),
+    ]
+    CANALES = [
+        ('web', 'Web'),
+        ('whatsapp', 'WhatsApp'),
+    ]
+
+    # Identificador de la conversación: el id del usuario (web) o el teléfono (WhatsApp).
+    session_id = models.CharField(max_length=100, db_index=True)
+    canal = models.CharField(max_length=20, choices=CANALES, default='web')
+    estudiante = models.ForeignKey('Estudiante', on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='asesorias')
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name='asesorias')
+    telefono = models.CharField(max_length=20, blank=True)
+    nombre = models.CharField(max_length=150, blank=True)
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
+    creada = models.DateTimeField(auto_now_add=True)
+    actualizada = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tb_solicitud_asesoria'
+        verbose_name = 'Solicitud de asesoría'
+        verbose_name_plural = 'Solicitudes de asesoría'
+        ordering = ['-actualizada']
+
+    def __str__(self):
+        return f'Asesoría #{self.id} ({self.canal}) - {self.estado}'
+
+    @property
+    def no_leidos(self):
+        return self.mensajes.filter(remitente='estudiante', leido=False).count()
+
+
+class MensajeAsesoria(models.Model):
+    """Un mensaje dentro de una asesoría en vivo (del estudiante o del asesor)."""
+    REMITENTES = [
+        ('estudiante', 'Estudiante'),
+        ('asesor', 'Asesor'),
+    ]
+    solicitud = models.ForeignKey(SolicitudAsesoria, on_delete=models.CASCADE, related_name='mensajes')
+    remitente = models.CharField(max_length=15, choices=REMITENTES)
+    texto = models.TextField()
+    creado = models.DateTimeField(auto_now_add=True)
+    # Para el badge del panel: los mensajes del estudiante empiezan sin leer.
+    leido = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'tb_mensaje_asesoria'
+        verbose_name = 'Mensaje de asesoría'
+        verbose_name_plural = 'Mensajes de asesoría'
+        ordering = ['creado']
+
+    def __str__(self):
+        return f'{self.remitente}: {self.texto[:40]}'

@@ -75,3 +75,45 @@
 .reporte-kpi {
     border: 1px solid #eef0f5;
 }
+
+/* ==========================================
+   ACABADO PASTEL PERSISTENTE (estilo panel de control)
+   Tarjeta tintada según su color de acento + ícono en círculo a la derecha.
+   Aplica a inventario, mantenimiento y KPIs; el dashboard y los KPIs de
+   reportes ya lo traen desde sus propias hojas.
+   ========================================== */
+.chromebook-stat-card:has(.bg-azul),
+.mantenimiento-stat-card:has(.bg-azul)    { background: linear-gradient(135deg, #f6f9ff, #ecf3ff); border-color: #dfe9ff; }
+.chromebook-stat-card:has(.bg-verde),
+.mantenimiento-stat-card:has(.bg-verde)   { background: linear-gradient(135deg, #f3fbf6, #e7f6ec); border-color: #cceed6; }
+.chromebook-stat-card:has(.bg-naranja),
+.mantenimiento-stat-card:has(.bg-naranja) { background: linear-gradient(135deg, #fffaf2, #fff2e0); border-color: #ffe6c6; }
+.chromebook-stat-card:has(.bg-rojo)       { background: linear-gradient(135deg, #fff5f4, #ffe9e7); border-color: #ffd4cf; }
+
+/* Ícono en círculo blanco a la derecha (mantiene el color del glifo) */
+.chromebook-stat-card .stat-card-content,
+.mantenimiento-stat-card .stat-card-content { justify-content: space-between; }
+
+.chromebook-stat-card .stat-icono-chromebook,
+.mantenimiento-stat-card .stat-icono-mant {
+    order: 2;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 6px 14px rgba(26, 35, 126, 0.12);
+}
+
+/* ---- Mini-stats de Gestión de Personal (íconos ya son círculos de color) ---- */
+.stat-mini:has(.icono-total)   { background: linear-gradient(135deg, #eef1fb, #e1e7f7); border-color: #cfd8f0; }
+.stat-mini:has(.icono-admin)   { background: linear-gradient(135deg, #fff6f5, #ffeceb); border-color: #ffd6d3; }
+.stat-mini:has(.icono-recep)   { background: linear-gradient(135deg, #f3fbf6, #e8f6ec); border-color: #cdeed6; }
+.stat-mini:has(.icono-tecnico) { background: linear-gradient(135deg, #f2fcff, #e4f8fc); border-color: #c9eef4; }
+
+/* ---- Texto de las tarjetas: más peso y color definido (que resalte sobre el pastel) ---- */
+.chromebook-stat-card .stat-numero-chromebook,
+.mantenimiento-stat-card .stat-numero-mant { font-weight: 800; color: #1f2533; }
+
+.chromebook-stat-card .stat-label-chromebook,
+.mantenimiento-stat-card .stat-label-mant { color: #5b6270; font-weight: 700; }
+
+.stat-mini .stat-mini-num { color: #1f2533; }
+.stat-mini .stat-mini-lbl { color: #5b6270; font-weight: 600; }

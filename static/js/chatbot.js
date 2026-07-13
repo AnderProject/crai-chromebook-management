@@ -116,10 +116,15 @@ function procesarMensaje() {
     .then(function (res) { return res.json(); })
     .then(function (data) {
         escribiendo.remove();
+        var accion = data.accion;
+        // Modo asesoría humana: el bot queda en silencio; responde el asesor.
+        if (accion === 'asesoria_humana') { iniciarAsesoria(false); return; }
         var respuesta = data.respuesta || 'Error al procesar el mensaje.';
         agregarMensaje('bot', respuesta, horaActual(), true);
+        if (accion === 'solicitar_asesoria') { iniciarAsesoria(true); }
+        else if (accion === 'asesoria_cerrada') { detenerAsesoria(); }
         // Si el bot ejecutó una acción que cambia los datos, refrescar la actividad
-        if (data.accion === 'reservar' || data.accion === 'cancelar') {
+        if (accion === 'reservar' || accion === 'cancelar') {
             refrescarActividad();
         }
     })
@@ -181,6 +186,61 @@ function procesarAvisosDevolucion(avisos) {
     }
 }
 
+// ---- Asesoría humana (handoff): recibir mensajes del asesor ----
+var ASESOR_ID_KEY = 'crai_asesor_ultimo_id';
+var asesoriaTimer = null;
+
+function getUltimoAsesorId() { return parseInt(sessionStorage.getItem(ASESOR_ID_KEY) || '0', 10) || 0; }
+function setUltimoAsesorId(v) { sessionStorage.setItem(ASESOR_ID_KEY, String(v)); }
+
+function mostrarBannerAsesoria() {
+    if (document.getElementById('chatAsesorBanner')) return;
+    var cont = document.getElementById('chatbotMensajes');
+    if (!cont || !cont.parentNode) return;
+    var b = document.createElement('div');
+    b.id = 'chatAsesorBanner';
+    b.className = 'chat-asesor-banner';
+    b.innerHTML = '<i class="bi bi-headset"></i> Estás hablando con un asesor del CRAI. ' +
+        'Escribe <strong>"salir"</strong> para volver al asistente.';
+    cont.parentNode.insertBefore(b, cont);
+}
+function quitarBannerAsesoria() {
+    var b = document.getElementById('chatAsesorBanner');
+    if (b) b.remove();
+}
+
+function iniciarAsesoria(mostrarBanner) {
+    if (mostrarBanner) mostrarBannerAsesoria();
+    if (asesoriaTimer) return;
+    asesoriaTimer = setInterval(pollAsesoria, 4000);
+    pollAsesoria();
+}
+function detenerAsesoria() {
+    if (asesoriaTimer) { clearInterval(asesoriaTimer); asesoriaTimer = null; }
+    quitarBannerAsesoria();
+    setUltimoAsesorId(0);
+}
+function pollAsesoria() {
+    fetch('/estudiantes/api/asesoria/mis-mensajes/?desde=' + getUltimoAsesorId(),
+          { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+        if (!d.activa) {
+            if (asesoriaTimer) {
+                agregarMensaje('bot', '✅ El asesor finalizó la conversación. Sigo yo por aquí 🤖', horaActual(), true);
+            }
+            detenerAsesoria();
+            return;
+        }
+        mostrarBannerAsesoria();
+        (d.mensajes || []).forEach(function (m) {
+            agregarMensaje('bot', '👩‍💼 ' + m.texto, m.hora, true);
+        });
+        if (d.ultimo_id) setUltimoAsesorId(d.ultimo_id);
+    })
+    .catch(function () { /* silencioso */ });
+}
+
 // ---- Actualización en tiempo real de "Actividad reciente" ----
 var ultimaActividadHtml = null;
 function refrescarActividad() {
@@ -210,8 +270,18 @@ function refrescarActividad() {
         .catch(function () { /* silencioso */ });
 }
 
+function comprobarAsesoriaAlCargar() {
+    if (!document.getElementById('chatbotMensajes')) return;
+    fetch('/estudiantes/api/asesoria/mis-mensajes/?desde=' + getUltimoAsesorId(),
+          { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(function (r) { return r.json(); })
+    .then(function (d) { if (d.activa) { iniciarAsesoria(true); } })
+    .catch(function () { /* silencioso */ });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     cargarHistorial();
+    comprobarAsesoriaAlCargar();
     // Refresco periódico por si hay cambios desde otros canales (admin, etc.)
     // y para detectar préstamos próximos a vencer (aviso de 15 min).
     if (document.querySelector('.actividad-lista')) {

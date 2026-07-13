@@ -5,7 +5,7 @@
 
 {% block estilos_extra %}
 <link href="{% static 'css/dashboard.css' %}?v={% now 'U' %}" rel="stylesheet">
-<link href="{% static 'css/reportes.css' %}" rel="stylesheet">
+<link href="{% static 'css/reportes.css' %}?v={% now 'U' %}" rel="stylesheet">
 {% endblock %}
 
 {% block titulo %}Reportes - CRAI UNEMI{% endblock %}
