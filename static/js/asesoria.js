@@ -18,6 +18,7 @@
     var currentId = null;         // asesoría abierta
     var ultimoNoLeidos = 0;       // para detectar mensajes nuevos y sonar
     var chatTimer = null;
+    var asesoriaTab = 'activas';  // 'activas' | 'historial'
 
     // ---------- utilidades ----------
     function getCookie(name) {
@@ -61,8 +62,30 @@
         if (chatTimer) { clearInterval(chatTimer); chatTimer = null; }
         vistaChat.hidden = true;
         vistaLista.hidden = false;
-        cargarPendientes();
+        if (asesoriaTab === 'historial') cargarHistorial(); else cargarPendientes();
     };
+
+    window.asesoriaCambiarTab = function (tab) {
+        asesoriaTab = tab;
+        document.getElementById('asesoriaTabActivas').classList.toggle('activa', tab === 'activas');
+        document.getElementById('asesoriaTabHistorial').classList.toggle('activa', tab === 'historial');
+        if (tab === 'historial') cargarHistorial(); else cargarPendientes();
+    };
+
+    function cargarHistorial() {
+        lista.innerHTML = '<div class="asesoria-vacio"><i class="bi bi-hourglass"></i><p>Cargando…</p></div>';
+        fetch('/prestamos/api/asesoria/historial/', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (!d.ok) return;
+                if (!(d.solicitudes || []).length) {
+                    lista.innerHTML = '<div class="asesoria-vacio"><i class="bi bi-clock-history"></i><p>Sin conversaciones anteriores</p></div>';
+                    return;
+                }
+                pintarLista(d.solicitudes);
+            })
+            .catch(function () {});
+    }
 
     // ---------- lista de solicitudes ----------
     function cargarPendientes() {
@@ -76,8 +99,8 @@
                 // Sonar si aumentaron los no leídos (mensaje/solicitud nueva)
                 if (d.no_leidos > ultimoNoLeidos) { sonar(); }
                 ultimoNoLeidos = d.no_leidos;
-                // Render de la lista solo si estamos en esa vista
-                if (!vistaLista.hidden) pintarLista(d.solicitudes || []);
+                // Render de la lista solo si estamos en la vista de activas
+                if (!vistaLista.hidden && asesoriaTab === 'activas') pintarLista(d.solicitudes || []);
             })
             .catch(function () { /* silencioso */ });
     }
@@ -122,6 +145,12 @@
                 document.getElementById('asesoriaChatCanal').innerHTML =
                     (d.canal === 'whatsapp' ? '<i class="bi bi-whatsapp"></i> WhatsApp' : '<i class="bi bi-globe"></i> Chat web') +
                     (d.estado === 'pendiente' ? ' · <span class="asesoria-pend">nueva</span>' : '');
+                // Conversación cerrada: solo lectura (sin enviar ni finalizar).
+                var cerrada = (d.estado === 'cerrada');
+                document.getElementById('asesoriaInputWrap').hidden = cerrada;
+                document.getElementById('asesoriaFinalizarBtn').hidden = cerrada;
+                document.getElementById('asesoriaCerradaAviso').hidden = !cerrada;
+                if (cerrada && chatTimer) { clearInterval(chatTimer); chatTimer = null; }
                 contMsgs.innerHTML = (d.mensajes || []).map(function (m) {
                     var cls = m.remitente === 'asesor' ? 'asesor' : 'estudiante';
                     return '<div class="asesoria-msg ' + cls + '"><div class="asesoria-burbuja">' +

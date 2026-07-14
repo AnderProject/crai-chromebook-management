@@ -51,9 +51,14 @@ class EsperaActivity : AppCompatActivity() {
 
         recargar()
         pedirPermisoOverlay()
-        animarPulso()
-        animarPulsoDesc()
-        animarEntrada(b.iconoEspera, b.txtCodigo, b.pillEstado, b.txtSub, b.txtConexion)
+        // Las animaciones son decorativas: si alguna falla (p. ej. en ChromeOS),
+        // no debe tumbar la app.
+        try {
+            animarPulso()
+            animarPulsoDesc()
+            animarEntrada(b.iconoEspera, b.txtCodigo, b.pillEstado, b.txtSub, b.txtConexion)
+        } catch (_: Exception) {
+        }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

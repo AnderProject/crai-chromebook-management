@@ -89,6 +89,7 @@ urlpatterns = [
 
     # Asesoría en vivo (handoff del chatbot a un asesor real)
     path('api/asesoria/pendientes/', views.api_asesoria_pendientes, name='api_asesoria_pendientes'),
+    path('api/asesoria/historial/', views.api_asesoria_historial, name='api_asesoria_historial'),
     path('api/asesoria/<int:id>/mensajes/', views.api_asesoria_mensajes, name='api_asesoria_mensajes'),
     path('api/asesoria/<int:id>/responder/', views.api_asesoria_responder, name='api_asesoria_responder'),
     path('api/asesoria/<int:id>/cerrar/', views.api_asesoria_cerrar, name='api_asesoria_cerrar'),

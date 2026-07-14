@@ -408,7 +408,8 @@ def reservar_chromebook(request):
                 motivo=motivo,
                 codigo_verificacion=codigo
             )
-            
+            _correo_reserva_futura(reserva)
+
             Notificacion.objects.create(
                 usuario=usuario,
                 titulo='Reserva Registrada',
@@ -518,6 +519,61 @@ def api_cancelar_reserva(request):
     return JsonResponse({'success': True, 'message': 'Reserva cancelada.'})
 
 
+def _correo_reserva_futura(reserva):
+    """Notifica por correo al estudiante cuando su reserva es para un día POSTERIOR
+    (no el mismo día). Silencioso: nunca interrumpe el flujo si falla o no hay correo.
+    Se usa tanto en las reservas del portal como en las del administrador y el chatbot.
+    """
+    try:
+        from django.core.mail import EmailMultiAlternatives
+        from django.utils import timezone
+        if not reserva or not reserva.fecha_uso or reserva.fecha_uso <= timezone.localdate():
+            return  # solo se avisa por correo cuando la reserva es para días posteriores
+        est = getattr(reserva, 'estudiante', None)
+        user = est.usuario.user if (est and getattr(est, 'usuario', None)) else None
+        correo = (getattr(user, 'email', '') or '').strip()
+        if not correo:
+            return
+        nombre = (getattr(user, 'first_name', '') or '').strip() or 'estudiante'
+        fecha = reserva.fecha_uso.strftime('%d/%m/%Y')
+        horario = f'{reserva.hora_inicio.strftime("%H:%M")} a {reserva.hora_fin.strftime("%H:%M")}'
+        codigo = reserva.codigo_verificacion
+        asunto = 'Reserva de Chromebook confirmada — CRAI UNEMI'
+        texto = (
+            f'Hola {nombre},\n\n'
+            f'Tu reserva de Chromebook quedó registrada para el {fecha}, de {horario}.\n'
+            f'Código de verificación: {codigo}\n\n'
+            'Preséntate en el CRAI dentro de los primeros 15 minutos de tu horario para retirar '
+            'el equipo. Si no puedes asistir, puedes cancelar la reserva desde el portal o el '
+            'asistente virtual.\n\n'
+            'CRAI UNEMI'
+        )
+        html = f'''\
+<div style="font-family:Segoe UI,Arial,sans-serif;max-width:520px;margin:auto;border:1px solid #e8eaf6;border-radius:14px;overflow:hidden">
+  <div style="background:linear-gradient(135deg,#1a237e,#3949ab);color:#fff;padding:20px 24px">
+    <h2 style="margin:0;font-size:18px">📅 Reserva confirmada</h2>
+    <p style="margin:4px 0 0;opacity:.85;font-size:13px">CRAI UNEMI</p>
+  </div>
+  <div style="padding:24px;color:#2b3448;font-size:14px;line-height:1.6">
+    <p>Hola <b>{nombre}</b>, tu reserva de Chromebook quedó registrada para un día posterior:</p>
+    <table style="width:100%;border-collapse:collapse;margin:14px 0">
+      <tr><td style="padding:8px 0;color:#6b7280">📅 Fecha</td><td style="padding:8px 0;text-align:right;font-weight:600">{fecha}</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280;border-top:1px solid #eef0f5">⏰ Horario</td><td style="padding:8px 0;text-align:right;font-weight:600;border-top:1px solid #eef0f5">{horario}</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280;border-top:1px solid #eef0f5">🔑 Código</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#1a237e;border-top:1px solid #eef0f5;letter-spacing:1px">{codigo}</td></tr>
+    </table>
+    <p style="background:#eef4ff;border-radius:10px;padding:12px 14px;font-size:13px;color:#1b3a8c">
+      Preséntate en el CRAI dentro de los primeros 15 minutos de tu horario para retirar el equipo.
+      Si no puedes asistir, cancela la reserva desde el portal o el asistente virtual.
+    </p>
+  </div>
+</div>'''
+        msg = EmailMultiAlternatives(asunto, texto, settings.DEFAULT_FROM_EMAIL, [correo])
+        msg.attach_alternative(html, 'text/html')
+        msg.send(fail_silently=True)
+    except Exception:
+        pass
+
+
 # ==========================================
 # CHATBOT CON N8N
 # ==========================================
@@ -549,24 +605,51 @@ def _formatear_reservas_chat(activas, historial, nombre=''):
     return '\n\n'.join(partes)
 
 
+def _bloque_reserva_chat(r):
+    """Formato de una reserva para el chat (estado, código y horario)."""
+    emojis = {'pendiente': '⏳', 'confirmada': '✅', 'cancelada': '❌',
+              'completada': '✔️', 'vencida': '⌛'}
+    e = emojis.get(r.estado, '📌')
+    fecha = r.fecha_uso.strftime('%d/%m/%Y')
+    horario = f'{r.hora_inicio.strftime("%H:%M")}–{r.hora_fin.strftime("%H:%M")}'
+    return (f'{e} *{r.get_estado_display()}*\n'
+            f'🔑 Código: {r.codigo_verificacion}\n'
+            f'📅 {fecha}  ·  ⏰ {horario}')
+
+
 def _reservas_estudiante_chat(estudiante, nombre=''):
-    """Texto de 'Mis reservas': primero las activas (pendiente/confirmada), luego
-    un historial reciente (máx. 3). Devuelve un mensaje listo para el chat."""
+    """Texto de 'Mis reservas': SOLO las activas (pendiente/confirmada).
+    El historial se consulta aparte pidiendo "historial"."""
     from apps.prestamos.models import Reserva
     activas = list(
         Reserva.objects.filter(estudiante=estudiante,
                                estado__in=['pendiente', 'confirmada'])
         .order_by('fecha_uso', 'hora_inicio')
     )
+    if not activas:
+        saludo = f', {nombre}' if nombre else ''
+        return (f'No tienes reservas activas{saludo} 😌. ¿Te ayudo a crear una? '
+                '(Escribe "historial" para ver tus reservas pasadas.)')
+    partes = [f'📋 *Tus reservas activas{(", " + nombre) if nombre else ""}*']
+    partes.extend(_bloque_reserva_chat(r) for r in activas)
+    partes.append('_Escribe "historial" para ver tus reservas pasadas._')
+    return '\n\n'.join(partes)
+
+
+def _historial_reservas_chat(estudiante, nombre=''):
+    """Texto del historial: reservas ya pasadas (canceladas/completadas/vencidas)."""
+    from apps.prestamos.models import Reserva
     historial = list(
         Reserva.objects.filter(estudiante=estudiante)
         .exclude(estado__in=['pendiente', 'confirmada'])
-        .order_by('-fecha_uso', '-hora_inicio')[:3]
+        .order_by('-fecha_uso', '-hora_inicio')[:5]
     )
-    if not activas and not historial:
+    if not historial:
         saludo = f', {nombre}' if nombre else ''
-        return f'Aún no tienes reservas{saludo}. ¿Te ayudo a crear una?'
-    return _formatear_reservas_chat(activas, historial, nombre)
+        return f'Todavía no tienes reservas en tu historial{saludo}.'
+    partes = [f'🕘 *Tu historial de reservas{(", " + nombre) if nombre else ""}*']
+    partes.extend(_bloque_reserva_chat(r) for r in historial)
+    return '\n\n'.join(partes)
 
 
 def _cancelar_reserva_por_codigo(estudiante, codigo):
@@ -627,7 +710,7 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id, canal='web', 
     asesoria = SolicitudAsesoria.objects.filter(
         session_id=sid, estado__in=['pendiente', 'activa']).first()
     if asesoria:
-        if mensaje in ('salir', 'terminar', 'volver', 'bot', 'chatbot', 'cerrar', 'menu', 'menú'):
+        if mensaje in ('cancelar', 'salir', 'terminar', 'volver', 'bot', 'chatbot'):
             asesoria.estado = 'cerrada'
             asesoria.save(update_fields=['estado', 'actualizada'])
             return ('Listo, ya vuelvo a atenderte yo 🤖. ¿En qué más te ayudo?', 'asesoria_cerrada')
@@ -653,7 +736,7 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id, canal='web', 
             solicitud=asesoria, remitente='estudiante',
             texto=(mensaje_raw or '').strip(), leido=False)
         cuerpo = ('te comunico con un asesor del CRAI 👩‍💼. En un momento te responden por aquí. '
-                  'Cuando quieras volver a hablar conmigo, escribe "salir".')
+                  'Cuando quieras volver a hablar conmigo, escribe "cancelar".')
         respuesta = f'{primer_nombre}, {cuerpo}' if primer_nombre else cuerpo[0].upper() + cuerpo[1:]
         return (respuesta, 'solicitar_asesoria')
 
@@ -680,7 +763,15 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id, canal='web', 
             respuesta = cuerpo[0].upper() + cuerpo[1:]
         accion_realizada = 'disponibilidad'
 
-    # --- Mis reservas ---
+    # --- Historial de reservas (pasadas) ---
+    elif any(p in mensaje for p in ['historial', 'reservas pasada', 'reservas anterior', 'pasadas', 'anteriores']):
+        if estudiante:
+            respuesta = _historial_reservas_chat(estudiante, primer_nombre)
+        else:
+            respuesta = 'No pudimos identificar tu perfil de estudiante.'
+        accion_realizada = 'historial'
+
+    # --- Mis reservas (solo activas: pendientes/confirmadas) ---
     elif any(p in mensaje for p in ['mis reserva', 'mis reservacion', 'mis turno', 'código', 'codigo', 'mis prestamo', 'mis activo']):
         if estudiante:
             respuesta = _reservas_estudiante_chat(estudiante, primer_nombre)
@@ -847,6 +938,7 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id, canal='web', 
                             codigo_verificacion=codigo,
                             estado='pendiente',
                         )
+                        _correo_reserva_futura(reserva)
                         respuesta = (
                             f'✅ *Reserva creada* · {fecha_uso}, {hora_inicio}–{hora_fin}\n'
                             f'🔑 Código: *{codigo}*\n'
@@ -1327,6 +1419,7 @@ def api_crear_reserva(request):
         motivo=motivo,
         codigo_verificacion=codigo,
     )
+    _correo_reserva_futura(reserva)
 
     Notificacion.objects.create(
         usuario=perfil.user,

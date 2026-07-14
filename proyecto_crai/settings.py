@@ -203,6 +203,8 @@ WHATSAPP_VERIFY_TOKEN = os.environ.get('WHATSAPP_VERIFY_TOKEN', 'crai-verify-202
 WHATSAPP_ACCESS_TOKEN = os.environ.get('WHATSAPP_ACCESS_TOKEN', '')  # token de Meta (caduca 24h el temporal)
 WHATSAPP_PHONE_NUMBER_ID = os.environ.get('WHATSAPP_PHONE_NUMBER_ID', '1087899717740956')
 WHATSAPP_API_VERSION = os.environ.get('WHATSAPP_API_VERSION', 'v21.0')
+# ID de la app de Meta (para la subida de la foto de perfil del bot).
+WHATSAPP_APP_ID = os.environ.get('WHATSAPP_APP_ID', '')
 # Número visible del bot (formato internacional sin '+', ej. 15551234567) para
 # el botón "Chatea por WhatsApp" del portal del estudiante (enlace wa.me).
 WHATSAPP_NUMERO = os.environ.get('WHATSAPP_NUMERO', '')

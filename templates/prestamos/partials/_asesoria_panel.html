@@ -22,6 +22,10 @@
 
     <!-- Vista: lista de solicitudes -->
     <div class="asesoria-vista" id="asesoriaVistaLista">
+        <div class="asesoria-tabs">
+            <button type="button" class="asesoria-tab activa" id="asesoriaTabActivas" onclick="asesoriaCambiarTab('activas')"><i class="bi bi-broadcast"></i> En vivo</button>
+            <button type="button" class="asesoria-tab" id="asesoriaTabHistorial" onclick="asesoriaCambiarTab('historial')"><i class="bi bi-clock-history"></i> Historial</button>
+        </div>
         <div class="asesoria-lista" id="asesoriaLista">
             <div class="asesoria-vacio"><i class="bi bi-cup-hot"></i><p>No hay solicitudes de asesoría</p></div>
         </div>
@@ -35,10 +39,11 @@
                 <strong id="asesoriaChatNombre">Estudiante</strong>
                 <small id="asesoriaChatCanal"></small>
             </div>
-            <button type="button" class="asesoria-finalizar" onclick="asesoriaFinalizar()" title="Finalizar asesoría"><i class="bi bi-check2-circle"></i> Finalizar</button>
+            <button type="button" class="asesoria-finalizar" id="asesoriaFinalizarBtn" onclick="asesoriaFinalizar()" title="Finalizar asesoría"><i class="bi bi-check2-circle"></i> Finalizar</button>
         </div>
         <div class="asesoria-mensajes" id="asesoriaMensajes"></div>
-        <div class="asesoria-input-wrap">
+        <div class="asesoria-cerrada-aviso" id="asesoriaCerradaAviso" hidden><i class="bi bi-lock-fill"></i> Conversación finalizada · solo lectura</div>
+        <div class="asesoria-input-wrap" id="asesoriaInputWrap">
             <input type="text" id="asesoriaInput" class="asesoria-input" placeholder="Escribe tu respuesta…" onkeydown="if(event.key==='Enter')asesoriaEnviar()">
             <button type="button" class="asesoria-enviar" onclick="asesoriaEnviar()"><i class="bi bi-send-fill"></i></button>
         </div>

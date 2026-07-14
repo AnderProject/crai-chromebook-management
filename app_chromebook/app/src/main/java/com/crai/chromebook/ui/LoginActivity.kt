@@ -1,5 +1,6 @@
 package com.crai.chromebook.ui
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -24,6 +25,16 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // En modo automático (kiosko con servidor) NO se muestra el login manual:
+        // se va directo a la pantalla de espera. El login solo es respaldo walk-in
+        // (offline / sin servidor configurado).
+        if (prefs.modoAuto) {
+            startActivity(Intent(this, EsperaActivity::class.java))
+            finish()
+            return
+        }
+
         b = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(b.root)
         entrarPantallaCompleta()

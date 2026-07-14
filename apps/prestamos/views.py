@@ -2446,13 +2446,15 @@ def api_registrar_prestamo(request):
             if not Reserva.objects.filter(codigo_verificacion=codigo).exists():
                 break
 
-        Reserva.objects.create(
+        reserva_creada = Reserva.objects.create(
             estudiante=estudiante, carrera=estudiante.carrera,
             chromebook=chromebook_reserva,
             fecha_uso=inicio.date(), hora_inicio=inicio.time(), hora_fin=fin.time(),
             estado='pendiente', codigo_verificacion=codigo,
             motivo='Reserva registrada en recepción',
         )
+        from apps.estudiantes.views import _correo_reserva_futura
+        _correo_reserva_futura(reserva_creada)
         return JsonResponse({
             'success': True,
             'codigo': codigo,
@@ -3254,3 +3256,22 @@ def api_asesoria_cerrar(request, id):
         from apps.estudiantes.views import _enviar_whatsapp
         _enviar_whatsapp(s.telefono, 'La asesoría ha finalizado. Si necesitas algo más, escríbeme cuando quieras 🙂')
     return JsonResponse({'ok': True})
+
+
+@login_required
+def api_asesoria_historial(request):
+    """Asesorías ya cerradas (solo lectura) para el historial del panel."""
+    from .models import SolicitudAsesoria
+    if not _es_staff_crai(request.user):
+        return JsonResponse({'ok': False}, status=403)
+    sols = SolicitudAsesoria.objects.filter(estado='cerrada').order_by('-actualizada')[:40]
+    data = []
+    for s in sols:
+        ultimo = s.mensajes.last()
+        data.append({
+            'id': s.id, 'nombre': s.nombre or 'Estudiante', 'canal': s.canal,
+            'estado': s.estado, 'no_leidos': 0,
+            'ultimo': (ultimo.texto[:60] if ultimo else ''),
+            'actualizada': timezone.localtime(s.actualizada).strftime('%d/%m %H:%M'),
+        })
+    return JsonResponse({'ok': True, 'solicitudes': data, 'total': len(data)})

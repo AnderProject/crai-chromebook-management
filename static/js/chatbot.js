@@ -201,7 +201,7 @@ function mostrarBannerAsesoria() {
     b.id = 'chatAsesorBanner';
     b.className = 'chat-asesor-banner';
     b.innerHTML = '<i class="bi bi-headset"></i> Estás hablando con un asesor del CRAI. ' +
-        'Escribe <strong>"salir"</strong> para volver al asistente.';
+        'Escribe <strong>"cancelar"</strong> para volver al asistente.';
     cont.parentNode.insertBefore(b, cont);
 }
 function quitarBannerAsesoria() {
