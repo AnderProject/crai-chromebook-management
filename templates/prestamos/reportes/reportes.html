@@ -284,7 +284,7 @@
                                         <thead><tr><th>Estudiante</th><th>Equipo</th><th class="text-end">Vence</th></tr></thead>
                                         <tbody>
                                             {% for p in op_activos %}
-                                            <tr><td>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</td><td><strong>{{ p.chromebook.codigo }}</strong></td><td class="text-end">{{ p.fecha_devolucion|date:"d/m H:i" }}</td></tr>
+                                            <tr><td>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</td><td><strong>{{ p.chromebook.codigo }}</strong></td><td class="text-end">{{ p.fecha_devolucion|date:"d/m g:i A" }}</td></tr>
                                             {% empty %}
                                             <tr><td colspan="3" class="reporte-tabla-vacio">No hay préstamos activos</td></tr>
                                             {% endfor %}
@@ -314,7 +314,7 @@
                                         <thead><tr><th>Estudiante</th><th>Equipo</th><th class="text-end">Vence</th></tr></thead>
                                         <tbody>
                                             {% for p in op_por_vencer %}
-                                            <tr><td>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</td><td><strong>{{ p.chromebook.codigo }}</strong></td><td class="text-end">{{ p.fecha_devolucion|date:"d/m H:i" }}</td></tr>
+                                            <tr><td>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</td><td><strong>{{ p.chromebook.codigo }}</strong></td><td class="text-end">{{ p.fecha_devolucion|date:"d/m g:i A" }}</td></tr>
                                             {% empty %}
                                             <tr><td colspan="3" class="reporte-tabla-vacio">Nada por vencer pronto</td></tr>
                                             {% endfor %}
@@ -329,7 +329,7 @@
                                         <thead><tr><th>Estudiante</th><th>Equipo</th><th class="text-end">Devuelto</th></tr></thead>
                                         <tbody>
                                             {% for p in op_devueltos_hoy %}
-                                            <tr><td>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</td><td><strong>{{ p.chromebook.codigo }}</strong></td><td class="text-end">{{ p.fecha_devuelto|date:"H:i" }}</td></tr>
+                                            <tr><td>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</td><td><strong>{{ p.chromebook.codigo }}</strong></td><td class="text-end">{{ p.fecha_devuelto|date:"g:i A" }}</td></tr>
                                             {% empty %}
                                             <tr><td colspan="3" class="reporte-tabla-vacio">Nada devuelto hoy aún</td></tr>
                                             {% endfor %}

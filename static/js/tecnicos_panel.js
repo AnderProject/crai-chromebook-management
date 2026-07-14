@@ -5,6 +5,39 @@
 // =============================================
 var _formPendiente = null;
 
+// Despliega/oculta el formulario de evidencia de una tarjeta (acordeón horizontal).
+function tecToggleForm(btn) {
+    var card = btn.closest('.tec-card');
+    if (!card) { return; }
+    var wrap = card.querySelector('.tec-form-wrap');
+    if (!wrap) { return; }
+    var abrir = wrap.hasAttribute('hidden');
+    wrap.hidden = !abrir;
+    btn.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+    if (abrir) {
+        var ta = wrap.querySelector('textarea');
+        if (ta) { ta.focus(); }
+    }
+}
+
+// Muestra la evidencia (foto o video) en un modal, sin abrir otra pestaña.
+function tecVerEvidencia(url) {
+    var visor = document.getElementById('tecEviVisor');
+    if (!visor) { return; }
+    var esVideo = /\.(mp4|webm|mov|ogg)(\?|$)/i.test(url);
+    visor.innerHTML = esVideo
+        ? '<video src="' + url + '" controls autoplay playsinline class="tec-evi-full"></video>'
+        : '<img src="' + url + '" alt="Evidencia de la reparación" class="tec-evi-full">';
+    document.getElementById('modalEvidencia').classList.add('visible');
+}
+
+function tecCerrarEvidencia() {
+    var m = document.getElementById('modalEvidencia');
+    if (m) { m.classList.remove('visible'); }
+    var visor = document.getElementById('tecEviVisor');
+    if (visor) { visor.innerHTML = ''; }   // detiene el video al cerrar
+}
+
 function pedirConfirmacion(btn) {
     var form = btn.closest('form');
     if (!form.reportValidity()) return;   // valida descripción + evidencia
@@ -33,6 +66,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (e.target === this) cerrarConfirmar();
         });
     }
+
+    // Tecla Escape: cierra el visor de evidencia y el modal de confirmar
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { tecCerrarEvidencia(); cerrarConfirmar(); }
+    });
 
     // Mensajes del servidor → modal flotante (en vez de banner)
     var data = document.querySelector('.tec-flash-data');

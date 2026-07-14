@@ -34,7 +34,7 @@
                                data-notif-tipo="{{ notif.tipo }}"
                                data-notif-titulo="{{ notif.titulo }}"
                                data-notif-msg="{{ notif.mensaje }}"
-                               data-notif-fecha="{{ notif.fecha_envio|date:'d/m/Y H:i' }}"
+                               data-notif-fecha="{{ notif.fecha_envio|date:'d/m/Y g:i A' }}"
                                data-notif-leida="{% if notif.leida %}1{% else %}0{% endif %}">
                                 {% if notif.tipo == 'prestamo' %}
                                     <i class="bi bi-laptop text-primary me-2"></i>
@@ -44,7 +44,7 @@
                                     <i class="bi bi-bell text-info me-2"></i>
                                 {% endif %}
                                 <strong>{{ notif.titulo }}</strong>
-                                <br><small class="text-muted">{{ notif.fecha_envio|date:"d/m/Y H:i" }}</small>
+                                <br><small class="text-muted">{{ notif.fecha_envio|date:"d/m/Y g:i A" }}</small>
                             </a>
                             {% endfor %}
                         {% else %}
@@ -170,7 +170,7 @@
                         <div class="notif-item-cuerpo">
                             <div class="notif-item-top">
                                 <strong>{{ notif.titulo }}</strong>
-                                <span class="notif-item-fecha">{{ notif.fecha_envio|date:"d/m/Y H:i" }}</span>
+                                <span class="notif-item-fecha">{{ notif.fecha_envio|date:"d/m/Y g:i A" }}</span>
                             </div>
                             <p class="notif-item-msg">{{ notif.mensaje }}</p>
                         </div>

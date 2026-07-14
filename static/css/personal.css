@@ -3,7 +3,7 @@
    ===================================================== */
 
 .personal-panel {
-    max-width: 1240px;
+    max-width: 1400px;
     margin: 0 auto;
     animation: fadeIn 0.4s ease;
 }
@@ -237,6 +237,31 @@
     border-color: #c62828;
     color: #fff;
 }
+
+/* ============================================================
+   Tabla de TÉCNICOS: cómoda y amplia. Como el nombre se muestra corto
+   (un nombre + un apellido) y el teléfono/correo se copian al hacer clic
+   (con el correo truncado), la columna de acciones siempre se ve bien.
+   ============================================================ */
+.tabla-tecnicos { min-width: 820px; }
+.tabla-tecnicos thead th { padding: 0.9rem 1.05rem; font-size: 0.78rem; }
+.tabla-tecnicos tbody td { padding: 0.85rem 1.05rem; font-size: 0.9rem; }
+.tabla-tecnicos .persona-cell { font-size: 0.92rem; }
+
+/* Teléfono / correo: botón "copiable" (clic para copiar al portapapeles) */
+.td-copiable {
+    display: inline-flex; align-items: center; max-width: 100%;
+    border: none; background: transparent; cursor: pointer;
+    color: inherit; font: inherit; text-align: left;
+    padding: 0.2rem 0.4rem; border-radius: 8px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.td-copiable:hover { background: #eef1ff; color: #1a237e; }
+.td-correo-txt { max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.td-copiar-ico { margin-left: 0.45rem; font-size: 0.78rem; opacity: 0; transition: opacity 0.15s ease; }
+.td-copiable:hover .td-copiar-ico { opacity: 0.65; }
+.td-copiable.copiado { background: #e7f6ee; color: #1e7e46; }
+.td-copiable.copiado .td-copiar-ico { opacity: 1; }
 
 .btn-modal-danger {
     background: linear-gradient(135deg, #c62828, #e53935);

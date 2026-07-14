@@ -397,6 +397,14 @@ class Tecnico(models.Model):
         return f'{self.nombres} {self.apellidos}'.strip()
 
     @property
+    def nombre_corto(self):
+        """Solo el primer nombre y el primer apellido (para tablas compactas)."""
+        nombre = (self.nombres or '').split()
+        apellido = (self.apellidos or '').split()
+        return ' '.join(filter(None, [nombre[0] if nombre else '',
+                                       apellido[0] if apellido else ''])).strip()
+
+    @property
     def en_proceso(self):
         """Cuántas máquinas tiene este técnico en mantenimiento ahora mismo."""
         return self.mantenimientos.filter(estado='en_proceso').count()
@@ -449,6 +457,29 @@ class Mantenimiento(models.Model):
     
     def __str__(self):
         return f'Mantenimiento #{self.id} - {self.chromebook}'
+
+    @property
+    def tecnico_corto(self):
+        """Nombre del técnico abreviado: solo el primer nombre y el primer apellido.
+
+        Usa los campos separados del técnico asignado cuando existe; si no, recorta
+        el texto guardado en ``tecnico`` a su primera y última palabra (heurística
+        de un nombre + un apellido).
+        """
+        t = self.tecnico_asignado
+        if t:
+            nombre = (t.nombres or '').split()
+            apellido = (t.apellidos or '').split()
+            corto = ' '.join(filter(None, [nombre[0] if nombre else '',
+                                           apellido[0] if apellido else ''])).strip()
+            if corto:
+                return corto
+        if self.tecnico:
+            partes = self.tecnico.split()
+            if len(partes) >= 2:
+                return f'{partes[0]} {partes[-1]}'
+            return self.tecnico
+        return ''
 
 
 class Notificacion(models.Model):

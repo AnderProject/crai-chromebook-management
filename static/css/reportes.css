@@ -67,7 +67,7 @@
 .reporte-kpi-icono {
     width: 50px;
     height: 50px;
-    border-radius: 12px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -103,14 +103,6 @@
 .kpi-rojo    { background: linear-gradient(135deg, #ea4335, #c5221f); }
 .kpi-morado  { background: linear-gradient(135deg, #7e57c2, #5e35b1); }
 
-/* KPI de reportes: fondo pastel por color (tonos claros y visibles).
-   Orden de las tarjetas: naranja, azul, rojo, verde, celeste.
-   Solo se tiñe el fondo; el ícono conserva su degradado a la izquierda. */
-.reporte-kpi:has(.kpi-naranja) { background: linear-gradient(135deg, #fff4e6, #ffe6c9); border-color: #ffd6a3; }
-.reporte-kpi:has(.kpi-azul)    { background: linear-gradient(135deg, #eaf1fd, #dbe6fa); border-color: #c6d6f3; }
-.reporte-kpi:has(.kpi-rojo)    { background: linear-gradient(135deg, #ffeeec, #ffdeda); border-color: #ffc7c0; }
-.reporte-kpi:has(.kpi-verde)   { background: linear-gradient(135deg, #e9f7ee, #d8efe0); border-color: #bde5cc; }
-.reporte-kpi:has(.kpi-cyan)    { background: linear-gradient(135deg, #e6f8fc, #d2f0f7); border-color: #b2e3ed; }
 
 /* ---------- Tarjetas de gráficos ---------- */
 .reporte-grid {

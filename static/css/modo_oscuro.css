@@ -1,0 +1,232 @@
+/* ==========================================
+   MODO OSCURO GLOBAL - CRAI UNEMI
+   Overrides para que TODAS las páginas del sistema se vean bien en oscuro
+   (tablas, tarjetas, textos, inputs y modales legibles). Se activa con la
+   clase .modo-oscuro en el <body> (no aplica a las páginas de autenticación).
+   ========================================== */
+
+body.modo-oscuro {
+    background: #12151f !important;
+    color: #e4e7ef !important;
+}
+
+/* Contenedores y áreas principales */
+body.modo-oscuro .dashboard-container,
+body.modo-oscuro .main-content,
+body.modo-oscuro .est-shell,
+body.modo-oscuro .registro-container,
+body.modo-oscuro .ajustes-container,
+body.modo-oscuro .perfil-container {
+    background: #12151f !important;
+    color: #e4e7ef !important;
+}
+
+/* Tarjetas */
+body.modo-oscuro .card,
+body.modo-oscuro .paso-card,
+body.modo-oscuro .ajuste-card,
+body.modo-oscuro .reporte-card,
+body.modo-oscuro .reporte-kpi,
+body.modo-oscuro .dashboard-stat-card,
+body.modo-oscuro .chromebook-stat-card,
+body.modo-oscuro .mantenimiento-stat-card,
+body.modo-oscuro .stat-mini,
+body.modo-oscuro .perfil-card,
+body.modo-oscuro .personal-card,
+body.modo-oscuro .tecnico-card,
+body.modo-oscuro .mp-card,
+body.modo-oscuro .resultado-card,
+body.modo-oscuro .prestamos-activos-panel,
+body.modo-oscuro .tabla-ultimos,
+body.modo-oscuro .reserva-pro {
+    background: #1b1f2e !important;
+    border-color: #2a3042 !important;
+    color: #e4e7ef !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Sidebar */
+body.modo-oscuro .sidebar-dashboard,
+body.modo-oscuro .sidebar-estudiante {
+    background: #1b1f2e !important;
+    border-color: #2a3042 !important;
+}
+body.modo-oscuro .sidebar-dashboard .nav-link,
+body.modo-oscuro .sidebar-estudiante .nav-link {
+    color: #c3c8d6 !important;
+}
+body.modo-oscuro .sidebar-dashboard .nav-link:hover {
+    background: #262c3d !important;
+    color: #fff !important;
+}
+body.modo-oscuro .sidebar-heading { color: #8b92a6 !important; }
+body.modo-oscuro .sidebar-toggle {
+    background: #232a3d !important;
+    border-color: #333c52 !important;
+    color: #c3c8d6 !important;
+}
+body.modo-oscuro .sidebar-toggle:hover { background: #2b3450 !important; color: #fff !important; }
+
+/* Textos */
+body.modo-oscuro h1, body.modo-oscuro h2, body.modo-oscuro h3,
+body.modo-oscuro h4, body.modo-oscuro h5, body.modo-oscuro h6,
+body.modo-oscuro strong, body.modo-oscuro label, body.modo-oscuro p,
+body.modo-oscuro span, body.modo-oscuro td, body.modo-oscuro th,
+body.modo-oscuro .texto-oscuro {
+    color: #e4e7ef;
+}
+body.modo-oscuro .text-muted,
+body.modo-oscuro small.text-muted,
+body.modo-oscuro .text-secondary { color: #99a0b3 !important; }
+body.modo-oscuro .text-dark { color: #e4e7ef !important; }
+
+/* Tablas */
+body.modo-oscuro table,
+body.modo-oscuro .table {
+    color: #e4e7ef !important;
+    --bs-table-bg: transparent;
+    --bs-table-color: #e4e7ef;
+    --bs-table-striped-bg: #20263700;
+    --bs-table-striped-color: #e4e7ef;
+    --bs-table-hover-bg: #262c3d;
+    --bs-table-hover-color: #fff;
+    --bs-table-border-color: #2a3042;
+}
+body.modo-oscuro thead th,
+body.modo-oscuro table th {
+    background: #232a3d !important;
+    color: #cfd4e2 !important;
+    border-color: #2a3042 !important;
+}
+body.modo-oscuro table td {
+    border-color: #2a3042 !important;
+    background: transparent !important;
+}
+body.modo-oscuro tbody tr:hover td { background: #262c3d !important; }
+
+/* Inputs / formularios */
+body.modo-oscuro .form-control,
+body.modo-oscuro .form-select,
+body.modo-oscuro .pwd-input,
+body.modo-oscuro .input-elegante,
+body.modo-oscuro .mat-campo input,
+body.modo-oscuro .cselect-trigger {
+    background: #232a3d !important;
+    border-color: #333c52 !important;
+    color: #e4e7ef !important;
+}
+body.modo-oscuro .form-control::placeholder,
+body.modo-oscuro .pwd-input::placeholder { color: #7c8398 !important; }
+body.modo-oscuro .form-control:focus,
+body.modo-oscuro .pwd-input:focus {
+    background: #262e42 !important;
+    border-color: #5c6bc0 !important;
+    box-shadow: 0 0 0 3px rgba(92, 107, 192, 0.2) !important;
+    color: #fff !important;
+}
+
+/* Modales */
+body.modo-oscuro .modal-content,
+body.modo-oscuro .notifd-card,
+body.modo-oscuro .notif-modal,
+body.modo-oscuro .pmodal-card,
+body.modo-oscuro .tec-modal-card,
+body.modo-oscuro .ajustes-modal-card {
+    background: #1b1f2e !important;
+    color: #e4e7ef !important;
+    border-color: #2a3042 !important;
+}
+body.modo-oscuro .modal-footer,
+body.modo-oscuro .modal-header { border-color: #2a3042 !important; }
+
+/* Encabezados de página / headers de tarjeta con borde */
+body.modo-oscuro .page-header,
+body.modo-oscuro .reporte-card-header,
+body.modo-oscuro .detalle-datos,
+body.modo-oscuro .detalle-item {
+    border-color: #2a3042 !important;
+}
+
+/* Utilidades Bootstrap de fondo claro que quedarían ilegibles */
+body.modo-oscuro .bg-white,
+body.modo-oscuro .bg-light {
+    background: #1b1f2e !important;
+    color: #e4e7ef !important;
+}
+
+/* Ficha estudiantil: información y asistencia */
+body.modo-oscuro .info-item,
+body.modo-oscuro .asistencia-box,
+body.modo-oscuro .asistencia-linea,
+body.modo-oscuro .asistencia-anillo-centro {
+    background: #232a3d !important;
+    border-color: #2a3042 !important;
+    color: #e4e7ef !important;
+}
+body.modo-oscuro .info-item strong,
+body.modo-oscuro .asistencia-pct,
+body.modo-oscuro .asistencia-num { color: #e4e7ef !important; }
+body.modo-oscuro .asistencia-vacia {
+    background: #1c2130 !important;
+    border-color: #333c52 !important;
+}
+
+/* Modal de detalle de préstamo (horizontal) */
+body.modo-oscuro .detalle-item {
+    background: #232a3d !important;
+    border-color: #2a3042 !important;
+}
+body.modo-oscuro .detalle-item-valor { color: #e4e7ef !important; }
+body.modo-oscuro .detalle-valor-grande { color: #aeb7ff !important; }
+body.modo-oscuro .detalle-col-evidencia {
+    background: #171b28 !important;
+    border-color: #2a3042 !important;
+}
+body.modo-oscuro .detalle-evidencia-header { border-color: #2a3042 !important; }
+body.modo-oscuro .detalle-modal-footer {
+    background: #171b28 !important;
+    border-color: #2a3042 !important;
+}
+
+/* Barra de búsqueda unificada (Nuevo Préstamo) */
+body.modo-oscuro .paso-card .input-group {
+    background: #232a3d !important;
+    border-color: #333c52 !important;
+    box-shadow: none !important;
+}
+body.modo-oscuro .paso-card .input-group-text {
+    background: #2b3450 !important;
+    color: #c7d0ff !important;
+    border-right-color: #333c52 !important;
+}
+body.modo-oscuro .paso-card .input-group .input-elegante { color: #e4e7ef !important; }
+
+/* Resumen del horario (Nuevo Préstamo) */
+body.modo-oscuro .resumen-horario {
+    background: #1c2130 !important;
+    border-color: #2a3042 !important;
+}
+body.modo-oscuro .resumen-chip {
+    background: #232a3d !important;
+    border-color: #333c52 !important;
+    color: #e4e7ef !important;
+}
+
+/* Recuadro de "Préstamos de Hoy" */
+body.modo-oscuro .prestamos-hoy-caja {
+    background: linear-gradient(180deg, #1c2130, #171b28) !important;
+    border-color: #2a3042 !important;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.35) !important;
+}
+body.modo-oscuro .stat-mini {
+    background: #232a3d !important;
+    color: #e4e7ef !important;
+}
+
+/* Badges suaves: mantener contraste */
+body.modo-oscuro .badge.bg-secondary { color: #fff; }
+body.modo-oscuro .list-group-item {
+    background: #1b1f2e !important;
+    color: #e4e7ef !important;
+    border-color: #2a3042 !important;
+}

@@ -1,0 +1,76 @@
+{% load static %}
+<div class="tec-card {% if m.estado == 'finalizado' %}tec-card-fin{% elif m.confirmado_por_tecnico %}tec-card-conf{% endif %}">
+
+    <!-- Fila principal horizontal: equipo · datos · estado/acción -->
+    <div class="tec-card-main">
+
+        <div class="tec-col tec-col-equipo">
+            <span class="tec-equipo-ico"><i class="bi bi-laptop"></i></span>
+            <div class="tec-equipo-info">
+                <span class="tec-card-equipo">{{ m.chromebook.codigo }}</span>
+                <small class="tec-equipo-modelo">{{ m.chromebook.marca }} {{ m.chromebook.modelo }}</small>
+            </div>
+        </div>
+
+        <div class="tec-col tec-col-datos">
+            <div class="tec-dato"><small>Tipo</small><b>{{ m.get_tipo_display }}</b></div>
+            <div class="tec-dato"><small>Inicio</small><b>{{ m.fecha_inicio|date:"d/m/Y" }}</b></div>
+            <div class="tec-dato tec-dato-problema"><small>Problema</small><b title="{{ m.descripcion_problema|default:'No especificado' }}">{{ m.descripcion_problema|default:"No especificado" }}</b></div>
+        </div>
+
+        <div class="tec-col tec-col-accion">
+            <span class="tec-card-estado
+                {% if m.estado == 'finalizado' %}est-fin{% elif m.confirmado_por_tecnico %}est-conf{% else %}est-proc{% endif %}">
+                {% if m.estado == 'finalizado' %}<i class="bi bi-check-circle-fill"></i> Finalizado por el CRAI
+                {% elif m.confirmado_por_tecnico %}<i class="bi bi-hourglass-split"></i> Enviado · esperando al CRAI
+                {% else %}<i class="bi bi-wrench-adjustable"></i> Por reparar{% endif %}
+            </span>
+            {% if m.estado == 'en_proceso' and not m.confirmado_por_tecnico %}
+            <button type="button" class="tec-btn-toggle" onclick="tecToggleForm(this)" aria-expanded="false">
+                <i class="bi bi-cloud-arrow-up"></i><span>Registrar reparación</span>
+                <i class="bi bi-chevron-down tec-toggle-caret"></i>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if m.estado == 'en_proceso' and not m.confirmado_por_tecnico %}
+    <!-- Formulario plegable (horizontal) -->
+    <div class="tec-form-wrap" hidden>
+        <form method="POST" action="{% url 'prestamos:tecnico_confirmar' %}" enctype="multipart/form-data" class="tec-form-conf">
+            {% csrf_token %}
+            <input type="hidden" name="mantenimiento_id" value="{{ m.id }}">
+            <div class="tec-form-campo tec-form-campo-desc">
+                <label class="tec-label">¿Qué reparaste?</label>
+                <textarea name="descripcion_solucion" rows="2" placeholder="Ej.: Se reemplazó el teclado y se actualizó ChromeOS." required></textarea>
+            </div>
+            <div class="tec-form-campo">
+                <label class="tec-label">Evidencia (foto o video) <span>*</span></label>
+                <input type="file" name="evidencia" accept="image/*,video/*" class="tec-file" required>
+            </div>
+            <button type="button" class="tec-btn-conf" onclick="pedirConfirmacion(this)" data-equipo="{{ m.chromebook.codigo }}"><i class="bi bi-check-circle"></i> Confirmar y enviar</button>
+        </form>
+    </div>
+    {% elif m.confirmado_por_tecnico %}
+    <div class="tec-confirmado">
+        <i class="bi bi-check-circle-fill"></i>
+        <div class="tec-confirmado-txt">
+            <strong>Reparación registrada</strong>
+            <small>{{ m.fecha_confirmacion_tecnico|date:"d/m/Y g:i A" }} · El CRAI la revisará para finalizar.</small>
+        </div>
+        {% if m.evidencia_reparacion %}
+        {% with evi=m.evidencia_reparacion.url %}
+        <button type="button" class="tec-evi-thumb" onclick="tecVerEvidencia('{{ evi|escapejs }}')" title="Ver evidencia en grande">
+            {% if '.mp4' in evi or '.webm' in evi or '.mov' in evi or '.ogg' in evi %}
+            <video src="{{ evi }}" muted class="tec-evi-media"></video>
+            <span class="tec-evi-play"><i class="bi bi-play-circle-fill"></i></span>
+            {% else %}
+            <img src="{{ evi }}" class="tec-evi-media" alt="Evidencia de la reparación">
+            {% endif %}
+            <span class="tec-evi-zoom"><i class="bi bi-arrows-fullscreen"></i></span>
+        </button>
+        {% endwith %}
+        {% endif %}
+    </div>
+    {% endif %}
+</div>

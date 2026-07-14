@@ -2,7 +2,7 @@
 <div class="monitoreo-card monitoreo-card-vencido" data-buscar="{{ p.estudiante.get_full_name|default:p.estudiante.username|lower }} {{ p.chromebook.codigo|lower }}">
     <div class="monitoreo-card-avatar monitoreo-avatar-rojo"><i class="bi bi-laptop"></i></div>
     <div class="monitoreo-card-info">
-        <strong>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong>
+        <span>{{ p.estudiante.get_full_name|default:p.estudiante.username }}</span>
         <span class="monitoreo-card-meta">Préstamo · {{ p.chromebook.codigo }} · Vencido desde {{ p.fecha_devolucion|date:"d/m/Y" }}</span>
     </div>
     <span class="monitoreo-badge monitoreo-badge-vencido">Vencido</span>
@@ -12,8 +12,8 @@
 <div class="monitoreo-card monitoreo-card-vencido" data-buscar="{{ r.estudiante.usuario.user.get_full_name|default:r.estudiante.usuario.user.username|lower }} {{ r.carrera.nombre|lower }}">
     <div class="monitoreo-card-avatar monitoreo-avatar-rojo"><i class="bi bi-calendar-x"></i></div>
     <div class="monitoreo-card-info">
-        <strong>{{ r.estudiante.usuario.user.get_full_name|default:r.estudiante.usuario.user.username }}</strong>
-        <span class="monitoreo-card-meta">Reserva · {{ r.carrera.nombre }} · Vencida el {{ r.fecha_uso|date:"d/m/Y" }} {{ r.hora_inicio|time:"H:i" }}</span>
+        <span>{{ r.estudiante.usuario.user.get_full_name|default:r.estudiante.usuario.user.username }}</span>
+        <span class="monitoreo-card-meta">Reserva · {{ r.carrera.nombre }} · Vencida el {{ r.fecha_uso|date:"d/m/Y" }} {{ r.hora_inicio|time:"g:i A" }}</span>
     </div>
     <span class="monitoreo-badge monitoreo-badge-vencido">Vencida</span>
 </div>

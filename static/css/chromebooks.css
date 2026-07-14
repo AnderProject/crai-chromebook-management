@@ -242,7 +242,7 @@ td .badge {
    TABLA CON SCROLL LIMITADO A 7 FILAS
    ========================================== */
 .tabla-prestamos .table-responsive {
-    max-height: 470px; /* ~7 filas visibles (antes 325px mostraba 4 y media); el resto con scroll */
+    max-height: max(470px, 52vh); /* ~7 filas visibles (antes 325px mostraba 4 y media); el resto con scroll */
     overflow-y: auto;
     border-radius: 0 0 0.8rem 0.8rem;
 }

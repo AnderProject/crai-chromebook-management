@@ -99,6 +99,44 @@
                         <strong>{{ estudiante.semestre }}° Semestre</strong>
                     </div>
                 </div>
+
+                {% if asistencia %}
+                <h6 class="resultado-seccion"><i class="bi bi-clipboard-check me-1"></i>Asistencia al CRAI</h6>
+                {% if asistencia.evaluadas %}
+                <div class="asistencia-box asistencia-{{ asistencia.nivel }}">
+                    <div class="asistencia-anillo" style="--pct: {{ asistencia.porcentaje }};">
+                        <div class="asistencia-anillo-centro">
+                            <span class="asistencia-pct">{{ asistencia.porcentaje }}%</span>
+                            <span class="asistencia-pct-lbl">asistencia</span>
+                        </div>
+                    </div>
+                    <div class="asistencia-detalle">
+                        <div class="asistencia-linea asistencia-presente">
+                            <span><i class="bi bi-check-circle-fill me-1"></i>Asistió (retiró equipo)</span>
+                            <span class="asistencia-num">{{ asistencia.presentes }}</span>
+                        </div>
+                        <div class="asistencia-linea asistencia-ausente">
+                            <span><i class="bi bi-x-circle-fill me-1"></i>No acudió (reserva vencida)</span>
+                            <span class="asistencia-num">{{ asistencia.ausentes }}</span>
+                        </div>
+                        <div class="asistencia-linea asistencia-total">
+                            <span><i class="bi bi-calendar-check me-1"></i>Reservas evaluadas</span>
+                            <span class="asistencia-num">{{ asistencia.evaluadas }}</span>
+                        </div>
+                        {% if asistencia.pendientes %}
+                        <div class="asistencia-nota">
+                            <i class="bi bi-hourglass-split me-1"></i>{{ asistencia.pendientes }} reserva{{ asistencia.pendientes|pluralize }} confirmada{{ asistencia.pendientes|pluralize }} en curso (aún sin evaluar).
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="asistencia-vacia">
+                    <i class="bi bi-clipboard-x"></i>
+                    <span>Sin reservas confirmadas evaluadas todavía.</span>
+                </div>
+                {% endif %}
+                {% endif %}
             </div>
         </div>
         {% elif not error and not estudiante %}

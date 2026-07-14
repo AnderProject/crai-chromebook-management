@@ -127,6 +127,31 @@ function pollChromebooks() {
         .catch(function () { /* silencioso */ });
 }
 
+// ---- Mantenimiento: filas + contadores (refleja al momento la confirmación del técnico) ----
+var ultimoMantenimientosHtml = null;
+
+// No pisar la tabla mientras el usuario está buscando por código.
+function mantenimientoOcupado() {
+    var buscador = document.getElementById('buscarMantenimiento');
+    return !!(buscador && buscador.value.trim() !== '');
+}
+
+function pollMantenimientos() {
+    if (mantenimientoOcupado()) { return; }
+    craiObtener('/prestamos/api/mantenimientos/')
+        .then(function (data) {
+            actualizarContadores(data.contadores);
+            var tbody = document.getElementById('tbodyMantenimientos');
+            if (!tbody || !data.filas_html || data.filas_html === ultimoMantenimientosHtml) { return; }
+            // Conservar la fila auxiliar de "sin resultados" del buscador.
+            var filaSin = document.getElementById('filaSinResultados');
+            tbody.innerHTML = data.filas_html;
+            if (filaSin) { tbody.appendChild(filaSin); }
+            ultimoMantenimientosHtml = data.filas_html;
+        })
+        .catch(function () { /* silencioso */ });
+}
+
 // ---- Monitoreo de estudiantes: listas de activos y vencidos ----
 var ultimoMonitoreoActivos = null;
 var ultimoMonitoreoVencidos = null;
@@ -165,6 +190,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (document.querySelector('[data-estado-cell]')) {
         setInterval(pollChromebooks, REALTIME_INTERVALO);
+    }
+    if (document.getElementById('tbodyMantenimientos')) {
+        setInterval(pollMantenimientos, REALTIME_INTERVALO);
     }
     if (document.getElementById('monitoreoActivosLista')) {
         setInterval(pollMonitoreo, REALTIME_INTERVALO);

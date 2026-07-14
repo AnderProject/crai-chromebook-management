@@ -19,6 +19,9 @@
     <!-- Estilos base -->
     <link href="{% static 'css/base.css' %}" rel="stylesheet">
 
+    <!-- Modo oscuro global (se activa con .modo-oscuro en el body) -->
+    <link href="{% static 'css/modo_oscuro.css' %}?v={% now 'U' %}" rel="stylesheet">
+
     <!-- Capa responsive global (se adapta a cualquier pantalla) -->
     <link href="{% static 'css/responsive.css' %}" rel="stylesheet">
 

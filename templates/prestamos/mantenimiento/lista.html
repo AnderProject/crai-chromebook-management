@@ -7,6 +7,7 @@
 <link href="{% static 'css/base.css' %}" rel="stylesheet">
 <link href="{% static 'css/dashboard.css' %}?v={% now 'U' %}" rel="stylesheet">
 <link href="{% static 'css/mantenimiento.css' %}?v={% now 'U' %}" rel="stylesheet">
+<link href="{% static 'css/badges_animados.css' %}?v={% now 'U' %}" rel="stylesheet">
 {% endblock %}
 
 {% block contenido %}
@@ -53,7 +54,7 @@
                             <div class="stat-card-content">
                                 <div class="stat-icono-mant bg-naranja"><i class="bi bi-hourglass-split"></i></div>
                                 <div class="stat-info-mant">
-                                    <span class="stat-numero-mant">{{ en_proceso }}</span>
+                                    <span class="stat-numero-mant" data-stat="en_proceso">{{ en_proceso }}</span>
                                     <span class="stat-label-mant">En Proceso</span>
                                 </div>
                             </div>
@@ -66,7 +67,7 @@
                             <div class="stat-card-content">
                                 <div class="stat-icono-mant bg-verde"><i class="bi bi-check-circle"></i></div>
                                 <div class="stat-info-mant">
-                                    <span class="stat-numero-mant">{{ finalizados }}</span>
+                                    <span class="stat-numero-mant" data-stat="finalizados">{{ finalizados }}</span>
                                     <span class="stat-label-mant">Finalizados</span>
                                 </div>
                             </div>
@@ -89,40 +90,10 @@
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
                             <thead>
-                                <tr><th>#</th><th>Chromebook</th><th>Tipo</th><th>Garantía</th><th>Problema</th><th>Técnico</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
+                                <tr><th>ID</th><th>Chromebook</th><th>Tipo</th><th>Garantía</th><th>Problema</th><th>Técnico</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
                             </thead>
-                            <tbody>
-                                {% if mantenimientos %}
-                                    {% for m in mantenimientos %}
-                                    <tr data-codigo="{{ m.chromebook.codigo|lower }}">
-                                        <td><strong>#{{ m.id }}</strong></td>
-                                        <td><strong>{{ m.chromebook.codigo }}</strong><br><small class="text-muted">{{ m.chromebook.marca }} {{ m.chromebook.modelo }}</small></td>
-                                        <td><span class="badge bg-info">{{ m.tipo|title }}</span></td>
-                                        <td>{% if m.en_garantia %}<span class="badge bg-success">Aplica</span>{% else %}<span class="badge bg-danger">No aplica</span>{% endif %}</td>
-                                        <td><small>{{ m.descripcion_problema|truncatechars:50|default:'-' }}</small></td>
-                                        <td>{{ m.tecnico|default:'-' }}</td>
-                                        <td>{{ m.fecha_inicio|date:"d/m/Y" }}</td>
-                                        <td>
-                                            {% if m.estado == 'en_proceso' %}
-                                                <span class="badge bg-warning text-dark">En proceso</span>
-                                                {% if m.confirmado_por_tecnico %}<br><span class="badge badge-tecnico-confirmo mt-1" title="El técnico confirmó y subió evidencia"><i class="bi bi-person-check-fill"></i> Técnico confirmó</span>{% endif %}
-                                            {% else %}<span class="badge bg-success">Finalizado</span>{% endif %}
-                                        </td>
-                                        <td>
-                                            {% if m.estado == 'en_proceso' %}
-                                            <div class="acciones-fila">
-                                                <button class="btn btn-outline-warning btn-accion" title="Editar" onclick="editarMantenimiento('{{ m.id }}')"><i class="bi bi-pencil"></i></button>
-                                                <a href="{% url 'prestamos:finalizar_mantenimiento' m.id %}" class="btn {% if m.confirmado_por_tecnico %}btn-primary{% else %}btn-outline-primary{% endif %} btn-accion" title="{% if m.confirmado_por_tecnico %}Revisar evidencia y finalizar{% else %}Finalizar mantenimiento{% endif %}"><i class="bi bi-check-lg"></i></a>
-                                            </div>
-                                            {% else %}
-                                            <span class="text-muted small">—</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-inbox display-6 d-block mb-2"></i>No hay mantenimientos registrados</td></tr>
-                                {% endif %}
+                            <tbody id="tbodyMantenimientos">
+                                {% include 'prestamos/partials/_mantenimientos_rows.html' %}
                                 <tr id="filaSinResultados" class="d-none"><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-search display-6 d-block mb-2"></i>No hay equipos con ese código.</td></tr>
                             </tbody>
                         </table>
@@ -195,4 +166,5 @@
 
 {% block scripts_extra %}
 <script src="{% static 'js/mantenimiento.js' %}"></script>
+<script src="{% static 'js/realtime.js' %}?v={% now 'U' %}"></script>
 {% endblock %}

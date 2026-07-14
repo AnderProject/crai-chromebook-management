@@ -147,9 +147,14 @@
     display: flex; align-items: center; justify-content: center; font-size: 1.05rem;
 }
 .asesoria-item-cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.asesoria-item-top { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; }
-.asesoria-item-top strong { color: #1f2533; font-size: 0.9rem; }
-.asesoria-item-badge { background: #e53935; color: #fff; font-size: 0.68rem; font-weight: 700; border-radius: 10px; padding: 0.05rem 0.4rem; }
+.asesoria-item-top { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; min-width: 0; }
+/* Nombre + apellidos SIEMPRE en una sola línea (elipsis si es largo) */
+.asesoria-item-top strong {
+    color: #1f2533; font-size: 0.9rem;
+    flex: 1; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.asesoria-item-badge { flex-shrink: 0; background: #e53935; color: #fff; font-size: 0.68rem; font-weight: 700; border-radius: 10px; padding: 0.05rem 0.4rem; }
 .asesoria-item-msg { color: #6b7280; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .asesoria-item-canal { color: #9aa0b4; font-size: 0.95rem; }
 .asesoria-item-canal .bi-whatsapp { color: #25d366; }
@@ -168,7 +173,12 @@
 }
 .asesoria-volver { background: #eef1ff; color: #1a237e; width: 34px; height: 34px; }
 .asesoria-chat-info { flex: 1; display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
-.asesoria-chat-info strong { color: #1f2533; font-size: 0.92rem; }
+/* Nombre del estudiante en la cabecera del chat: una sola línea, se adapta al ancho */
+.asesoria-chat-info strong {
+    color: #1f2533; font-size: 0.92rem;
+    max-width: 100%;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .asesoria-chat-info small { color: #8a90a8; font-size: 0.75rem; }
 .asesoria-pend { color: #c62828; font-weight: 700; }
 .asesoria-finalizar { background: #e8f5e9; color: #2e7d32; padding: 0.35rem 0.7rem; font-size: 0.8rem; }

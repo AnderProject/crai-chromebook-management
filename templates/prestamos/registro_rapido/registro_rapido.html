@@ -109,7 +109,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div id="infoHorario" class="mt-2 small text-muted"></div>
+                                <div id="infoHorario" class="resumen-horario mt-2"></div>
                             </div>
 
                             <button class="btn-codigo-reservacion w-100 justify-content-center mt-2" id="btnPrestarAhora" type="button">
@@ -121,15 +121,17 @@
                         
                         <div class="col-lg-5">
                             
-                            <div class="prestamos-activos-header">
-                                <h6 class="fw-bold mb-0">
-                                    <i class="bi bi-circle-fill text-success me-2" style="font-size: 0.5rem;"></i>Préstamos de Hoy
-                                </h6>
-                                <span class="badge bg-success rounded-pill" data-stat="total_hoy">{{ total_hoy }}</span>
-                            </div>
+                            <div class="prestamos-hoy-caja">
+                                <div class="prestamos-activos-header">
+                                    <h6 class="fw-bold mb-0">
+                                        <i class="bi bi-circle-fill text-success me-2" style="font-size: 0.5rem;"></i>Préstamos de Hoy
+                                    </h6>
+                                    <span class="badge bg-success rounded-pill" data-stat="total_hoy">{{ total_hoy }}</span>
+                                </div>
 
-                            <div id="listaPrestamosHoy">
-                                {% include 'prestamos/partials/_prestamos_hoy.html' %}
+                                <div id="listaPrestamosHoy" class="prestamos-hoy-scroll">
+                                    {% include 'prestamos/partials/_prestamos_hoy.html' %}
+                                </div>
                             </div>
 
                             <div class="prestamos-estadisticas">

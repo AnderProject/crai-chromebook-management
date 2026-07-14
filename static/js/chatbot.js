@@ -39,6 +39,26 @@ function horaActual() {
     return new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
 }
 
+// Separa una respuesta en [texto, pregunta] cuando termina con una pregunta,
+// para mostrar la pregunta en un mensaje aparte. Si no hay, devuelve [texto, null].
+function separarPregunta(texto) {
+    var t = (texto || '').trim();
+    if (t.slice(-1) !== '?') return [t, null];
+    // Última oración completa antes de la pregunta final.
+    var m = t.match(/^([\s\S]*[.!?…)]\s+)([^.!?¿]*\?)\s*$/);
+    if (m && m[1].trim() && m[2].trim().length > 1) {
+        return [m[1].trim(), m[2].trim()];
+    }
+    // Alternativa: separar por el signo de apertura ¿ si viene precedido de texto.
+    var i = t.lastIndexOf('¿');
+    if (i > 0) {
+        var antes = t.slice(0, i).trim();
+        var preg = t.slice(i).trim();
+        if (antes) return [antes, preg];
+    }
+    return [t, null];
+}
+
 // ---- Persistencia (sessionStorage: dura solo la sesión del navegador) ----
 function leerHistorial() {
     try {
@@ -120,7 +140,17 @@ function procesarMensaje() {
         // Modo asesoría humana: el bot queda en silencio; responde el asesor.
         if (accion === 'asesoria_humana') { iniciarAsesoria(false); return; }
         var respuesta = data.respuesta || 'Error al procesar el mensaje.';
-        agregarMensaje('bot', respuesta, horaActual(), true);
+        // Si la respuesta termina con una pregunta, se muestra la pregunta en un
+        // MENSAJE APARTE (segunda burbuja), no dentro del mismo.
+        var partes = separarPregunta(respuesta);
+        agregarMensaje('bot', partes[0], horaActual(), true);
+        if (partes[1]) {
+            var esc2 = mostrarEscribiendo();
+            setTimeout(function () {
+                esc2.remove();
+                agregarMensaje('bot', partes[1], horaActual(), true);
+            }, 850);
+        }
         if (accion === 'solicitar_asesoria') { iniciarAsesoria(true); }
         else if (accion === 'asesoria_cerrada') { detenerAsesoria(); }
         // Si el bot ejecutó una acción que cambia los datos, refrescar la actividad

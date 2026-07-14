@@ -76,13 +76,23 @@ def tecnico_panel(request, tecnico):
                       .order_by('-fecha_inicio'))
 
     en_proceso = mantenimientos.filter(estado='en_proceso')
+
+    # Agrupado por secciones para el panel: primero lo pendiente de reparar,
+    # luego lo enviado a la espera del CRAI y al final lo ya finalizado.
+    grupo_por_reparar = [m for m in en_proceso if not m.confirmado_por_tecnico]
+    grupo_enviados = [m for m in en_proceso if m.confirmado_por_tecnico]
+    grupo_finalizados = list(mantenimientos.filter(estado='finalizado'))
+
     contexto = {
         'tecnico': tecnico,
         'mantenimientos': mantenimientos,
+        'grupo_por_reparar': grupo_por_reparar,
+        'grupo_enviados': grupo_enviados,
+        'grupo_finalizados': grupo_finalizados,
         'total': mantenimientos.count(),
         'en_proceso': en_proceso.count(),
-        'finalizados': mantenimientos.filter(estado='finalizado').count(),
-        'por_confirmar': en_proceso.filter(confirmado_por_tecnico=False).count(),
+        'finalizados': len(grupo_finalizados),
+        'por_confirmar': len(grupo_por_reparar),
     }
     return render(request, 'prestamos/tecnicos/panel.html', contexto)
 

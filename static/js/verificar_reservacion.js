@@ -447,21 +447,24 @@ function verDetallePrestamo(id) {
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
-                document.getElementById('detallePrestamoIdHeader').textContent = '#' + data.data.id;
-                document.getElementById('detallePrestamoEstudiante').innerHTML = '<strong>' + data.data.estudiante + '</strong>';
-                document.getElementById('detallePrestamoChromebook').innerHTML = '<strong>' + data.data.chromebook + '</strong>';
-                
-                var fechaPrestamo = data.data.fecha_prestamo.split(' ');
-                var fechaDev = data.data.devolucion.split(' ');
-                
-                document.getElementById('detallePrestamoFecha').innerHTML = 
-                    '<strong>' + fechaPrestamo[0] + '</strong><br><small class="text-muted">' + (fechaPrestamo[1] || '') + '</small>';
-                
-                document.getElementById('detallePrestamoDevolucion').innerHTML = 
-                    '<strong>' + fechaDev[0] + '</strong><br><small class="text-muted">' + (fechaDev[1] || '') + '</small>';
-                
-                var estadoClass = data.data.estado === 'activo' ? 'success' : (data.data.estado === 'devuelto' ? 'info' : 'danger');
-                document.getElementById('detallePrestamoEstado').innerHTML = '<span class="badge bg-' + estadoClass + ' px-3 py-2"><strong>' + data.data.estado.toUpperCase() + '</strong></span>';
+                document.getElementById('detallePrestamoIdHeader').textContent = data.data.id;
+                document.getElementById('detallePrestamoEstudiante').textContent = data.data.estudiante;
+                document.getElementById('detallePrestamoChromebook').textContent = data.data.chromebook;
+
+                // Parte la cadena "fecha hora AM/PM" en [fecha, hora] por el PRIMER espacio.
+                function partirFH(s) { var i = (s || '').indexOf(' '); return i < 0 ? [s, ''] : [s.slice(0, i), s.slice(i + 1)]; }
+                var fp = partirFH(data.data.fecha_prestamo);
+                var fd = partirFH(data.data.devolucion);
+                var activo = data.data.estado === 'activo';
+
+                document.getElementById('detallePrestamoFecha').innerHTML =
+                    fp[0] + '<br><small class="text-muted">' + fp[1] + '</small>';
+                // La hora de devolución en ROJO cuando el préstamo sigue activo.
+                document.getElementById('detallePrestamoDevolucion').innerHTML =
+                    fd[0] + '<br><small class="' + (activo ? 'detalle-hora-activa' : 'text-muted') + '">' + fd[1] + '</small>';
+
+                var estadoClass = activo ? 'success' : (data.data.estado === 'devuelto' ? 'info' : 'danger');
+                document.getElementById('detallePrestamoEstado').innerHTML = '<span class="badge bg-' + estadoClass + ' px-3 py-2">' + data.data.estado.toUpperCase() + '</span>';
 
                 // Botón de bloqueo remoto (solo para préstamos activos).
                 configurarBotonBloqueo(data.data.pk, data.data.estado === 'activo', data.data.bloqueado);

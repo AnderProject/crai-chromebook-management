@@ -126,7 +126,7 @@
                         <div class="tecnico-chip {% if t.en_proceso >= limite_tecnico %}tecnico-chip-lleno{% elif t.en_proceso > 0 %}tecnico-chip-ocupado{% endif %}">
                             <span class="tecnico-chip-avatar"><i class="bi bi-person-gear"></i></span>
                             <span class="tecnico-chip-info">
-                                <strong>{{ t.nombre_completo }}</strong>
+                                <span>{{ t.nombre_completo }}</span>
                                 <small>{{ t.especialidad|default:'Técnico de TICs' }}</small>
                             </span>
                             <span class="tecnico-chip-carga" title="Equipos en mantenimiento">

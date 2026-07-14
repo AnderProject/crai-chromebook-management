@@ -5,12 +5,12 @@
         <div class="ph-info">
             <div class="ph-top">
                 <strong class="ph-nombre">{{ p.estudiante.get_full_name|default:p.estudiante.username }}</strong>
-                <span class="ph-id">#{{ p.id|stringformat:"03d" }}</span>
+                <span class="ph-id">{{ p.id|stringformat:"03d" }}</span>
             </div>
             <div class="ph-sub">
                 <i class="bi bi-laptop"></i> {{ p.chromebook.codigo }}
                 <span class="ph-punto">•</span>
-                <i class="bi bi-clock"></i> {{ p.fecha_prestamo|date:"H:i" }}–{{ p.fecha_devolucion|date:"H:i" }}
+                <i class="bi bi-clock"></i> {{ p.fecha_prestamo|date:"g:i A" }}–{{ p.fecha_devolucion|date:"g:i A" }}
             </div>
         </div>
         <span class="ph-estado ph-{{ p.estado }}">{{ p.estado }}</span>

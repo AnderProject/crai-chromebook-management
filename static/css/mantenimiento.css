@@ -133,7 +133,7 @@
 /* Mostrar ~6 filas antes de hacer scroll (las filas son de dos líneas, ≈54px c/u
    + cabecera sticky). Sobrescribe el tope que hereda de dashboard.css para esta pantalla. */
 .tabla-prestamos .table-responsive {
-    max-height: 440px;
+    max-height: max(440px, 50vh);
     overflow-y: auto;
 }
 /* ==========================================

@@ -45,7 +45,7 @@ def construir_actividad(user):
                 'badge': 'bg-success',
                 'dot': 'activo',
                 'icono': 'bi-laptop',
-                'detalle': (f'Devolver antes de las {timezone.localtime(p.fecha_devolucion).strftime("%H:%M")} '
+                'detalle': (f'Devolver antes de las {_h12(timezone.localtime(p.fecha_devolucion))} '
                             f'del {timezone.localtime(p.fecha_devolucion).strftime("%d/%m")}')
                             if p.fecha_devolucion else 'Préstamo en curso',
             })
@@ -76,7 +76,7 @@ def construir_actividad(user):
                 'dot': dot,
                 'icono': 'bi-calendar-check',
                 'detalle': (f'Uso {r.fecha_uso.strftime("%d/%m")} · '
-                            f'{r.hora_inicio.strftime("%H:%M")}–{r.hora_fin.strftime("%H:%M")}'
+                            f'{_h12(r.hora_inicio)}–{_h12(r.hora_fin)}'
                             + (f' · Equipo {r.chromebook.codigo}' if r.chromebook_id else '')),
             })
         
@@ -132,6 +132,12 @@ def portal_estudiante(request):
     return render(request, 'estudiantes/portal.html', contexto)
 
 
+def _h12(t):
+    """Hora en formato 12h con AM/PM, ej. '9:00 AM' (independiente del locale)."""
+    h = t.hour
+    return f'{h % 12 or 12}:{t.minute:02d} {"AM" if h < 12 else "PM"}'
+
+
 def _avisos_devolucion(user):
     """Préstamos activos del estudiante que vencen dentro de los próximos 15 min.
 
@@ -156,7 +162,7 @@ def _avisos_devolucion(user):
             'id': p.id,
             'chromebook': p.chromebook.codigo if p.chromebook_id else '',
             'minutos': minutos,
-            'hora': timezone.localtime(p.fecha_devolucion).strftime('%H:%M'),
+            'hora': _h12(timezone.localtime(p.fecha_devolucion)),
         })
     return avisos
 
@@ -414,8 +420,8 @@ def reservar_chromebook(request):
                 usuario=usuario,
                 titulo='Reserva Registrada',
                 mensaje=(f'Tu reserva para el {reserva.fecha_uso:%d/%m/%Y} de '
-                         f'{reserva.hora_inicio:%H:%M} a {reserva.hora_fin:%H:%M} quedó registrada. '
-                         'Preséntate en el CRAI para retirar tu equipo.'),
+                         f'{_h12(reserva.hora_inicio)} a {_h12(reserva.hora_fin)} quedó registrada. '
+                         'Acércate al Recepcionista de la biblioteca para retirar tu equipo.'),
                 tipo='reserva'
             )
             
@@ -519,16 +525,22 @@ def api_cancelar_reserva(request):
     return JsonResponse({'success': True, 'message': 'Reserva cancelada.'})
 
 
-def _correo_reserva_futura(reserva):
-    """Notifica por correo al estudiante cuando su reserva es para un día POSTERIOR
-    (no el mismo día). Silencioso: nunca interrumpe el flujo si falla o no hay correo.
-    Se usa tanto en las reservas del portal como en las del administrador y el chatbot.
+def _correo_reserva_futura(reserva, forzar=False):
+    """Notifica por correo al estudiante que su reserva quedó registrada.
+
+    Por defecto solo avisa cuando la reserva es para un día POSTERIOR (portal/chatbot,
+    donde el propio estudiante ya vio el código en pantalla). Con ``forzar=True`` (reserva
+    creada por el administrador en recepción) se envía SIEMPRE, incluso el mismo día, para
+    que el estudiante reciba su código aunque no esté presente. Silencioso: nunca
+    interrumpe el flujo si falla o no hay correo.
     """
     try:
         from django.core.mail import EmailMultiAlternatives
         from django.utils import timezone
-        if not reserva or not reserva.fecha_uso or reserva.fecha_uso <= timezone.localdate():
-            return  # solo se avisa por correo cuando la reserva es para días posteriores
+        if not reserva or not reserva.fecha_uso:
+            return
+        if not forzar and reserva.fecha_uso <= timezone.localdate():
+            return  # sin forzar, solo se avisa cuando la reserva es para días posteriores
         est = getattr(reserva, 'estudiante', None)
         user = est.usuario.user if (est and getattr(est, 'usuario', None)) else None
         correo = (getattr(user, 'email', '') or '').strip()
@@ -536,14 +548,14 @@ def _correo_reserva_futura(reserva):
             return
         nombre = (getattr(user, 'first_name', '') or '').strip() or 'estudiante'
         fecha = reserva.fecha_uso.strftime('%d/%m/%Y')
-        horario = f'{reserva.hora_inicio.strftime("%H:%M")} a {reserva.hora_fin.strftime("%H:%M")}'
+        horario = f'{_h12(reserva.hora_inicio)} a {_h12(reserva.hora_fin)}'
         codigo = reserva.codigo_verificacion
         asunto = 'Reserva de Chromebook confirmada — CRAI UNEMI'
         texto = (
             f'Hola {nombre},\n\n'
             f'Tu reserva de Chromebook quedó registrada para el {fecha}, de {horario}.\n'
             f'Código de verificación: {codigo}\n\n'
-            'Preséntate en el CRAI dentro de los primeros 15 minutos de tu horario para retirar '
+            'Acércate al Recepcionista de la biblioteca dentro de los primeros 15 minutos de tu horario para retirar '
             'el equipo. Si no puedes asistir, puedes cancelar la reserva desde el portal o el '
             'asistente virtual.\n\n'
             'CRAI UNEMI'
@@ -555,14 +567,14 @@ def _correo_reserva_futura(reserva):
     <p style="margin:4px 0 0;opacity:.85;font-size:13px">CRAI UNEMI</p>
   </div>
   <div style="padding:24px;color:#2b3448;font-size:14px;line-height:1.6">
-    <p>Hola <b>{nombre}</b>, tu reserva de Chromebook quedó registrada para un día posterior:</p>
+    <p>Hola <b>{nombre}</b>, tu reserva de Chromebook quedó registrada:</p>
     <table style="width:100%;border-collapse:collapse;margin:14px 0">
       <tr><td style="padding:8px 0;color:#6b7280">📅 Fecha</td><td style="padding:8px 0;text-align:right;font-weight:600">{fecha}</td></tr>
       <tr><td style="padding:8px 0;color:#6b7280;border-top:1px solid #eef0f5">⏰ Horario</td><td style="padding:8px 0;text-align:right;font-weight:600;border-top:1px solid #eef0f5">{horario}</td></tr>
       <tr><td style="padding:8px 0;color:#6b7280;border-top:1px solid #eef0f5">🔑 Código</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#1a237e;border-top:1px solid #eef0f5;letter-spacing:1px">{codigo}</td></tr>
     </table>
     <p style="background:#eef4ff;border-radius:10px;padding:12px 14px;font-size:13px;color:#1b3a8c">
-      Preséntate en el CRAI dentro de los primeros 15 minutos de tu horario para retirar el equipo.
+      Acércate al Recepcionista de la biblioteca dentro de los primeros 15 minutos de tu horario para retirar el equipo.
       Si no puedes asistir, cancela la reserva desde el portal o el asistente virtual.
     </p>
   </div>
@@ -590,7 +602,7 @@ def _formatear_reservas_chat(activas, historial, nombre=''):
     def bloque(r):
         e = emojis.get(r.estado, '📌')
         fecha = r.fecha_uso.strftime('%d/%m/%Y')
-        horario = f'{r.hora_inicio.strftime("%H:%M")}–{r.hora_fin.strftime("%H:%M")}'
+        horario = f'{_h12(r.hora_inicio)}–{_h12(r.hora_fin)}'
         return (f'{e} *{r.get_estado_display()}*\n'
                 f'🔑 Código: {r.codigo_verificacion}\n'
                 f'📅 {fecha}  ·  ⏰ {horario}')
@@ -611,7 +623,7 @@ def _bloque_reserva_chat(r):
               'completada': '✔️', 'vencida': '⌛'}
     e = emojis.get(r.estado, '📌')
     fecha = r.fecha_uso.strftime('%d/%m/%Y')
-    horario = f'{r.hora_inicio.strftime("%H:%M")}–{r.hora_fin.strftime("%H:%M")}'
+    horario = f'{_h12(r.hora_inicio)}–{_h12(r.hora_fin)}'
     return (f'{e} *{r.get_estado_display()}*\n'
             f'🔑 Código: {r.codigo_verificacion}\n'
             f'📅 {fecha}  ·  ⏰ {horario}')
@@ -763,6 +775,32 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id, canal='web', 
             respuesta = cuerpo[0].upper() + cuerpo[1:]
         accion_realizada = 'disponibilidad'
 
+    # --- Contacto por WhatsApp (el estudiante quiere seguir por WhatsApp) ---
+    elif any(p in mensaje for p in ['whatsapp', 'whats app', 'wasap', 'wsp', 'por wa']):
+        numero_crai = (getattr(settings, 'WHATSAPP_NUMERO', '') or '').strip()
+        tel = (perfil.telefono or '').strip() if perfil is not None else ''
+        enviado = False
+        if tel and canal == 'web':
+            wa_dest = ('593' + tel[1:]) if tel.startswith('0') else tel
+            saludo_wa = f'¡Hola {primer_nombre}! ' if primer_nombre else '¡Hola! '
+            try:
+                ok, _err = _enviar_whatsapp(
+                    wa_dest,
+                    f'{saludo_wa}Soy el asistente del CRAI 🤖. Sigamos por aquí: te ayudo con la '
+                    'disponibilidad, tus reservas y a crear o cancelar una. ¿En qué te ayudo?')
+                enviado = bool(ok)
+            except Exception:
+                enviado = False
+        if enviado:
+            respuesta = ('¡Listo! 📱 Te acabo de escribir por WhatsApp. Revisa tu chat y seguimos por '
+                         'ahí con la misma información. También me tienes siempre aquí en el portal.')
+        elif numero_crai:
+            respuesta = (f'Puedes escribirme por WhatsApp 📱: https://wa.me/{numero_crai} — te atiendo '
+                         'con la misma información que aquí.')
+        else:
+            respuesta = 'Por ahora te atiendo aquí en el portal 🙂. ¿En qué te ayudo?'
+        accion_realizada = 'whatsapp'
+
     # --- Historial de reservas (pasadas) ---
     elif any(p in mensaje for p in ['historial', 'reservas pasada', 'reservas anterior', 'pasadas', 'anteriores']):
         if estudiante:
@@ -817,8 +855,48 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id, canal='web', 
             f'domingo). Las ÚNICAS fechas reservables son: {validos_str}. No ofrezcas ni '
             f'aceptes otra fecha, ni horas que ya pasaron hoy.] '
         )
+
+        # Continuidad de la conversación: como el propio sistema atiende varios
+        # mensajes (saludo, mis reservas, historial…) sin pasar por n8n, la memoria
+        # del agente queda incompleta y volvía a saludar / perdía el hilo. Le damos
+        # una regla clara y las últimas interacciones para que mantenga contexto.
+        regla_continuidad = (
+            '[IMPORTANTE: el usuario YA fue saludado; NO vuelvas a saludar ni te '
+            'presentes de nuevo. Responde directo, breve y natural, siguiendo el hilo '
+            'de la conversación reciente que se muestra abajo.] '
+        )
+        historial_ctx = ''
+        try:
+            from apps.prestamos.models import ChatbotConversacion
+            recientes = list(
+                ChatbotConversacion.objects
+                .filter(usuario=(perfil.user if perfil else None))
+                .order_by('-fecha_interaccion')[:4]
+            )[::-1]
+            lineas = []
+            for c in recientes:
+                if c.mensaje_usuario:
+                    lineas.append(f'Estudiante: {c.mensaje_usuario.strip()}')
+                if (c.respuesta_bot or '').strip():
+                    lineas.append(f'Asistente: {c.respuesta_bot.strip()}')
+            if lineas:
+                historial_ctx = '[Conversación reciente:\n' + '\n'.join(lineas) + '\n] '
+        except Exception:
+            historial_ctx = ''
+
+        # Límite de reservas: el estudiante puede tener hasta 2 ACTIVAS a la vez.
+        # Se le dice explícitamente al agente para que no bloquee una 2.ª por su cuenta.
+        contexto_limite = ''
+        if estudiante:
+            n_act = Reserva.objects.filter(
+                estudiante=estudiante, estado__in=['pendiente', 'confirmada']).count()
+            puede = 'AÚN PUEDE crear otra reserva' if n_act < 2 else 'NO puede crear otra (ya llegó al máximo de 2)'
+            contexto_limite = (f'[El estudiante tiene {n_act} reserva(s) activa(s). El máximo permitido '
+                               f'es 2 por estudiante, así que {puede}.] ')
+
         payload = {
-            'chatInput': f'{contexto_tiempo}{contexto_usuario}{(mensaje_raw or "").strip()}',
+            'chatInput': (f'{regla_continuidad}{contexto_limite}{historial_ctx}{contexto_tiempo}'
+                          f'{contexto_usuario}{(mensaje_raw or "").strip()}'),
             'sessionId': str(session_id or 'anon'),
         }
 
@@ -942,7 +1020,7 @@ def _procesar_chatbot(mensaje_raw, estudiante, perfil, session_id, canal='web', 
                         respuesta = (
                             f'✅ *Reserva creada* · {fecha_uso}, {hora_inicio}–{hora_fin}\n'
                             f'🔑 Código: *{codigo}*\n'
-                            f'Muéstralo en el CRAI para retirar tu Chromebook.'
+                            f'Muéstralo al Recepcionista de la biblioteca para retirar tu Chromebook.'
                         )
                         accion_realizada = 'reservar'
 
@@ -1204,7 +1282,7 @@ def webhook_whatsapp(request):
     estudiante, perfil = _buscar_estudiante_n8n(telefono=telefono)
     if perfil is None:
         aviso = ('Hola. Este número no está registrado en el CRAI UNEMI, así que no '
-                 'puedo atenderte por aquí. Si eres estudiante, acércate al CRAI para '
+                 'puedo atenderte por aquí. Si eres estudiante, acércate al Recepcionista de la biblioteca para '
                  'vincular tu número y luego escríbeme.')
         _enviar_whatsapp(telefono, aviso)
         ChatbotConversacion.objects.create(
@@ -1425,8 +1503,8 @@ def api_crear_reserva(request):
         usuario=perfil.user,
         titulo='Reserva Registrada',
         mensaje=(f'Tu reserva para el {reserva.fecha_uso:%d/%m/%Y} de '
-                 f'{reserva.hora_inicio:%H:%M} a {reserva.hora_fin:%H:%M} quedó registrada. '
-                 'Preséntate en el CRAI para retirar tu equipo.'),
+                 f'{_h12(reserva.hora_inicio)} a {_h12(reserva.hora_fin)} quedó registrada. '
+                 'Acércate al Recepcionista de la biblioteca para retirar tu equipo.'),
         tipo='reserva',
     )
 
@@ -1436,7 +1514,7 @@ def api_crear_reserva(request):
         'codigo': codigo,
         'fecha': fecha_uso,
         'inicio': hora_inicio,
-        'fin': hora_fin_dt.strftime('%H:%M'),
+        'fin': _h12(hora_fin_dt),
         'estado': 'pendiente',
     })
 
@@ -1526,8 +1604,8 @@ def api_mis_reservas(request):
         'estado': r.estado,
         'codigo': r.codigo_verificacion,
         'fecha': r.fecha_uso.isoformat(),
-        'inicio': r.hora_inicio.strftime('%H:%M'),
-        'fin': r.hora_fin.strftime('%H:%M'),
+        'inicio': _h12(r.hora_inicio),
+        'fin': _h12(r.hora_fin),
     } for r in reservas]
 
     # Préstamos activos del usuario
@@ -1555,6 +1633,6 @@ def api_asesoria_mis_mensajes(request):
         return JsonResponse({'activa': False, 'mensajes': [], 'ultimo_id': desde})
     qs = s.mensajes.filter(remitente='asesor', id__gt=desde).order_by('id')
     msgs = [{'id': m.id, 'texto': m.texto,
-             'hora': timezone.localtime(m.creado).strftime('%H:%M')} for m in qs]
+             'hora': _h12(timezone.localtime(m.creado))} for m in qs]
     ultimo_id = msgs[-1]['id'] if msgs else desde
     return JsonResponse({'activa': True, 'mensajes': msgs, 'ultimo_id': ultimo_id})

@@ -25,7 +25,7 @@
 }
 
 .dashboard-container > .container-fluid {
-    height: calc(100vh - 56px);
+    height: calc(100vh - 48px);
 }
 
 .dashboard-container > .container-fluid > .row {
@@ -38,11 +38,23 @@
 .navbar-dashboard {
     background: linear-gradient(135deg, var(--primario) 0%, #283593 100%);
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    /* Barra superior más fina */
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    min-height: 48px;
 }
 
 .navbar-dashboard .navbar-brand {
-    font-size: 1.2rem;
+    font-size: 1.08rem;
     letter-spacing: 0.5px;
+    padding-top: 0.15rem;
+    padding-bottom: 0.15rem;
+}
+
+.navbar-dashboard .avatar-dashboard {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
 }
 
 .navbar-dashboard .nav-link {
@@ -207,38 +219,103 @@
 .sidebar-dashboard {
     background-color: var(--blanco);
     border-right: 1px solid var(--borde);
-    height: calc(100vh - 56px);
-    padding-top: 1rem;
+    height: calc(100vh - 48px);
+    padding-top: 0.6rem;
     position: sticky;
-    top: 56px;
+    top: 48px;
     overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.22s ease, flex-basis 0.22s ease, max-width 0.22s ease;
 }
 
+/* Botón para contraer/expandir (solo en md+; en móvil se usa el botón flotante) */
+.sidebar-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    margin: 0 0.55rem 0.5rem auto;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    background: #f4f6fb;
+    color: #4a5568;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.sidebar-toggle:hover { background: #e8ecf6; color: var(--primario); }
+.sidebar-toggle i { transition: transform 0.22s ease; }
+@media (min-width: 768px) { .sidebar-toggle { display: inline-flex; } }
+
+/* Botones del menú (ícono + texto) */
 .sidebar-dashboard .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     color: #2b3448;
     font-weight: 700;
-    padding: 0.7rem 1.2rem;
-    margin: 0.2rem 0.5rem;
-    border-radius: 0.4rem;
-    transition: all 0.2s ease;
-    font-size: 0.9rem;
+    padding: 0.62rem 0.85rem;
+    margin: 0.22rem 0.5rem;
+    border-radius: 0.6rem;
+    transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+    font-size: 0.88rem;
+    white-space: nowrap;             /* que "Gestión de Personal" no se parta */
+}
+
+.sidebar-dashboard .nav-link i {
+    font-size: 1.05rem;
+    width: 22px;
+    flex-shrink: 0;
+    text-align: center;
+}
+.sidebar-dashboard .nav-txt { overflow: hidden; text-overflow: ellipsis; }
+
+/* Ancho fijo del menú en escritorio (expandido) y su contraparte de contenido */
+@media (min-width: 992px) {
+    .sidebar-dashboard.col-lg-2 { flex: 0 0 235px; width: 235px; max-width: 235px; }
+    .main-content.col-lg-10 { flex: 0 0 calc(100% - 235px); width: calc(100% - 235px); max-width: calc(100% - 235px); }
+}
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .sidebar-dashboard.col-md-3 { flex: 0 0 210px; width: 210px; max-width: 210px; }
+    .main-content.col-md-9 { flex: 0 0 calc(100% - 210px); width: calc(100% - 210px); max-width: calc(100% - 210px); }
 }
 
 .sidebar-dashboard .nav-link:hover {
-    background-color: #f0f0f0;
+    background-color: #eef1fb;
     color: var(--primario);
+    transform: translateX(2px);
 }
 
 .sidebar-dashboard .nav-link.active {
     background-color: var(--primario-claro);
     color: var(--primario);
-    font-weight: 600;
-    border-left: 3px solid var(--primario);
+    font-weight: 700;
+    box-shadow: inset 3px 0 0 var(--primario);
 }
 
-.sidebar-dashboard .nav-link i {
-    width: 20px;
-    text-align: center;
+/* ============================================================
+   MENÚ CONTRAÍDO (solo íconos). Se activa con body.sidebar-colapsado
+   ============================================================ */
+@media (min-width: 768px) {
+    body.sidebar-colapsado .sidebar-dashboard { align-items: stretch; }
+    body.sidebar-colapsado .sidebar-dashboard .nav-txt,
+    body.sidebar-colapsado .sidebar-dashboard .sidebar-heading { display: none; }
+    body.sidebar-colapsado .sidebar-dashboard .nav-link {
+        justify-content: center;
+        padding: 0.62rem 0;
+        margin: 0.22rem 0.4rem;
+    }
+    body.sidebar-colapsado .sidebar-dashboard .nav-link i { width: auto; }
+    body.sidebar-colapsado .sidebar-toggle i { transform: rotate(180deg); }
+    body.sidebar-colapsado .sidebar-toggle { margin-right: auto; margin-left: auto; }
+}
+@media (min-width: 992px) {
+    body.sidebar-colapsado .sidebar-dashboard.col-lg-2 { flex-basis: 72px; width: 72px; max-width: 72px; }
+    body.sidebar-colapsado .main-content.col-lg-10 { flex-basis: calc(100% - 72px); width: calc(100% - 72px); max-width: calc(100% - 72px); }
+}
+@media (min-width: 768px) and (max-width: 991.98px) {
+    body.sidebar-colapsado .sidebar-dashboard.col-md-3 { flex-basis: 68px; width: 68px; max-width: 68px; }
+    body.sidebar-colapsado .main-content.col-md-9 { flex-basis: calc(100% - 68px); width: calc(100% - 68px); max-width: calc(100% - 68px); }
 }
 
 /* Encabezado del sidebar */
@@ -261,7 +338,7 @@
     /* min-height:0 permite que el contenido scrollee DENTRO del cuadrante (flex item)
        en vez de desbordar el contenedor de 100vh. El sidebar queda fijo. */
     min-height: 0;
-    height: calc(100vh - 56px);
+    height: calc(100vh - 48px);
 }
 
 /* Encabezado de página */
@@ -702,13 +779,31 @@ tr:hover .badge-estado {
 
 /* Tamaño medio (más compacto que modal-lg) */
 .detalle-modal-dialog {
-    max-width: 520px;
+    max-width: 840px;
 }
 
 .detalle-modal-content {
     border-radius: 18px;
     overflow: hidden;
 }
+
+/* Animación de entrada del modal de detalle */
+#modalDetallePrestamo.show .detalle-modal-content {
+    animation: detalleModalIn 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+@keyframes detalleModalIn {
+    from { opacity: 0; transform: translateY(14px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Hora de devolución en rojo cuando el préstamo sigue activo */
+.detalle-hora-activa {
+    color: #e53935;
+    font-weight: 700;
+}
+
+/* Valores del detalle: sin negrita (solo etiquetas/títulos van en negrita) */
+.detalle-item-valor { font-weight: 500; }
 
 .detalle-modal-header {
     background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
@@ -731,19 +826,29 @@ tr:hover .badge-estado {
     flex-shrink: 0;
 }
 
+/* Cuerpo horizontal: datos a la izquierda, evidencia a la derecha */
+.detalle-cuerpo {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: stretch;
+}
+
+.detalle-col-datos {
+    padding: 1.4rem 1.5rem;
+}
+
 /* Rejilla de datos (etiqueta arriba, valor abajo) */
 .detalle-datos {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.6rem;
-    padding: 1.25rem;
+    gap: 0.75rem;
 }
 
 .detalle-item {
     background: #fafbff;
     border: 1px solid #eef0f5;
-    border-radius: 11px;
-    padding: 0.65rem 0.8rem;
+    border-radius: 13px;
+    padding: 0.85rem 1rem;
     min-width: 0;
 }
 
@@ -754,32 +859,43 @@ tr:hover .badge-estado {
 .detalle-item-label {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    font-size: 0.66rem;
+    gap: 0.4rem;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.4px;
     color: #8a93a3;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.35rem;
 }
 
-.detalle-item-label i { color: #3949ab; font-size: 0.78rem; }
+.detalle-item-label i { color: #3949ab; font-size: 0.85rem; }
 
 .detalle-item-valor {
     display: block;
-    font-size: 0.88rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 500;
     color: #2a3142;
     word-break: break-word;
+    line-height: 1.35;
 }
 
-.detalle-evidencia {
-    border-top: 1px solid #eef0f5;
+/* Nombre del estudiante: destacado (ocupa toda la fila superior) */
+.detalle-valor-grande {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a237e;
+}
+
+/* Columna de evidencia (panel derecho a toda la altura) */
+.detalle-col-evidencia {
+    display: flex;
+    flex-direction: column;
+    background: #f6f8fd;
+    border-left: 1px solid #eef0f5;
 }
 
 .detalle-evidencia-header {
-    background: #fafbff;
-    padding: 0.6rem 1.25rem;
+    padding: 0.9rem 1.25rem;
     font-weight: 700;
     color: #1a237e;
     font-size: 0.78rem;
@@ -788,13 +904,14 @@ tr:hover .badge-estado {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    border-bottom: 1px solid #eef0f5;
+    border-bottom: 1px solid #e6eaf3;
 }
 
 .detalle-evidencia-body {
-    padding: 1rem 1.25rem;
+    flex: 1;
+    padding: 1.1rem 1.25rem;
     text-align: center;
-    min-height: 90px;
+    min-height: 200px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -802,9 +919,9 @@ tr:hover .badge-estado {
 
 .detalle-foto {
     max-width: 100%;
-    max-height: 220px;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    max-height: 300px;
+    border-radius: 14px;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.14);
     border: 3px solid #fff;
     display: none;
 }
@@ -814,18 +931,18 @@ tr:hover .badge-estado {
 }
 
 .detalle-sin-foto i {
-    font-size: 2.2rem;
+    font-size: 2.8rem;
     display: block;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.5rem;
 }
 
 .detalle-sin-foto p {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     margin: 0;
 }
 
 .detalle-modal-footer {
-    padding: 0.85rem 1.25rem;
+    padding: 0.9rem 1.5rem;
     background: #fafbff;
     border-top: 1px solid #eef0f5;
     display: flex;
@@ -833,7 +950,11 @@ tr:hover .badge-estado {
     gap: 0.6rem;
 }
 
-@media (max-width: 575.98px) {
+@media (max-width: 767.98px) {
+    .detalle-cuerpo { grid-template-columns: 1fr; }
+    .detalle-col-evidencia { border-left: none; border-top: 1px solid #eef0f5; }
+}
+@media (max-width: 479.98px) {
     .detalle-datos { grid-template-columns: 1fr; }
 }
 
@@ -905,22 +1026,14 @@ tr:hover .badge-estado {
 .bg-rojo { background: #fdecea; color: #ea4335; }
 
 /* ==========================================
-   KPI dashboard: acabado pastel (referencia)
-   — tarjeta tintada + ícono en círculo a la derecha (solo CSS)
+   KPI dashboard: tarjeta BLANCA + ícono en círculo (con su color) a la derecha
    ========================================== */
-.dashboard-stat-card:has(.stat-icono-dash.bg-azul)    { background: linear-gradient(135deg, #f6f9ff, #ecf3ff); border-color: #dfe9ff; }
-.dashboard-stat-card:has(.stat-icono-dash.bg-naranja) { background: linear-gradient(135deg, #fffaf2, #fff2e0); border-color: #ffe6c6; }
-.dashboard-stat-card:has(.stat-icono-dash.bg-cyan)    { background: linear-gradient(135deg, #f1fdff, #e2f8fc); border-color: #c7edf3; }
-.dashboard-stat-card:has(.stat-icono-dash.bg-verde)   { background: linear-gradient(135deg, #f3fbf6, #e7f6ec); border-color: #cceed6; }
-.dashboard-stat-card:has(.stat-icono-dash.bg-rojo)    { background: linear-gradient(135deg, #fff5f4, #ffe9e7); border-color: #ffd4cf; }
-
 .dashboard-stat-card .stat-card-content { justify-content: space-between; }
 .dashboard-stat-card .stat-info-dash { order: 1; align-items: flex-start; }
 .dashboard-stat-card .stat-icono-dash {
     order: 2;
-    background: #fff;
     border-radius: 50%;
-    box-shadow: 0 6px 14px rgba(26, 35, 126, 0.12);
+    box-shadow: 0 6px 14px rgba(26, 35, 126, 0.10);
 }
 
 /* Texto con más peso y color más marcado para que resalte sobre el pastel
@@ -1097,7 +1210,7 @@ tr:hover .badge-estado {
    TABLA CON SCROLL (Dashboard)
    ========================================== */
 .tabla-prestamos .table-responsive {
-    max-height: 270px; /* Muestra 5 filas (cabecera fija + ~45px por fila); el resto con scroll */
+    max-height: max(270px, 34vh); /* Muestra 5 filas (cabecera fija + ~45px por fila); el resto con scroll */
     overflow-y: auto;
 }
 
@@ -1115,6 +1228,15 @@ tr:hover .badge-estado {
    aire que el alto de 2 filas: liberamos la altura para que se vea completo. */
 .tabla-reservas .table-responsive:has(.reservas-vacio) {
     max-height: none;
+}
+
+/* En pantallas grandes (monitores/TV) mostramos 4 filas en vez de 2, para
+   aprovechar el alto disponible. El resto sigue con scroll. */
+@media (min-width: 1600px) {
+    .tabla-reservas .table-responsive { max-height: 245px; } /* cabecera + 4 filas */
+}
+@media (min-width: 2200px) {
+    .tabla-reservas .table-responsive { max-height: 335px; } /* cabecera + 6 filas */
 }
 
 /* Buscador en vivo de reservaciones pendientes */

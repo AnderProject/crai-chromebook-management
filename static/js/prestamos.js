@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Hora de inicio = hora actual, en vivo (hasta que el usuario la edite manualmente)
     sincronizarHoraInicio();
-    setInterval(sincronizarHoraInicio, 15000);
+    aplicarMinimoHoraHoy();
+    setInterval(function () { sincronizarHoraInicio(); aplicarMinimoHoraHoy(); }, 15000);
 
     actualizarInfoHorario();
 
@@ -297,15 +298,58 @@ function actualizarInfoHorario() {
     var inicio = new Date(fecha + 'T' + horaInicio);
     var fin = new Date(fecha + 'T' + horaFin);
     if (fin <= inicio) {
-        info.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>La hora de fin debe ser posterior.</span>';
+        info.innerHTML = '<span class="resumen-horario-error"><i class="bi bi-exclamation-triangle me-1"></i>La hora de fin debe ser posterior.</span>';
         return;
     }
-    var horas = Math.round((fin - inicio) / 3600000 * 10) / 10;
+    var minutos = Math.round((fin - inicio) / 60000);
     var esReserva = inicio.getTime() > Date.now() + 120000;
-    var etiqueta = esReserva
-        ? '<span class="text-primary"><i class="bi bi-calendar-check me-1"></i>Reserva</span>'
-        : '<span class="text-success"><i class="bi bi-clock me-1"></i>Inmediato</span>';
-    info.innerHTML = etiqueta + ' &bull; duración ' + horas + ' h';
+
+    var tipoClase = esReserva ? 'tipo-reserva' : 'tipo-inmediato';
+    var tipoIcono = esReserva ? 'bi-calendar-check' : 'bi-lightning-charge-fill';
+    var tipoTexto = esReserva ? 'Reserva' : 'Inmediato';
+
+    info.innerHTML =
+        '<span class="resumen-horario-titulo"><i class="bi bi-clock-history me-1"></i>Resumen del horario</span>' +
+        '<div class="resumen-horario-chips">' +
+            '<span class="resumen-chip ' + tipoClase + '"><i class="bi ' + tipoIcono + '"></i>' + tipoTexto + '</span>' +
+            '<span class="resumen-chip chip-duracion"><i class="bi bi-hourglass-split"></i>' + formatoDuracion(minutos) + '</span>' +
+            '<span class="resumen-chip chip-franja"><i class="bi bi-clock"></i>' + aHora12(horaInicio) + ' – ' + aHora12(horaFin) + '</span>' +
+        '</div>';
+}
+
+// Formatea una duración en minutos como "45 min", "2 h" o "1 h 30 min".
+function formatoDuracion(min) {
+    if (min < 60) { return min + ' min'; }
+    var h = Math.floor(min / 60);
+    var m = min % 60;
+    return m === 0 ? (h + ' h') : (h + ' h ' + m + ' min');
+}
+
+// "14:30" -> "2:30 PM"
+function aHora12(hhmm) {
+    var p = (hhmm || '').split(':');
+    var h = parseInt(p[0], 10), m = p[1] || '00';
+    var ampm = h < 12 ? 'AM' : 'PM';
+    var h12 = h % 12 || 12;
+    return h12 + ':' + m + ' ' + ampm;
+}
+
+// Cuando la fecha elegida es HOY, deshabilita en el selector las horas que ya
+// pasaron (no se puede iniciar un préstamo en una hora anterior a la actual).
+// Para otras fechas (mañana), se habilita toda la franja 08:00–17:00.
+function aplicarMinimoHoraHoy() {
+    if (!window.CraiTP) { return; }
+    var fecha = document.getElementById('fechaPrestamo').value;
+    var btnHoy = document.querySelector('.btn-fecha-opt');
+    var esHoy = btnHoy && fecha === btnHoy.dataset.fecha;
+    if (esHoy) {
+        var ahora = new Date();
+        var hh = String(ahora.getHours()).padStart(2, '0');
+        var mm = String(ahora.getMinutes()).padStart(2, '0');
+        CraiTP.setMin('horaInicio', hh + ':' + mm);
+    } else {
+        CraiTP.setMin('horaInicio', '08:00');
+    }
 }
 
 function seleccionarFechaPrestamo(btn) {
@@ -313,6 +357,7 @@ function seleccionarFechaPrestamo(btn) {
     btn.classList.add('activo');
     document.getElementById('fechaPrestamo').value = btn.dataset.fecha;
     actualizarBadgeDisponibles(btn.dataset.fecha);
+    aplicarMinimoHoraHoy();
     actualizarInfoHorario();
 }
 
@@ -359,10 +404,16 @@ function avisoReservasPendientes(reservas) {
     if (!reservas || !reservas.length) { return ''; }
     var filas = reservas.map(function(r) {
         var cuando = r.fecha + (r.hora ? ' · ' + r.hora : '');
-        var etiqueta = r.estado === 'confirmada' ? 'Confirmada' : 'Pendiente';
+        var activa = r.estado === 'confirmada';
+        var etiqueta = activa ? 'Confirmada' : 'Pendiente';
+        // El código SOLO se revela cuando la reserva ya está activa (confirmada);
+        // mientras esté pendiente se oculta.
+        var codigoHtml = activa
+            ? '<span class="aviso-reserva-codigo"><i class="bi bi-qr-code"></i>' + r.codigo + '</span>'
+            : '<span class="aviso-reserva-codigo aviso-reserva-codigo-oculto" title="El código se revela cuando la reserva esté activa"><i class="bi bi-lock-fill"></i>••••••</span>';
         return '' +
             '<div class="aviso-reserva-item">' +
-                '<span class="aviso-reserva-codigo"><i class="bi bi-qr-code"></i>' + r.codigo + '</span>' +
+                codigoHtml +
                 '<span class="aviso-reserva-fecha"><i class="bi bi-calendar-event"></i>' + cuando + '</span>' +
                 '<span class="aviso-reserva-chip aviso-reserva-chip-' + (r.estado || 'pendiente') + '">' + etiqueta + '</span>' +
             '</div>';

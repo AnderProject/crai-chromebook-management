@@ -82,17 +82,34 @@
                         <div class="fm-card-titulo">Solución aplicada</div>
 
                         {% if mantenimiento.confirmado_por_tecnico %}
-                        <!-- Reparación registrada por el técnico desde su portal -->
+                        <!-- Reparación registrada por el técnico desde su portal.
+                             La evidencia se muestra en línea automáticamente (sin abrir otra pestaña),
+                             igual que la evidencia del historial del estudiante. -->
                         <div class="fm-tecnico-panel">
                             <div class="fm-tecnico-head">
                                 <i class="bi bi-person-check-fill"></i>
                                 <span>El técnico <strong>{{ mantenimiento.tecnico }}</strong> confirmó la reparación</span>
-                                <small>{{ mantenimiento.fecha_confirmacion_tecnico|date:"d/m/Y H:i" }}</small>
+                                <small>{{ mantenimiento.fecha_confirmacion_tecnico|date:"d/m/Y g:i A" }}</small>
                             </div>
+                            {% if mantenimiento.descripcion_solucion %}
+                            <div class="fm-tecnico-solucion">
+                                <span class="fm-tecnico-solucion-lbl"><i class="bi bi-tools me-1"></i>Qué reparó</span>
+                                <p>{{ mantenimiento.descripcion_solucion }}</p>
+                            </div>
+                            {% endif %}
                             {% if mantenimiento.evidencia_reparacion %}
-                            <a href="{{ mantenimiento.evidencia_reparacion.url }}" target="_blank" class="fm-tecnico-evi">
-                                <i class="bi bi-paperclip"></i> Ver evidencia adjunta por el técnico
-                            </a>
+                            {% with evi_url=mantenimiento.evidencia_reparacion.url %}
+                            <div class="fm-tecnico-evidencia">
+                                <span class="fm-tecnico-evidencia-lbl"><i class="bi bi-paperclip me-1"></i>Evidencia adjunta por el técnico</span>
+                                {% if '.mp4' in evi_url or '.webm' in evi_url or '.mov' in evi_url or '.ogg' in evi_url %}
+                                <video src="{{ evi_url }}" controls class="fm-tecnico-media"></video>
+                                {% else %}
+                                <a href="{{ evi_url }}" target="_blank" class="fm-tecnico-media-link" title="Abrir en tamaño completo">
+                                    <img src="{{ evi_url }}" class="fm-tecnico-media" alt="Evidencia del técnico">
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endwith %}
                             {% endif %}
                         </div>
                         {% endif %}

@@ -111,45 +111,154 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; color: #2b2f4a; }
 .tec-stat-lbl { font-size: 0.76rem; color: var(--gris); }
 @media (max-width: 620px) { .tec-stats { grid-template-columns: repeat(2, 1fr); } }
 
-.tec-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 1rem; }
+/* Contenedor con scroll: muestra un máximo de ~5 tarjetas; el resto con scroll aquí mismo */
+.tec-lista-scroll {
+    max-height: 440px;          /* ≈ 5 filas colapsadas */
+    overflow-y: auto;
+    padding-right: 0.4rem;
+    scrollbar-width: thin;
+    scrollbar-color: #c4ccdd transparent;
+}
+.tec-lista-scroll::-webkit-scrollbar { width: 7px; }
+.tec-lista-scroll::-webkit-scrollbar-thumb { background: #c4ccdd; border-radius: 7px; }
+.tec-lista-scroll::-webkit-scrollbar-thumb:hover { background: #aab4cc; }
+
+/* Secciones por estado dentro del scroll */
+.tec-seccion { margin-bottom: 1.1rem; }
+.tec-seccion:last-child { margin-bottom: 0; }
+.tec-seccion-titulo {
+    position: sticky; top: 0; z-index: 2;
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.55rem 0.7rem; margin-bottom: 0.7rem;
+    font-size: 0.82rem; font-weight: 800; letter-spacing: 0.01em;
+    border-radius: 10px; background: #eef1f8; color: #33415c;
+    backdrop-filter: blur(2px);
+}
+.tec-seccion-titulo > i { font-size: 0.95rem; }
+.tec-seccion-conteo {
+    margin-left: auto; background: #fff; color: #4a5563;
+    font-size: 0.72rem; font-weight: 800; border-radius: 999px;
+    min-width: 22px; text-align: center; padding: 0.1rem 0.5rem;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06);
+}
+.tsec-proc { background: #fff4d6; color: #a6790a; }
+.tsec-conf { background: #e4f0fd; color: #0b5cad; }
+.tsec-fin  { background: #e7f6ee; color: #1e7e46; }
+
+/* Lista en columna: cada mantenimiento es una FILA horizontal, no una tarjeta vertical */
+.tec-lista { display: flex; flex-direction: column; gap: 0.85rem; }
 .tec-card {
-    background: #fff; border: 1px solid var(--borde); border-radius: 16px;
-    padding: 1.1rem 1.2rem; box-shadow: 0 2px 12px rgba(26,35,126,0.05);
+    background: #fff; border: 1px solid var(--borde); border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(26,35,126,0.05);
     border-left: 5px solid var(--ambar);
-    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s ease;
+    overflow: hidden;
+    transition: box-shadow 0.25s ease;
     animation: tecFadeUp 0.45s ease both;
 }
-.tec-card:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(26,35,126,0.12); }
+.tec-card:hover { box-shadow: 0 10px 24px rgba(26,35,126,0.1); }
 .tec-card-conf { border-left-color: var(--azul3); }
-.tec-card-fin { border-left-color: var(--verde); opacity: 0.92; }
-.tec-card-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.7rem; }
+.tec-card-fin { border-left-color: var(--verde); }
+
+/* Fila principal horizontal */
+.tec-card-main {
+    display: flex; align-items: center; gap: 1.2rem;
+    padding: 0.85rem 1.1rem;
+    flex-wrap: wrap;
+}
+.tec-col { display: flex; align-items: center; min-width: 0; }
+
+/* Columna equipo */
+.tec-col-equipo { gap: 0.7rem; flex: 0 0 auto; }
+.tec-equipo-ico {
+    width: 42px; height: 42px; flex-shrink: 0;
+    border-radius: 11px; background: linear-gradient(135deg, #e8edff, #dbe4ff);
+    color: #1a237e; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+}
+.tec-equipo-info { display: flex; flex-direction: column; line-height: 1.2; }
 .tec-card-equipo { font-weight: 800; font-size: 1rem; color: #1f2c3d; }
-.tec-card-estado { font-size: 0.68rem; font-weight: 700; padding: 0.28rem 0.65rem; border-radius: 999px; }
-.est-proc { background: #fff4d6; color: var(--ambar); }
+.tec-equipo-modelo { font-size: 0.72rem; color: #8a95a5; }
+
+/* Columna de datos: en línea (tipo · inicio · problema) */
+.tec-col-datos { flex: 1 1 260px; gap: 1.4rem; flex-wrap: wrap; }
+.tec-dato { display: flex; flex-direction: column; min-width: 0; }
+.tec-dato small { font-size: 0.6rem; text-transform: uppercase; color: #9aa5b1; font-weight: 700; letter-spacing: 0.03em; }
+.tec-dato b { font-size: 0.82rem; color: #2b3648; font-weight: 600; }
+.tec-dato-problema { flex: 1 1 160px; }
+.tec-dato-problema b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+
+/* Columna estado + acción (a la derecha) */
+.tec-col-accion { flex: 0 0 auto; margin-left: auto; gap: 0.7rem; }
+.tec-card-estado { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.7rem; font-weight: 700; padding: 0.35rem 0.75rem; border-radius: 999px; white-space: nowrap; }
+.est-proc { background: #fff4d6; color: #a6790a; }
 .est-conf { background: #e4f0fd; color: #0b5cad; }
 .est-fin  { background: #e7f6ee; color: var(--verde); }
 
-.tec-card-body { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; margin-bottom: 0.6rem; }
-.tec-dato small { display: block; font-size: 0.6rem; text-transform: uppercase; color: #9aa5b1; font-weight: 700; }
-.tec-dato b { font-size: 0.82rem; color: #2b3648; }
-.tec-problema { font-size: 0.82rem; color: #4a5563; background: #f6f9ff; border-radius: 10px; padding: 0.55rem 0.75rem; margin-bottom: 0.7rem; }
+/* Botón que despliega el formulario de evidencia */
+.tec-btn-toggle {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    border: 1.5px solid #cdd6ea; background: #f4f7ff; color: #1a237e;
+    border-radius: 10px; padding: 0.5rem 0.9rem; font-weight: 700; font-size: 0.82rem;
+    cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease;
+    white-space: nowrap;
+}
+.tec-btn-toggle:hover { background: #e8eeff; border-color: #b9c5e6; }
+.tec-toggle-caret { transition: transform 0.25s ease; font-size: 0.75rem; }
+.tec-btn-toggle[aria-expanded="true"] { background: #e8eeff; border-color: #b9c5e6; }
+.tec-btn-toggle[aria-expanded="true"] .tec-toggle-caret { transform: rotate(180deg); }
 
-.tec-form-conf { display: flex; flex-direction: column; gap: 0.45rem; border-top: 1px dashed var(--borde); padding-top: 0.7rem; }
-.tec-label { font-size: 0.74rem; font-weight: 700; color: #33415c; }
+/* Formulario plegable, en fila horizontal (descripción · evidencia · botón) */
+.tec-form-wrap { border-top: 1px solid #eef0f5; background: #fafbff; }
+.tec-form-wrap[hidden] { display: none; }
+.tec-form-conf {
+    display: flex; align-items: flex-end; flex-wrap: wrap; gap: 0.8rem;
+    padding: 0.9rem 1.1rem;
+}
+.tec-form-campo { display: flex; flex-direction: column; gap: 0.3rem; flex: 1 1 200px; min-width: 0; }
+.tec-form-campo-desc { flex: 2 1 320px; }
+.tec-label { font-size: 0.72rem; font-weight: 700; color: #33415c; }
 .tec-label span { color: var(--rojo); }
-.tec-form-conf textarea, .tec-file { border: 1.5px solid #d7e0ec; border-radius: 9px; padding: 0.5rem 0.7rem; font-size: 0.85rem; font-family: inherit; outline: none; }
+.tec-form-conf textarea, .tec-file { width: 100%; border: 1.5px solid #d7e0ec; border-radius: 9px; padding: 0.5rem 0.7rem; font-size: 0.85rem; font-family: inherit; outline: none; }
+.tec-form-conf textarea { resize: vertical; min-height: 42px; }
 .tec-form-conf textarea:focus, .tec-file:focus { border-color: var(--azul3); box-shadow: 0 0 0 3px rgba(57,73,171,0.12); }
-.tec-btn-conf { margin-top: 0.3rem; border: none; border-radius: 10px; padding: 0.6rem; background: linear-gradient(120deg, var(--verde), #2ea866); color: #fff; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.tec-btn-conf { border: none; border-radius: 10px; padding: 0.62rem 1.1rem; background: linear-gradient(120deg, var(--verde), #2ea866); color: #fff; font-weight: 700; font-size: 0.86rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; white-space: nowrap; transition: transform 0.15s ease, box-shadow 0.15s ease; }
 .tec-btn-conf:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(30,126,70,0.3); }
 
-.tec-confirmado { display: flex; align-items: center; gap: 0.6rem; border-top: 1px dashed var(--borde); padding-top: 0.7rem; }
-.tec-confirmado > i { color: var(--azul3); font-size: 1.4rem; }
-.tec-confirmado strong { display: block; font-size: 0.84rem; color: #1f2c3d; }
+/* Estado "confirmado" (ya envió evidencia), también en fila */
+.tec-confirmado { display: flex; align-items: center; gap: 0.7rem; border-top: 1px solid #eef0f5; background: #f6fbf8; padding: 0.7rem 1.1rem; }
+.tec-confirmado > i { color: var(--verde); font-size: 1.4rem; }
+.tec-confirmado-txt { display: flex; flex-direction: column; min-width: 0; }
+.tec-confirmado strong { font-size: 0.84rem; color: #1f2c3d; }
 .tec-confirmado small { font-size: 0.72rem; color: var(--gris); }
-.tec-ver-evi { margin-left: auto; font-size: 0.76rem; font-weight: 700; color: var(--azul3); text-decoration: none; white-space: nowrap; }
+.tec-ver-evi { margin-left: auto; font-size: 0.78rem; font-weight: 700; color: var(--azul3); text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.3rem; }
 .tec-ver-evi:hover { text-decoration: underline; }
 
-.tec-vacio { grid-column: 1 / -1; text-align: center; color: var(--gris); padding: 3rem 1rem; }
+/* Miniatura de la evidencia (foto/video) dentro de la fila confirmada */
+.tec-evi-thumb {
+    position: relative; margin-left: auto; flex-shrink: 0;
+    width: 58px; height: 58px; padding: 0; border: 2px solid #cfe0d6; border-radius: 11px;
+    overflow: hidden; cursor: pointer; background: #000;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.tec-evi-thumb:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.18); border-color: var(--verde); }
+.tec-evi-media { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tec-evi-play, .tec-evi-zoom { position: absolute; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
+.tec-evi-play { inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+.tec-evi-zoom { right: 3px; bottom: 2px; font-size: 0.7rem; opacity: 0.9; }
+
+/* Modal de evidencia (lightbox) */
+.tec-modal-evi { position: relative; max-width: 620px; width: 92vw; padding: 1.2rem 1.2rem 1.4rem; }
+.tec-modal-evi h3 { display: flex; align-items: center; gap: 0.4rem; margin: 0 0 0.9rem; }
+.tec-evi-cerrar {
+    position: absolute; top: 0.7rem; right: 0.7rem; width: 34px; height: 34px;
+    border: none; border-radius: 9px; background: #f0f2f8; color: #4a5563; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 1rem;
+    transition: background 0.15s ease;
+}
+.tec-evi-cerrar:hover { background: #e2e6f0; color: #1f2c3d; }
+.tec-evi-visor { display: flex; align-items: center; justify-content: center; background: #0d1117; border-radius: 12px; overflow: hidden; min-height: 200px; }
+.tec-evi-full { max-width: 100%; max-height: 68vh; display: block; border-radius: 12px; }
+
+.tec-vacio { text-align: center; color: var(--gris); padding: 3rem 1rem; }
 .tec-vacio i { font-size: 2.4rem; opacity: 0.5; display: block; margin-bottom: 0.5rem; }
 
 /* Modal cambiar contraseña */
@@ -224,7 +333,11 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; color: #2b2f4a; }
     .tec-brand strong { font-size: 0.9rem; }
     .tec-user-nombre { display: none; }           /* evita que el nombre empuje los botones */
     .tec-saludo h1 { font-size: 1.25rem; }
-    .tec-lista { grid-template-columns: 1fr; }
+    /* En móvil la fila principal se apila y la acción baja completa */
+    .tec-card-main { gap: 0.7rem; }
+    .tec-col-accion { margin-left: 0; width: 100%; justify-content: space-between; }
+    .tec-form-conf { padding: 0.8rem 0.9rem; }
+    .tec-form-campo, .tec-form-campo-desc { flex: 1 1 100%; }
 }
 @media (max-width: 400px) {
     .tec-stats { grid-template-columns: 1fr; }

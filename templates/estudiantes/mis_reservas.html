@@ -110,14 +110,14 @@
                     </div>
                     <div class="rp-datos">
                         <span><i class="bi bi-calendar3"></i> {{ r.fecha_uso|date:"d/m/Y" }}</span>
-                        <span><i class="bi bi-clock"></i> {{ r.hora_inicio|time:"H:i" }}–{{ r.hora_fin|time:"H:i" }}</span>
+                        <span><i class="bi bi-clock"></i> {{ r.hora_inicio|time:"g:i A" }}–{{ r.hora_fin|time:"g:i A" }}</span>
                         <span><i class="bi bi-hourglass-split"></i> {{ r.calcular_duracion }} h</span>
                         <span><i class="bi bi-laptop"></i> {% if r.chromebook %}{{ r.chromebook.codigo }}{% else %}Al llegar{% endif %}</span>
                     </div>
                     {% if r.estado == 'pendiente' %}
                     <button class="rp-cancelar" onclick="cancelarReserva({{ r.id }})"><i class="bi bi-x-lg"></i> Cancelar reserva</button>
                     {% elif r.estado == 'confirmada' %}
-                    <div class="progreso-live rp-progreso" data-fecha="{{ r.fecha_uso|date:'Y-m-d' }}" data-inicio="{{ r.hora_inicio|time:'H:i' }}" data-fin="{{ r.hora_fin|time:'H:i' }}">
+                    <div class="progreso-live rp-progreso" data-fecha="{{ r.fecha_uso|date:'Y-m-d' }}" data-inicio="{{ r.hora_inicio|time:'g:i A' }}" data-fin="{{ r.hora_fin|time:'g:i A' }}">
                         <div class="progreso-live-bar"><div class="progreso-live-fill" style="width: 0%;"></div></div>
                         <span class="progreso-live-time">--</span>
                     </div>

@@ -17,7 +17,7 @@
             {% if item.detalle %}<div class="acti-detalle"><i class="bi bi-info-circle"></i> {{ item.detalle }}</div>{% endif %}
             <div class="acti-fecha">
                 <span><i class="bi bi-clock-history"></i> hace {{ item.fecha|timesince }}</span>
-                <span class="acti-fecha-exacta"><i class="bi bi-calendar3"></i> {{ item.fecha|date:"d/m/Y · H:i" }}</span>
+                <span class="acti-fecha-exacta"><i class="bi bi-calendar3"></i> {{ item.fecha|date:"d/m/Y · g:i A" }}</span>
             </div>
         </div>
     </div>

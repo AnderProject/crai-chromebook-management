@@ -47,8 +47,17 @@ function verDetalleChromebook(id) {
                 document.getElementById('detalleCodigoImg').textContent = d.codigo;
                 document.getElementById('detalleMarcaModelo').textContent = d.marca + ' ' + d.modelo;
                 
-                var estadoClass = d.estado === 'disponible' ? 'success' : (d.estado === 'prestado' ? 'warning' : 'danger');
-                document.getElementById('detalleEstadoBadge').innerHTML = '<span class="badge bg-' + estadoClass + ' px-3 py-2">' + d.estado.toUpperCase() + '</span>';
+                // Badge por el estado EFECTIVO (considera reservas pendientes).
+                var ef = d.estado_efectivo || d.estado;
+                var badges = {
+                    disponible: ['success', 'Disponible'],
+                    pendiente_reserva: ['pendiente', 'Pendiente a reserva'],
+                    prestado: ['warning', 'Prestado'],
+                    reservado: ['pendiente', 'Reservado'],
+                    mantenimiento: ['danger', 'Mantenimiento']
+                };
+                var b = badges[ef] || ['secondary', ef];
+                document.getElementById('detalleEstadoBadge').innerHTML = '<span class="badge bg-' + b[0] + ' px-3 py-2">' + b[1] + '</span>';
 
                 // Banner de conexión del kiosko
                 var conexion = document.getElementById('detalleConexion');

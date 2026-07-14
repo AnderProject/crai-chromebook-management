@@ -141,13 +141,14 @@
                 <div class="personal-card">
                     {% if tecnicos %}
                     <div class="table-responsive">
-                        <table class="tabla-personal">
+                        <table class="tabla-personal tabla-tecnicos">
                             <thead>
                                 <tr>
                                     <th>Técnico</th>
                                     <th>Cédula</th>
                                     <th>Especialidad</th>
-                                    <th>Contacto</th>
+                                    <th>Teléfono</th>
+                                    <th>Correo</th>
                                     <th>En mantenimiento</th>
                                     <th class="text-end">Acción</th>
                                 </tr>
@@ -158,13 +159,16 @@
                                     <td>
                                         <div class="persona-cell">
                                             <div class="persona-avatar avatar-tecnico">{{ t.nombres|first|upper }}{{ t.apellidos|first|upper }}</div>
-                                            <span>{{ t.nombre_completo }}</span>
+                                            <span title="{{ t.nombre_completo }}">{{ t.nombre_corto }}</span>
                                         </div>
                                     </td>
                                     <td class="text-muted">{{ t.cedula }}</td>
                                     <td class="small">{{ t.especialidad|default:"Técnico de TICs" }}</td>
                                     <td class="small text-muted">
-                                        {{ t.telefono|default:"—" }}{% if t.correo %}<br>{{ t.correo }}{% endif %}
+                                        {% if t.telefono %}<button type="button" class="td-copiable" data-copiar="{{ t.telefono }}" title="Clic para copiar el teléfono"><i class="bi bi-telephone me-1"></i>{{ t.telefono }}<i class="bi bi-clipboard td-copiar-ico"></i></button>{% else %}—{% endif %}
+                                    </td>
+                                    <td class="small text-muted td-correo">
+                                        {% if t.correo %}<button type="button" class="td-copiable" data-copiar="{{ t.correo }}" title="Clic para copiar el correo"><i class="bi bi-envelope me-1"></i><span class="td-correo-txt">{{ t.correo }}</span><i class="bi bi-clipboard td-copiar-ico"></i></button>{% else %}—{% endif %}
                                     </td>
                                     <td>
                                         <span class="carga-badge {% if t.en_proceso >= limite_tecnico %}carga-llena{% elif t.en_proceso > 0 %}carga-media{% else %}carga-libre{% endif %}">

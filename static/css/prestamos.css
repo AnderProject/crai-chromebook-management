@@ -4,12 +4,12 @@
    ========================================== */
 
 .registro-container {
-    max-width: 1050px;
+    max-width: 1080px;
     margin: 0 auto;
 }
 
-.registro-titulo h5 { font-size: 1.4rem; }
-.registro-titulo small { font-size: 0.85rem; }
+.registro-titulo h5 { font-size: 1.25rem; }
+.registro-titulo small { font-size: 0.8rem; }
 
 .registro-header {
     display: flex;
@@ -27,14 +27,14 @@
 }
 
 .registro-titulo-icono {
-    width: 54px;
-    height: 54px;
+    width: 46px;
+    height: 46px;
     flex-shrink: 0;
     border-radius: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.65rem;
+    font-size: 1.4rem;
     color: #fff;
     background: linear-gradient(135deg, #1a73e8, #1557b0);
     box-shadow: 0 6px 16px rgba(26, 115, 232, 0.32);
@@ -287,7 +287,7 @@
 .paso-card {
     background: var(--blanco);
     border-radius: var(--radius);
-    padding: 1.5rem 1.6rem;
+    padding: 1.25rem 1.35rem;
     border: 1px solid #e9ecef;
     transition: all 0.2s;
     margin-bottom: 1rem;
@@ -307,8 +307,8 @@
 .paso-header .fw-semibold { font-size: 0.9rem !important; letter-spacing: 0.03em; }
 
 .paso-numero {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     background: #e8f0fe;
     color: var(--info);
     border-radius: 9px;
@@ -316,7 +316,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     margin-right: 0.7rem;
 }
 
@@ -324,8 +324,8 @@
 .input-elegante {
     border: 1.5px solid #c3cbe4;
     border-radius: 10px;
-    padding: 0.7rem 1rem;
-    font-size: 0.98rem;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.92rem;
     font-weight: 600;
     color: #2b2f4a;
     transition: all 0.2s;
@@ -401,6 +401,52 @@
     }
 }
 
+/* Resumen del horario (tipo + duración + franja), como recuadro al lado */
+.resumen-horario {
+    background: #f6f8fd;
+    border: 1px solid #e6eaf3;
+    border-radius: 12px;
+    padding: 0.7rem 0.85rem;
+}
+.resumen-horario-titulo {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #8a93a3;
+    margin-bottom: 0.5rem;
+}
+.resumen-horario-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+.resumen-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.32rem 0.7rem;
+    border-radius: 20px;
+    background: #fff;
+    border: 1px solid #e6eaf3;
+    color: #3a4150;
+}
+.resumen-chip i { font-size: 0.85rem; }
+.resumen-chip.tipo-inmediato { background: #e8f5ec; border-color: #cce6d5; color: #1f7a45; }
+.resumen-chip.tipo-reserva { background: #e8eefc; border-color: #cfdcf8; color: #1a56c4; }
+.resumen-chip.chip-duracion { background: #fff5e6; border-color: #ffe2b8; color: #b26a00; }
+.resumen-chip.chip-franja i { color: #3949ab; }
+.resumen-horario-error {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #e53935;
+}
+
 /* Resumen */
 .resumen-contenido {
     display: flex;
@@ -409,12 +455,37 @@
 }
 
 /* Préstamos activos */
+/* Recuadro contenedor de "Préstamos de Hoy" (marco + scroll a 4 visibles) */
+.prestamos-hoy-caja {
+    background: linear-gradient(180deg, #fbfcff, #f5f7fc);
+    border: 1px solid #e6eaf3;
+    border-radius: 16px;
+    padding: 0.9rem 0.95rem 0.75rem;
+    box-shadow: inset 0 1px 0 #fff, 0 3px 14px rgba(20, 30, 70, 0.06);
+}
+
 .prestamos-activos-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.5rem;
 }
+
+/* Muestra ~4 préstamos y deja el resto accesible con scroll suave */
+.prestamos-hoy-scroll {
+    max-height: 296px;   /* ≈ 4 tarjetas (~74px c/u) */
+    overflow-y: auto;
+    padding-right: 0.35rem;
+    scrollbar-width: thin;
+    scrollbar-color: #c4ccdd transparent;
+}
+.prestamos-hoy-scroll::-webkit-scrollbar { width: 6px; }
+.prestamos-hoy-scroll::-webkit-scrollbar-thumb {
+    background: #c4ccdd;
+    border-radius: 6px;
+}
+.prestamos-hoy-scroll::-webkit-scrollbar-thumb:hover { background: #aab4cc; }
+.prestamos-hoy-scroll .prestamo-item:last-child { margin-bottom: 0; }
 
 .prestamo-item {
     background: var(--blanco);
@@ -467,6 +538,7 @@
 .ph-top { display: flex; align-items: center; gap: 0.4rem; }
 .ph-nombre {
     font-size: 0.88rem;
+    font-weight: 600;   /* nombre legible, sin negrita extra fuerte */
     color: #2b2f4a;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -572,6 +644,7 @@
 .confirm-fila > strong {
     color: #2d3748;
     font-size: 0.88rem;
+    font-weight: 500;   /* valor sin negrita fuerte */
     text-align: right;
 }
 
@@ -601,7 +674,7 @@
 .entrega-foto-video,
 .entrega-foto-preview {
     width: 100%;
-    max-height: 240px;
+    max-height: max(240px, 32vh);
     object-fit: cover;
     border-radius: 10px;
     margin-top: 0.7rem;
@@ -647,25 +720,46 @@
 }
 
 /* ============================================================
-   Nueva reserva/préstamo: los prefijos CB- y credencial más notorios
-   (combinan con el borde marcado de los inputs)
+   Barra de búsqueda unificada (CB- / cédula): prefijo + input + botón
+   forman UN solo bloque cohesivo (el botón ya no "flota" por encima).
    ============================================================ */
+.paso-card .input-group {
+    align-items: stretch;
+    border: 1.5px solid #c3cbe4;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 3px 12px rgba(26, 35, 126, 0.08);
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+/* Anillo de foco sobre TODA la barra, no sobre el input suelto */
+.paso-card .input-group:focus-within {
+    border-color: #1a237e;
+    box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.14);
+}
+
+/* Prefijo (CB- / icono de credencial) integrado, sin borde ni sombra propios */
 .paso-card .input-group-text {
     background: #eef1ff !important;
     color: #1a237e !important;
-    border: 1.5px solid #c3cbe4 !important;
-    border-right: none !important;
+    border: none !important;
+    border-right: 1px solid #dfe4f5 !important;
+    box-shadow: none !important;
     font-weight: 800;
     font-size: 0.98rem;
-    box-shadow: 0 3px 10px rgba(26, 35, 126, 0.08);
 }
 .paso-card .input-group-text i { font-size: 1.15rem; }
-/* El input pegado al prefijo no repite el borde izquierdo */
-.paso-card .input-group .input-elegante { border-left: none; }
 
-/* ============================================================
-   Botones "Verificar" / "Buscar" más notorios (icono + texto)
-   ============================================================ */
+/* El input pierde su borde/sombra/radio: es solo el hueco de texto de la barra */
+.paso-card .input-group .input-elegante {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+.paso-card .input-group .input-elegante:focus { box-shadow: none !important; }
+
+/* Botón "Verificar" / "Buscar" pegado a la derecha, a ras de la barra */
 .paso-card .input-group .btn-elegante {
     display: inline-flex;
     align-items: center;
@@ -673,23 +767,25 @@
     gap: 0.45rem;
     background: linear-gradient(135deg, #1a73e8, #1557b0) !important;
     color: #fff !important;
-    border: 1.5px solid #1557b0 !important;
+    border: none !important;
+    border-radius: 0 !important;
     font-weight: 700;
     font-size: 0.96rem;
     padding: 0.6rem 1.35rem;
-    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.28);
+    box-shadow: none !important;
     white-space: nowrap;
 }
 .paso-card .input-group .btn-elegante i {
     font-size: 1.15rem;
     margin: 0 !important; /* el gap del flex ya separa el icono del texto */
 }
-.paso-card .input-group .btn-elegante:hover {
-    filter: brightness(1.08);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(26, 115, 232, 0.4);
-}
-.paso-card .input-group .btn-elegante:active {
-    transform: translateY(0);
-    filter: brightness(0.98);
+.paso-card .input-group .btn-elegante:hover { filter: brightness(1.08); }
+.paso-card .input-group .btn-elegante:active { filter: brightness(0.96); }
+
+/* Código de reserva oculto (mientras la reserva está pendiente) */
+.aviso-reserva-codigo-oculto {
+    background: #f1f3f8 !important;
+    border-color: #d7dce8 !important;
+    color: #9aa0b4 !important;
+    letter-spacing: 2px;
 }

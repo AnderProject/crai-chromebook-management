@@ -93,7 +93,7 @@
     display: inline-flex; align-items: center; justify-content: center;
 }
 .reservas-scroll {
-    max-height: 560px; overflow-y: auto; padding: 1.1rem 1.2rem; scroll-behavior: smooth;
+    max-height: max(560px, 62vh); overflow-y: auto; padding: 1.1rem 1.2rem; scroll-behavior: smooth;
 }
 .reservas-scroll::-webkit-scrollbar { width: 7px; }
 .reservas-scroll::-webkit-scrollbar-track { background: transparent; }

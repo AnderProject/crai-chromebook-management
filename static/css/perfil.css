@@ -3,8 +3,15 @@
    ========================================== */
 
 .perfil-container {
-    max-width: 980px;
+    max-width: 1080px;
     margin: 0 auto;
+}
+
+/* Nombre en la tarjeta de identidad: tamaño ajustado para que quepan nombres largos */
+.perfil-identidad h4 {
+    font-size: 1.2rem;
+    line-height: 1.25;
+    word-break: break-word;
 }
 
 .perfil-card {
@@ -112,6 +119,7 @@
 .perfil-dato > strong {
     color: #2d3748;
     font-size: 0.9rem;
+    font-weight: 500;   /* valor de dato: sin negrita fuerte (solo títulos/subtítulos van en negrita) */
     text-align: right;
     word-break: break-word;
 }

@@ -75,3 +75,35 @@ document.addEventListener('DOMContentLoaded', function () {
     var pm = document.getElementById('pmodalResultado');
     if (pm) pm.classList.add('visible');
 });
+
+// Copiar teléfono/correo del técnico al portapapeles al hacer clic.
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.td-copiable');
+    if (!btn) { return; }
+    var texto = btn.getAttribute('data-copiar') || '';
+    if (!texto) { return; }
+
+    function ok() {
+        btn.classList.add('copiado');
+        setTimeout(function () { btn.classList.remove('copiado'); }, 1200);
+        if (window.mostrarToast) { mostrarToast('Copiado: ' + texto, 'success'); }
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(ok).catch(function () { copiarFallback(texto, ok); });
+    } else {
+        copiarFallback(texto, ok);
+    }
+});
+
+// Copia de respaldo para navegadores sin API de portapapeles (o sin HTTPS).
+function copiarFallback(texto, cb) {
+    var ta = document.createElement('textarea');
+    ta.value = texto;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); if (cb) cb(); } catch (err) { /* nada */ }
+    document.body.removeChild(ta);
+}

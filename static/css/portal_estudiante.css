@@ -741,27 +741,26 @@
 
 /* Mascota animada del chatbot: el robot "respira" y una manita saluda */
 .chatbot-btn { overflow: visible; }
-.chatbot-btn .chatbot-cara { display: inline-block; animation: craiMascotaBob 2.4s ease-in-out infinite; }
-@keyframes craiMascotaBob {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    25% { transform: translateY(-2px) rotate(-7deg); }
-    75% { transform: translateY(-2px) rotate(7deg); }
+
+/* Ícono del bot en el botón flotante, con efecto de rebote */
+.chatbot-cara {
+    display: inline-block;
+    animation: chatbotRebote 1.9s ease-in-out infinite;
 }
-.chatbot-saludo {
-    position: absolute; top: -8px; right: -6px; font-size: 1.1rem;
-    transform-origin: 70% 80%; animation: craiMascotaSaluda 2.8s ease-in-out infinite;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25)); pointer-events: none;
+@keyframes chatbotRebote {
+    0%, 100% { transform: translateY(0) scale(1); }
+    30% { transform: translateY(-7px) scale(1.04); }
+    50% { transform: translateY(0) scale(1); }
+    60% { transform: translateY(-3px) scale(1.02); }
 }
-@keyframes craiMascotaSaluda {
-    0%, 55%, 100% { transform: rotate(0deg); }
-    65% { transform: rotate(20deg); }
-    75% { transform: rotate(-12deg); }
-    85% { transform: rotate(16deg); }
-}
-.chatbot-avatar .chatbot-cara { display: inline-block; animation: craiMascotaNod 3s ease-in-out infinite; }
-@keyframes craiMascotaNod {
-    0%, 100% { transform: rotate(0deg); }
-    50% { transform: rotate(9deg); }
+
+/* Imagen del bot en el encabezado del chat */
+.chatbot-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+    display: block;
 }
 
 /* Actividad reciente: reservas vencidas (punto rojo) */
@@ -834,7 +833,7 @@
 .actividad-seccion h5 { font-size: 1.15rem; }
 
 /* Área de actividad un poco más alta (portal más grande) */
-.actividad-lista { max-height: 300px; }
+.actividad-lista { max-height: max(300px, 36vh); }
 
 @media (max-width: 768px) {
     .portal-contenido { padding: 1.6rem 1rem; }

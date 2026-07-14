@@ -6,6 +6,7 @@
 {% block estilos_extra %}
 <link href="{% static 'css/dashboard.css' %}?v={% now 'U' %}" rel="stylesheet">
 <link href="{% static 'css/modales_prestamo.css' %}" rel="stylesheet">
+<link href="{% static 'css/badges_animados.css' %}?v={% now 'U' %}" rel="stylesheet">
 {% endblock %}
 
 {% block titulo %}Dashboard - CRAI UNEMI{% endblock %}
@@ -435,53 +436,56 @@
                     </div>
                     <div>
                         <h6 class="modal-title fw-bold text-white mb-0">Detalle del Préstamo</h6>
-                        <small class="text-white-50" id="detallePrestamoIdHeader">#---</small>
+                        <small class="text-white-50" id="detallePrestamoIdHeader">---</small>
                     </div>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body p-0">
+                <div class="detalle-cuerpo">
 
-                <!-- Datos del préstamo -->
-                <div class="detalle-datos">
-                    <div class="detalle-item">
-                        <span class="detalle-item-label"><i class="bi bi-person-badge"></i> Estudiante</span>
-                        <span class="detalle-item-valor" id="detallePrestamoEstudiante">-</span>
-                    </div>
-                    <div class="detalle-item">
-                        <span class="detalle-item-label"><i class="bi bi-laptop"></i> Chromebook</span>
-                        <span class="detalle-item-valor" id="detallePrestamoChromebook">-</span>
-                    </div>
-                    <div class="detalle-item">
-                        <span class="detalle-item-label"><i class="bi bi-calendar-check"></i> Fecha Préstamo</span>
-                        <span class="detalle-item-valor" id="detallePrestamoFecha">-</span>
-                    </div>
-                    <div class="detalle-item">
-                        <span class="detalle-item-label"><i class="bi bi-calendar-x"></i> Devolución</span>
-                        <span class="detalle-item-valor" id="detallePrestamoDevolucion">-</span>
-                    </div>
-                    <div class="detalle-item detalle-item-full">
-                        <span class="detalle-item-label"><i class="bi bi-flag"></i> Estado</span>
-                        <span class="detalle-item-valor" id="detallePrestamoEstado">-</span>
-                    </div>
-                </div>
-
-                <!-- Evidencia Fotográfica -->
-                <div class="detalle-evidencia">
-                    <div class="detalle-evidencia-header">
-                        <i class="bi bi-camera-fill"></i>
-                        <span>Evidencia Fotográfica</span>
-                    </div>
-                    <div class="detalle-evidencia-body">
-                        <img id="detalleFotoEvidencia" src="" alt="Evidencia" class="detalle-foto">
-                        <div id="detalleSinFoto" class="detalle-sin-foto">
-                            <i class="bi bi-image"></i>
-                            <p>Sin evidencia fotográfica</p>
+                    <!-- Columna izquierda: datos del préstamo -->
+                    <div class="detalle-col-datos">
+                        <div class="detalle-datos">
+                            <div class="detalle-item detalle-item-full">
+                                <span class="detalle-item-label"><i class="bi bi-person-badge"></i> Estudiante</span>
+                                <span class="detalle-item-valor detalle-valor-grande" id="detallePrestamoEstudiante">-</span>
+                            </div>
+                            <div class="detalle-item">
+                                <span class="detalle-item-label"><i class="bi bi-laptop"></i> Chromebook</span>
+                                <span class="detalle-item-valor" id="detallePrestamoChromebook">-</span>
+                            </div>
+                            <div class="detalle-item">
+                                <span class="detalle-item-label"><i class="bi bi-flag"></i> Estado</span>
+                                <span class="detalle-item-valor" id="detallePrestamoEstado">-</span>
+                            </div>
+                            <div class="detalle-item">
+                                <span class="detalle-item-label"><i class="bi bi-calendar-check"></i> Fecha de Préstamo</span>
+                                <span class="detalle-item-valor" id="detallePrestamoFecha">-</span>
+                            </div>
+                            <div class="detalle-item">
+                                <span class="detalle-item-label"><i class="bi bi-calendar-x"></i> Devolución</span>
+                                <span class="detalle-item-valor" id="detallePrestamoDevolucion">-</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
+                    <!-- Columna derecha: evidencia fotográfica -->
+                    <div class="detalle-col-evidencia">
+                        <div class="detalle-evidencia-header">
+                            <i class="bi bi-camera-fill"></i>
+                            <span>Evidencia Fotográfica</span>
+                        </div>
+                        <div class="detalle-evidencia-body">
+                            <img id="detalleFotoEvidencia" src="" alt="Evidencia" class="detalle-foto">
+                            <div id="detalleSinFoto" class="detalle-sin-foto">
+                                <i class="bi bi-image"></i>
+                                <p>Sin evidencia fotográfica</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
             <!-- Footer -->

@@ -72,54 +72,62 @@
             </div>
         </div>
 
-        <div class="tec-lista">
-            {% for m in mantenimientos %}
-            <div class="tec-card {% if m.estado == 'finalizado' %}tec-card-fin{% elif m.confirmado_por_tecnico %}tec-card-conf{% endif %}">
-                <div class="tec-card-top">
-                    <span class="tec-card-equipo"><i class="bi bi-laptop"></i> {{ m.chromebook.codigo }}</span>
-                    <span class="tec-card-estado
-                        {% if m.estado == 'finalizado' %}est-fin{% elif m.confirmado_por_tecnico %}est-conf{% else %}est-proc{% endif %}">
-                        {% if m.estado == 'finalizado' %}Finalizado por el CRAI
-                        {% elif m.confirmado_por_tecnico %}Enviado · esperando al CRAI
-                        {% else %}Por reparar{% endif %}
-                    </span>
-                </div>
-                <div class="tec-card-body">
-                    <div class="tec-dato"><small>Equipo</small><b>{{ m.chromebook.marca }} {{ m.chromebook.modelo }}</b></div>
-                    <div class="tec-dato"><small>Tipo</small><b>{{ m.get_tipo_display }}</b></div>
-                    <div class="tec-dato"><small>Inicio</small><b>{{ m.fecha_inicio|date:"d/m/Y" }}</b></div>
-                </div>
-                <div class="tec-problema"><strong>Problema:</strong> {{ m.descripcion_problema|default:"No especificado" }}</div>
+        <div class="tec-lista-scroll">
+            {% if grupo_por_reparar or grupo_enviados or grupo_finalizados %}
 
-                {% if m.estado == 'en_proceso' and not m.confirmado_por_tecnico %}
-                <form method="POST" action="{% url 'prestamos:tecnico_confirmar' %}" enctype="multipart/form-data" class="tec-form-conf">
-                    {% csrf_token %}
-                    <input type="hidden" name="mantenimiento_id" value="{{ m.id }}">
-                    <label class="tec-label">¿Qué reparaste?</label>
-                    <textarea name="descripcion_solucion" rows="2" placeholder="Ej.: Se reemplazó el teclado y se actualizó ChromeOS." required></textarea>
-                    <label class="tec-label">Evidencia (foto o video) <span>*</span></label>
-                    <input type="file" name="evidencia" accept="image/*,video/*" class="tec-file" required>
-                    <button type="button" class="tec-btn-conf" onclick="pedirConfirmacion(this)" data-equipo="{{ m.chromebook.codigo }}"><i class="bi bi-check-circle"></i> Confirmar reparación y enviar</button>
-                </form>
-                {% elif m.confirmado_por_tecnico %}
-                <div class="tec-confirmado">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <div>
-                        <strong>Reparación registrada</strong>
-                        <small>{{ m.fecha_confirmacion_tecnico|date:"d/m/Y H:i" }} · El CRAI la revisará para finalizar.</small>
-                    </div>
-                    {% if m.evidencia_reparacion %}<a href="{{ m.evidencia_reparacion.url }}" target="_blank" class="tec-ver-evi"><i class="bi bi-paperclip"></i> Ver evidencia</a>{% endif %}
+            {% if grupo_por_reparar %}
+            <div class="tec-seccion">
+                <div class="tec-seccion-titulo tsec-proc">
+                    <i class="bi bi-wrench-adjustable"></i><span>Por reparar</span>
+                    <span class="tec-seccion-conteo">{{ grupo_por_reparar|length }}</span>
                 </div>
-                {% endif %}
+                <div class="tec-lista">
+                    {% for m in grupo_por_reparar %}{% include 'prestamos/tecnicos/_tecnico_card.html' %}{% endfor %}
+                </div>
             </div>
-            {% empty %}
+            {% endif %}
+
+            {% if grupo_enviados %}
+            <div class="tec-seccion">
+                <div class="tec-seccion-titulo tsec-conf">
+                    <i class="bi bi-hourglass-split"></i><span>Enviados · esperando al CRAI</span>
+                    <span class="tec-seccion-conteo">{{ grupo_enviados|length }}</span>
+                </div>
+                <div class="tec-lista">
+                    {% for m in grupo_enviados %}{% include 'prestamos/tecnicos/_tecnico_card.html' %}{% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if grupo_finalizados %}
+            <div class="tec-seccion">
+                <div class="tec-seccion-titulo tsec-fin">
+                    <i class="bi bi-check-circle-fill"></i><span>Finalizados por el CRAI</span>
+                    <span class="tec-seccion-conteo">{{ grupo_finalizados|length }}</span>
+                </div>
+                <div class="tec-lista">
+                    {% for m in grupo_finalizados %}{% include 'prestamos/tecnicos/_tecnico_card.html' %}{% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% else %}
             <div class="tec-vacio">
                 <i class="bi bi-clipboard-check"></i>
                 <p>No tienes mantenimientos asignados por ahora.</p>
             </div>
-            {% endfor %}
+            {% endif %}
         </div>
     </main>
+
+    <!-- Modal de evidencia (se ve en grande aquí mismo, sin abrir otra pestaña) -->
+    <div class="tec-modal" id="modalEvidencia" onclick="if(event.target===this)tecCerrarEvidencia()">
+        <div class="tec-modal-card tec-modal-evi">
+            <button type="button" class="tec-evi-cerrar" onclick="tecCerrarEvidencia()" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+            <h3><i class="bi bi-camera-fill"></i> Evidencia de la reparación</h3>
+            <div class="tec-evi-visor" id="tecEviVisor"></div>
+        </div>
+    </div>
 
     <!-- Modal cambiar contraseña -->
     <div class="tec-modal" id="modalPass" onclick="if(event.target===this)this.classList.remove('visible')">

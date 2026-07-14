@@ -1276,17 +1276,30 @@ def api_detalle_prestamo(request, id):
             if ev.foto:
                 foto_url = ev.foto.url
         
+        def _fmt(dt):
+            if not dt:
+                return 'Pendiente'
+            dt = timezone.localtime(dt)
+            return f"{dt:%d/%m/%Y} {dt.hour % 12 or 12}:{dt.minute:02d} {'AM' if dt.hour < 12 else 'PM'}"
+
+        # Bloqueo EFECTIVO: la Chromebook está bloqueada si el personal la bloqueó
+        # remotamente O si el préstamo activo ya venció (la app kiosko se auto-bloquea
+        # al llegar la hora de fin). En ambos casos el botón debe ofrecer "Desbloquear".
+        vencido = prestamo.estado == 'activo' and prestamo.fecha_devolucion and prestamo.fecha_devolucion <= timezone.now()
+        bloqueado_efectivo = bool(prestamo.bloqueado or vencido)
+
         return JsonResponse({
             'success': True,
             'data': {
-                'id': f'#{prestamo.id:03d}',
+                'id': f'{prestamo.id:03d}',
                 'pk': prestamo.id,
                 'estudiante': prestamo.estudiante.get_full_name() or prestamo.estudiante.username,
                 'chromebook': prestamo.chromebook.codigo,
-                'fecha_prestamo': prestamo.fecha_prestamo.strftime('%d/%m/%Y %H:%M'),
-                'devolucion': prestamo.fecha_devuelto.strftime('%d/%m/%Y %H:%M') if prestamo.fecha_devuelto else (prestamo.fecha_devolucion.strftime('%d/%m/%Y %H:%M') if prestamo.fecha_devolucion else 'Pendiente'),
+                'fecha_prestamo': _fmt(prestamo.fecha_prestamo),
+                'devolucion': _fmt(prestamo.fecha_devuelto or prestamo.fecha_devolucion),
                 'estado': prestamo.estado,
-                'bloqueado': prestamo.bloqueado,
+                'bloqueado': bloqueado_efectivo,
+                'vencido': bool(vencido),
                 'foto_url': foto_url,
             }
         })
@@ -1405,12 +1418,25 @@ def api_bloquear_prestamo(request, id):
     # Si no se especifica, se alterna el estado actual.
     bloquear = data.get('bloquear', not prestamo.bloqueado)
     prestamo.bloqueado = bool(bloquear)
-    prestamo.save(update_fields=['bloqueado'])
+
+    campos = ['bloqueado']
+    mensaje = 'Chromebook bloqueada.' if prestamo.bloqueado else 'Chromebook desbloqueada.'
+
+    # Desbloquear un préstamo cuyo tiempo YA venció: la app kiosko solo libera la
+    # pantalla si además hay tiempo vigente (fin > ahora). Por eso, al desbloquear
+    # un vencido, extendemos una franja de gracia para que efectivamente se abra.
+    GRACIA_DESBLOQUEO_MIN = 15
+    if not prestamo.bloqueado and prestamo.fecha_devolucion and prestamo.fecha_devolucion <= timezone.now():
+        prestamo.fecha_devolucion = timezone.now() + timedelta(minutes=GRACIA_DESBLOQUEO_MIN)
+        campos.append('fecha_devolucion')
+        mensaje = f'Chromebook desbloqueada · {GRACIA_DESBLOQUEO_MIN} min de gracia.'
+
+    prestamo.save(update_fields=campos)
 
     return JsonResponse({
         'success': True,
         'bloqueado': prestamo.bloqueado,
-        'message': 'Chromebook bloqueada.' if prestamo.bloqueado else 'Chromebook desbloqueada.',
+        'message': mensaje,
     })
 
 
@@ -1443,11 +1469,15 @@ def _marcar_pendiente_reserva(chromebooks):
     como 'pendiente_reserva'. Las reservas sin equipo fijo (portal/WhatsApp) solo consumen
     un cupo del día, así que marcan los primeros equipos libres restantes. Devuelve el nº
     de equipos marcados.
+
+    Solo cuentan las reservas de la FECHA OPERATIVA: una reserva para un día posterior no
+    ocupa el equipo todavía (sigue 'disponible'). Pasa a 'pendiente a reserva' cuando llega
+    su día o, si el CRAI ya cerró, desde ese cierre (el inventario rueda al día siguiente).
     """
     from .models import Reserva
 
     _expirar_reservas_vencidas()
-    pendientes = Reserva.objects.filter(estado='pendiente')
+    pendientes = Reserva.objects.filter(estado='pendiente', fecha_uso=_fecha_operativa())
 
     for cb in chromebooks:
         cb.estado_efectivo = cb.estado
@@ -1524,6 +1554,35 @@ def lista_mantenimientos(request):
         'limite_tecnico': Tecnico.LIMITE_MANTENIMIENTOS,
     }
     return render(request, 'prestamos/mantenimiento/lista.html', contexto)
+
+
+@login_required
+def api_mantenimientos(request):
+    """Filas de la tabla de mantenimiento en vivo (para refresco sin recargar).
+
+    Sirve para que la confirmación del técnico (badge "Técnico confirmó" y el botón
+    de finalizar en azul) y los cambios de estado aparezcan al momento en el panel
+    del administrador, igual que la actividad reciente del estudiante.
+    """
+    from .models import Mantenimiento
+
+    mantenimientos = Mantenimiento.objects.select_related(
+        'chromebook', 'registrado_por', 'tecnico_asignado'
+    ).all().order_by('-fecha_inicio', '-id')
+
+    filas_html = render_to_string(
+        'prestamos/partials/_mantenimientos_rows.html',
+        {'mantenimientos': mantenimientos},
+        request=request,
+    )
+    return JsonResponse({
+        'filas_html': filas_html,
+        'contadores': {
+            'en_proceso': mantenimientos.filter(estado='en_proceso').count(),
+            'finalizados': mantenimientos.filter(estado='finalizado').count(),
+            'total': mantenimientos.count(),
+        },
+    })
 
 
 @login_required
@@ -2070,7 +2129,7 @@ def confirmar_prestamo(request):
 
             # Si la reserva apartó un equipo específico (elegido en recepción), se entrega
             # ESE mismo. Las reservas del portal/WhatsApp no fijan equipo: cae a la primera
-            # disponible, como antes.
+            # disponible, pero SIN robar un equipo que otra reserva pendiente ya apartó.
             chromebook = reserva.chromebook
             if chromebook and chromebook.estado != 'disponible':
                 return JsonResponse({'success': False, 'message': (
@@ -2078,7 +2137,17 @@ def confirmar_prestamo(request):
                     f'disponible ({chromebook.get_estado_display()}). Asigna otro desde inventario.'
                 )})
             if not chromebook:
-                chromebook = Chromebook.objects.filter(estado='disponible').first()
+                # Equipos apartados por OTRAS reservas pendientes: no se pueden entregar aquí.
+                apartados_ids = set(
+                    Reserva.objects
+                    .filter(estado='pendiente', chromebook__isnull=False)
+                    .exclude(id=reserva.id)
+                    .values_list('chromebook_id', flat=True)
+                )
+                chromebook = (Chromebook.objects
+                              .filter(estado='disponible')
+                              .exclude(id__in=apartados_ids)
+                              .first())
 
             if not chromebook:
                 return JsonResponse({'success': False, 'message': 'No hay Chromebooks disponibles.'})
@@ -2253,19 +2322,27 @@ def _reservas_por_vencer():
 def _disponibles_efectivos(fecha=None):
     """Chromebooks realmente disponibles para una fecha, según las reservas pendientes de ESE día.
 
-    Una reserva no aparta un equipo concreto, pero sí 'consume' un cupo del día: al
-    contador de equipos libres le restamos las reservas pendientes con esa fecha de uso,
-    para no ofrecer más equipos de los que quedan tras honrar las reservas. Sin fecha,
-    usa hoy.
+    Una reserva 'consume' un cupo del día de uso. La capacidad depende de la fecha:
+
+    * HOY: equipos libres AHORA (estado 'disponible'), menos las reservas pendientes de hoy
+      que aún no se activaron. Los equipos prestados ya no cuentan como libres.
+    * DÍA FUTURO (mañana): los préstamos de hoy se devolverán, así que la capacidad son
+      TODOS los equipos operativos (los que no están en mantenimiento) menos las reservas
+      pendientes de ese día. Así el inventario "se actualiza" para el día siguiente y no
+      se descuentan equipos que hoy están prestados pero mañana estarán libres.
     """
     from .models import Chromebook, Reserva
     if fecha is None:
         fecha = timezone.localdate()
-    fisicos = Chromebook.objects.filter(estado='disponible').count()
-    reservas = Reserva.objects.filter(
-        estado='pendiente', fecha_uso=fecha
-    ).count()
-    return max(0, fisicos - reservas)
+    hoy = timezone.localdate()
+    reservas = Reserva.objects.filter(estado='pendiente', fecha_uso=fecha).count()
+
+    if fecha <= hoy:
+        fisicos = Chromebook.objects.filter(estado='disponible').count()
+        return max(0, fisicos - reservas)
+
+    operativos = Chromebook.objects.exclude(estado='mantenimiento').count()
+    return max(0, operativos - reservas)
 
 
 def _proximo_dia_habil(desde=None):
@@ -2275,6 +2352,21 @@ def _proximo_dia_habil(desde=None):
     while d.weekday() >= 5:   # 5=sábado, 6=domingo
         d += timedelta(days=1)
     return d
+
+
+def _fecha_operativa(ahora=None):
+    """Fecha 'de trabajo' del inventario.
+
+    Mientras el CRAI está abierto (día hábil, antes de la hora de cierre) es HOY. Una vez
+    que cierra —pasada la hora de cierre, o en fin de semana— ya se considera el próximo día
+    hábil, para que el inventario ruede al día siguiente: las reservas de mañana pasan a
+    verse como 'pendiente a reserva' después del cierre (no solo cuando amanezca ese día).
+    """
+    ahora = ahora or timezone.localtime()
+    hoy = ahora.date()
+    if hoy.weekday() >= 5 or ahora.time() >= CRAI_HORA_CIERRE:
+        return _proximo_dia_habil(hoy)
+    return hoy
 
 
 def _dias_validos_reserva():
@@ -2313,17 +2405,17 @@ def _disponibles_en_franja(fecha, hora_inicio, hora_fin):
 
 
 def _disponibles_inventario():
-    """Chromebooks disponibles 'ahora mismo', descontando TODAS las reservas pendientes.
+    """Chromebooks disponibles 'ahora mismo', descontando las reservas pendientes de HOY.
 
     Es la misma cuenta que muestra el inventario (`_marcar_pendiente_reserva`): una reserva
-    pendiente aparta un cupo aunque sea para otro día. Sirve para que el dashboard y la
-    búsqueda de préstamo reflejen lo mismo que el inventario, en lugar de mirar solo las
-    reservas de hoy.
+    solo aparta un cupo el DÍA en que se usará. Las reservas para días posteriores no
+    descuentan disponibilidad hoy (el equipo sigue libre hasta que llegue ese día). Así el
+    dashboard y la búsqueda de préstamo reflejan lo mismo que el inventario.
     """
     from .models import Chromebook, Reserva
     _expirar_reservas_vencidas()
     fisicos = Chromebook.objects.filter(estado='disponible').count()
-    pendientes = Reserva.objects.filter(estado='pendiente').count()
+    pendientes = Reserva.objects.filter(estado='pendiente', fecha_uso=_fecha_operativa()).count()
     return max(0, fisicos - pendientes)
 
 
@@ -2427,18 +2519,20 @@ def api_registrar_prestamo(request):
                 return JsonResponse({'success': False, 'message': 'Chromebook no encontrado.'})
             if chromebook_reserva.estado == 'mantenimiento':
                 return JsonResponse({'success': False, 'message': 'Ese Chromebook está en mantenimiento; elige otro.'})
-            # No permitir apartar el MISMO equipo si ya tiene préstamo/reserva en ese horario.
+            # No permitir apartar el MISMO equipo si ya tiene un préstamo vigente que se
+            # solapa, o si ya está apartado por otra reserva de ESE día: una Chromebook en
+            # "pendiente a reserva" está ocupada y no puede volver a reservarse para el mismo día.
             choca_prestamo = Prestamo.objects.filter(
                 chromebook=chromebook_reserva, estado__in=['reservado', 'activo', 'vencido'],
                 fecha_prestamo__lt=fin, fecha_devolucion__gt=inicio,
             ).exists()
             choca_reserva = Reserva.objects.filter(
                 chromebook=chromebook_reserva, estado__in=['pendiente', 'confirmada'],
-                fecha_uso=inicio.date(), hora_inicio__lt=fin.time(), hora_fin__gt=inicio.time(),
+                fecha_uso=inicio.date(),
             ).exists()
             if choca_prestamo or choca_reserva:
                 return JsonResponse({'success': False, 'message': (
-                    f'El Chromebook {chromebook_reserva.codigo} ya está apartado en ese horario. Elige otro equipo.'
+                    f'El Chromebook {chromebook_reserva.codigo} ya está apartado (pendiente a reserva) para ese día. Elige otro equipo.'
                 )})
 
         while True:
@@ -2454,7 +2548,9 @@ def api_registrar_prestamo(request):
             motivo='Reserva registrada en recepción',
         )
         from apps.estudiantes.views import _correo_reserva_futura
-        _correo_reserva_futura(reserva_creada)
+        # Reserva creada por el administrador: notificar SIEMPRE (incluso el mismo día),
+        # para que el estudiante reciba su código aunque no esté en recepción.
+        _correo_reserva_futura(reserva_creada, forzar=True)
         return JsonResponse({
             'success': True,
             'codigo': codigo,
@@ -2481,6 +2577,17 @@ def api_registrar_prestamo(request):
     ).exists()
     if solapado:
         return JsonResponse({'success': False, 'message': 'El Chromebook ya tiene un préstamo o reserva en ese horario.'})
+
+    # Tampoco prestar de inmediato un equipo que está apartado (pendiente a reserva) para hoy:
+    # se debe respetar la reserva del otro estudiante.
+    apartado = Reserva.objects.filter(
+        chromebook=chromebook, estado__in=['pendiente', 'confirmada'],
+        fecha_uso=inicio.date(),
+    ).exists()
+    if apartado:
+        return JsonResponse({'success': False, 'message': (
+            f'El Chromebook {chromebook.codigo} está apartado (pendiente a reserva) para hoy. Elige otro equipo.'
+        )})
 
     codigo = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
     duracion = max(1, round((fin - inicio).total_seconds() / 3600))
@@ -2570,9 +2677,32 @@ def ficha_estudiantil(request):
             else:
                 error = 'No se encontró ningún estudiante con esos datos.'
     
+    # Asistencia al CRAI: por cada reserva confirmada evaluamos si el estudiante
+    # efectivamente acudió al edificio. Se traduce del estado de la reserva:
+    #   - 'completada' → asistió (retiró el equipo)   → PRESENTE
+    #   - 'vencida'    → no acudió (reserva caducada)  → AUSENTE
+    # Las pendientes/canceladas no cuentan como asistencia evaluable.
+    asistencia = None
+    if estudiante_encontrado:
+        reservas_est = estudiante_encontrado.reservas.all()
+        presentes = reservas_est.filter(estado='completada').count()
+        ausentes = reservas_est.filter(estado='vencida').count()
+        evaluadas = presentes + ausentes
+        porcentaje = round(presentes * 100 / evaluadas) if evaluadas else 0
+        confirmadas_vigentes = reservas_est.filter(estado='confirmada').count()
+        asistencia = {
+            'presentes': presentes,
+            'ausentes': ausentes,
+            'evaluadas': evaluadas,
+            'porcentaje': porcentaje,
+            'pendientes': confirmadas_vigentes,
+            'nivel': 'alto' if porcentaje >= 80 else ('medio' if porcentaje >= 50 else 'bajo'),
+        }
+
     contexto = {
         'titulo_pagina': 'Ficha Estudiantil - CRAI UNEMI',
         'estudiante': estudiante_encontrado,
+        'asistencia': asistencia,
         'error': error,
     }
     return render(request, 'prestamos/estudiantes/ficha_estudiantil.html', contexto)
@@ -2977,7 +3107,12 @@ def api_detalle_chromebook(request, id):
     
     try:
         cb = Chromebook.objects.get(id=id)
-        
+
+        # Estado efectivo: considera reservas pendientes (→ 'pendiente_reserva').
+        _todos = list(Chromebook.objects.all())
+        _marcar_pendiente_reserva(_todos)
+        estado_efectivo = next((c.estado_efectivo for c in _todos if c.id == cb.id), cb.estado)
+
         # Buscar foto en la carpeta por código
         foto_url = None
         extensiones = ['.jpg', '.jpeg', '.png', '.webp']
@@ -2999,6 +3134,7 @@ def api_detalle_chromebook(request, id):
                 'modelo': cb.modelo,
                 'serie': cb.serie,
                 'estado': cb.estado,
+                'estado_efectivo': estado_efectivo,
                 'condicion': cb.condicion,
                 'notas': cb.notas,
                 'foto_url': foto_url,

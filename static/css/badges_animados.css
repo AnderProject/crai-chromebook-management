@@ -1,0 +1,61 @@
+/* ==========================================
+   ETIQUETAS ANIMADAS (rebote + brillo) — CRAI UNEMI
+   Reutiliza el mismo efecto de las etiquetas del inventario (Estado/Condición)
+   para las etiquetas de otras tablas: Mantenimiento y Panel de Control.
+   ========================================== */
+
+/* ---- Rebote de entrada (aparecen con un pequeño "pop") ---- */
+@keyframes badgeRebote {
+    0%   { transform: scale(0.4); }
+    50%  { transform: scale(1.25); }
+    70%  { transform: scale(0.92); }
+    100% { transform: scale(1); }
+}
+
+/* ---- Brillo suave e infinito según el color ---- */
+@keyframes badgeBrilloVerde {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.4); }
+    50%      { box-shadow: 0 0 8px 4px rgba(25, 135, 84, 0.2); }
+}
+@keyframes badgeBrilloNaranja {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
+    50%      { box-shadow: 0 0 8px 4px rgba(255, 152, 0, 0.2); }
+}
+@keyframes badgeBrilloRojo {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+    50%      { box-shadow: 0 0 8px 4px rgba(220, 53, 69, 0.2); }
+}
+@keyframes badgeBrilloAzul {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.4); }
+    50%      { box-shadow: 0 0 8px 4px rgba(26, 115, 232, 0.2); }
+}
+@keyframes badgeBrilloMorado {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(94, 53, 177, 0.4); }
+    50%      { box-shadow: 0 0 8px 4px rgba(94, 53, 177, 0.2); }
+}
+
+/* ============================================================
+   Etiquetas Bootstrap dentro de tablas (Mantenimiento: tipo,
+   garantía, estado, etc.)
+   ============================================================ */
+td .badge.bg-success { animation: badgeRebote 0.6s ease, badgeBrilloVerde 2s ease-in-out 0.6s infinite; }
+td .badge.bg-warning { animation: badgeRebote 0.6s ease, badgeBrilloNaranja 2s ease-in-out 0.6s infinite; }
+td .badge.bg-danger  { animation: badgeRebote 0.6s ease, badgeBrilloRojo 1.5s ease-in-out 0.6s infinite; }
+td .badge.bg-info    { animation: badgeRebote 0.6s ease, badgeBrilloAzul 2s ease-in-out 0.6s infinite; }
+td .badge.bg-secondary { animation: badgeRebote 0.6s ease; }
+
+/* La insignia "Técnico confirmó" (mantenimiento) también late suave */
+td .badge-tecnico-confirmo { animation: badgeRebote 0.6s ease, badgeBrilloAzul 2s ease-in-out 0.6s infinite; }
+
+/* ============================================================
+   Etiquetas propias del Panel de Control (badge-estado …)
+   ============================================================ */
+.badge-estado.badge-activo    { animation: badgeRebote 0.6s ease, badgeBrilloVerde 2s ease-in-out 0.6s infinite; }
+.badge-estado.badge-devuelto  { animation: badgeRebote 0.6s ease, badgeBrilloAzul 2s ease-in-out 0.6s infinite; }
+.badge-estado.badge-reservado { animation: badgeRebote 0.6s ease, badgeBrilloAzul 2s ease-in-out 0.6s infinite; }
+.badge-estado.badge-proximo   { animation: badgeRebote 0.6s ease, badgeBrilloNaranja 2s ease-in-out 0.6s infinite; }
+.badge-estado.badge-vencido   { animation: badgeRebote 0.6s ease, badgeBrilloRojo 1.5s ease-in-out 0.6s infinite; }
+
+/* Hover: las etiquetas Bootstrap crecen un poco (igual que en el inventario).
+   Se excluye el badge cancelable del dashboard para no romper su interacción. */
+.tabla-prestamos tbody tr:hover .badge { transform: scale(1.12); }

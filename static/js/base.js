@@ -14,6 +14,10 @@ function toggleModoOscuro() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // El modo oscuro NO aplica a las páginas previas al login (autenticación,
+    // selección de perfil, recuperar/cambiar contraseña): esas quedan siempre claras.
+    var esAuth = location.pathname.indexOf('/autenticacion/') === 0 || location.pathname === '/';
+    if (esAuth) { document.body.classList.remove('modo-oscuro'); return; }
     if (localStorage.getItem('modoOscuro') === 'true') {
         document.body.classList.add('modo-oscuro');
         var checkbox = document.getElementById('modoOscuro');
@@ -45,5 +49,24 @@ document.addEventListener('DOMContentLoaded', function () {
         link.addEventListener('click', function () {
             if (window.matchMedia('(max-width: 767.98px)').matches) { collapse.hide(); }
         });
+    });
+});
+
+// =============================================
+// MENÚ LATERAL CONTRAÍBLE (escritorio) - GLOBAL
+// Retrae el menú a solo íconos y lo recuerda entre páginas.
+// =============================================
+document.addEventListener('DOMContentLoaded', function () {
+    var toggle = document.getElementById('sidebarToggle');
+    if (!toggle) { return; }
+
+    // Restaurar el estado guardado.
+    if (localStorage.getItem('sidebarColapsado') === 'true') {
+        document.body.classList.add('sidebar-colapsado');
+    }
+
+    toggle.addEventListener('click', function () {
+        var colapsado = document.body.classList.toggle('sidebar-colapsado');
+        localStorage.setItem('sidebarColapsado', colapsado ? 'true' : 'false');
     });
 });

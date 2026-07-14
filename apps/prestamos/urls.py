@@ -95,6 +95,7 @@ urlpatterns = [
     path('api/asesoria/<int:id>/cerrar/', views.api_asesoria_cerrar, name='api_asesoria_cerrar'),
     path('notificaciones/detalle/<int:id>/', views.api_detalle_notificacion, name='api_detalle_notificacion'),
     path('api/chromebooks-estado/', views.api_chromebooks_estado, name='api_chromebooks_estado'),
+    path('api/mantenimientos/', views.api_mantenimientos, name='api_mantenimientos'),
     path('api/monitoreo/', views.api_monitoreo, name='api_monitoreo'),
     path('api/reportes-temporal/', views.api_reportes_temporal, name='api_reportes_temporal'),
 
