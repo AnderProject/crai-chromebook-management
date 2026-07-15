@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Anillo rojo tenue para el pulso de la pantalla de desconexión. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
-    <solid android:color="#33E5534B" />
-    <stroke
-        android:width="2dp"
-        android:color="#66E5534B" />
-</shape>

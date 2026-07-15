@@ -1,13 +1,22 @@
 @echo off
 REM ============================================================
 REM   CRAI UNEMI - Arranque de servicios (un solo clic)
-REM   Levanta Django (8000), ngrok (dominio fijo -> 8000) y n8n (5678)
-REM   Cada servicio abre en su propia ventana. Cierra la ventana
-REM   correspondiente para detener ese servicio.
+REM   Abre TODO en UNA sola ventana de Windows Terminal, en pestanas:
+REM     - Django del sistema / Chromebooks : 0.0.0.0:8000
+REM     - ngrok (tunel dominio fijo -> 8000)
+REM     - n8n : 5678
+REM     - API de matriculas : 8001   (proyecto aparte)
+REM   Cierra la pestana correspondiente para detener ese servicio.
 REM ============================================================
 
-REM Ubicarse en la carpeta del proyecto (donde esta este .bat)
-cd /d "%~dp0"
+REM Carpeta de este proyecto (sin la barra final, para que -d no falle)
+set "PROY=%~dp0"
+if "%PROY:~-1%"=="\" set "PROY=%PROY:~0,-1%"
+
+REM Carpeta del proyecto de la API de matriculas (hermana de este proyecto).
+REM Ruta RELATIVA: funciona este donde este la carpeta padre, siempre que
+REM proyecto_crai y api_matriculas_unemi esten juntas en el mismo nivel.
+for %%I in ("%~dp0..\api_matriculas_unemi") do set "MATRIC=%%~fI"
 
 echo.
 echo  =====================================================
@@ -15,25 +24,31 @@ echo   Iniciando servicios CRAI...
 echo   - Django : http://localhost:8000
 echo   - ngrok  : https://immunize-bronco-graveyard.ngrok-free.dev
 echo   - n8n    : http://localhost:5678
+echo   - API Matriculas : http://localhost:8001
 echo  =====================================================
 echo.
 
-REM ---- 1) n8n (tarda en arrancar, se lanza primero) ----
-REM   n8n instalado global en Node 22 (via nvm). Se usa "n8n start" (NO "npx n8n":
-REM   npx descargaria la ultima version con el arbol de dependencias roto).
+REM Si existe Windows Terminal (wt), todo va en PESTANAS de una sola ventana.
+where wt >nul 2>nul
+if %errorlevel%==0 goto WT
+
+REM ---------- Fallback: ventanas separadas (sin Windows Terminal) ----------
 start "n8n CRAI :5678" cmd /k "n8n start"
-
-REM ---- 2) Django en 0.0.0.0:8000 ----
-start "Django CRAI :8000" cmd /k "env\Scripts\python.exe manage.py runserver 0.0.0.0:8000"
-
-REM ---- Pequena espera para que Django levante antes del tunel ----
+start "Django CRAI :8000" cmd /k "cd /d %PROY% && env\Scripts\python.exe manage.py runserver 0.0.0.0:8000"
 timeout /t 3 /nobreak >nul
-
-REM ---- 3) ngrok con dominio fijo apuntando al 8000 ----
 start "ngrok CRAI :8000" cmd /k "ngrok http --domain=immunize-bronco-graveyard.ngrok-free.dev 8000"
+start "API Matriculas :8001" cmd /k "cd /d %MATRIC% && env\Scripts\python.exe manage.py runserver 8001"
+goto END
 
-echo.
-echo  Servicios lanzados en ventanas separadas.
-echo  Puedes cerrar ESTA ventana; las otras seguiran corriendo.
-echo.
-timeout /t 4 /nobreak >nul
+:WT
+REM ---------- Windows Terminal: una ventana ("crai"), varias pestanas ----------
+REM La 1ra crea la ventana; las demas se agregan como pestanas a esa misma ventana.
+wt -w crai new-tab -d "%PROY%" --title "Django :8000" cmd /k "env\Scripts\python.exe manage.py runserver 0.0.0.0:8000"
+timeout /t 2 /nobreak >nul
+wt -w crai new-tab -d "%PROY%" --title "ngrok :8000" cmd /k "ngrok http --domain=immunize-bronco-graveyard.ngrok-free.dev 8000"
+timeout /t 1 /nobreak >nul
+wt -w crai new-tab -d "%PROY%" --title "n8n :5678" cmd /k "n8n start"
+timeout /t 1 /nobreak >nul
+wt -w crai new-tab -d "%MATRIC%" --title "API Matriculas :8001" cmd /k "env\Scripts\python.exe manage.py runserver 8001"
+
+:END
