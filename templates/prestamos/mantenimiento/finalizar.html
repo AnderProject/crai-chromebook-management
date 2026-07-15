@@ -21,11 +21,7 @@
 
             <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
 
-                <div class="fm-wrap">
-
-                    <a href="{% url 'prestamos:lista_mantenimientos' %}" class="fm-volver">
-                        <i class="bi bi-arrow-left"></i> Volver a mantenimientos
-                    </a>
+                <div class="fm-wrap{% if mantenimiento.confirmado_por_tecnico %} fm-wrap-2col{% endif %}">
 
                     <!-- Hero -->
                     <div class="fm-hero">
@@ -38,6 +34,7 @@
                     </div>
 
                     <div class="fm-grid">
+                    <div class="fm-col-main">
                     <!-- Datos del equipo -->
                     <div class="fm-card">
                         <div class="fm-card-titulo">Datos del equipo</div>
@@ -81,39 +78,6 @@
                     <div class="fm-card">
                         <div class="fm-card-titulo">Solución aplicada</div>
 
-                        {% if mantenimiento.confirmado_por_tecnico %}
-                        <!-- Reparación registrada por el técnico desde su portal.
-                             La evidencia se muestra en línea automáticamente (sin abrir otra pestaña),
-                             igual que la evidencia del historial del estudiante. -->
-                        <div class="fm-tecnico-panel">
-                            <div class="fm-tecnico-head">
-                                <i class="bi bi-person-check-fill"></i>
-                                <span>El técnico <strong>{{ mantenimiento.tecnico }}</strong> confirmó la reparación</span>
-                                <small>{{ mantenimiento.fecha_confirmacion_tecnico|date:"d/m/Y g:i A" }}</small>
-                            </div>
-                            {% if mantenimiento.descripcion_solucion %}
-                            <div class="fm-tecnico-solucion">
-                                <span class="fm-tecnico-solucion-lbl"><i class="bi bi-tools me-1"></i>Qué reparó</span>
-                                <p>{{ mantenimiento.descripcion_solucion }}</p>
-                            </div>
-                            {% endif %}
-                            {% if mantenimiento.evidencia_reparacion %}
-                            {% with evi_url=mantenimiento.evidencia_reparacion.url %}
-                            <div class="fm-tecnico-evidencia">
-                                <span class="fm-tecnico-evidencia-lbl"><i class="bi bi-paperclip me-1"></i>Evidencia adjunta por el técnico</span>
-                                {% if '.mp4' in evi_url or '.webm' in evi_url or '.mov' in evi_url or '.ogg' in evi_url %}
-                                <video src="{{ evi_url }}" controls class="fm-tecnico-media"></video>
-                                {% else %}
-                                <a href="{{ evi_url }}" target="_blank" class="fm-tecnico-media-link" title="Abrir en tamaño completo">
-                                    <img src="{{ evi_url }}" class="fm-tecnico-media" alt="Evidencia del técnico">
-                                </a>
-                                {% endif %}
-                            </div>
-                            {% endwith %}
-                            {% endif %}
-                        </div>
-                        {% endif %}
-
                         <form method="POST" enctype="multipart/form-data">
                             {% csrf_token %}
                             <label class="fm-form-label" for="descripcion_solucion">
@@ -144,12 +108,61 @@
                             </div>
                         </form>
                     </div>
+                    </div>{# /fm-col-main #}
 
-                </div>
+                    {% if mantenimiento.confirmado_por_tecnico %}
+                    <!-- Columna derecha: evidencia registrada por el técnico -->
+                    <aside class="fm-col-side">
+                        <div class="fm-card fm-card-tecnico">
+                            <div class="fm-card-titulo">Evidencia del técnico</div>
+                            <div class="fm-tecnico-panel">
+                                <div class="fm-tecnico-head">
+                                    <i class="bi bi-person-check-fill"></i>
+                                    <span>El técnico <strong>{{ mantenimiento.tecnico }}</strong> confirmó la reparación</span>
+                                    <small>{{ mantenimiento.fecha_confirmacion_tecnico|date:"d/m/Y g:i A" }}</small>
+                                </div>
+                                {% if mantenimiento.descripcion_solucion %}
+                                <div class="fm-tecnico-solucion">
+                                    <span class="fm-tecnico-solucion-lbl"><i class="bi bi-tools me-1"></i>Qué reparó</span>
+                                    <p>{{ mantenimiento.descripcion_solucion }}</p>
+                                </div>
+                                {% endif %}
+                                {% if mantenimiento.evidencia_reparacion %}
+                                {% with evi_url=mantenimiento.evidencia_reparacion.url %}
+                                <div class="fm-tecnico-evidencia">
+                                    <span class="fm-tecnico-evidencia-lbl"><i class="bi bi-paperclip me-1"></i>Evidencia adjunta por el técnico</span>
+                                    {% if '.mp4' in evi_url or '.webm' in evi_url or '.mov' in evi_url or '.ogg' in evi_url %}
+                                    <button type="button" class="fm-tecnico-media-link" title="Ver en grande" onclick="fmVerEvidencia('{{ evi_url|escapejs }}')">
+                                        <video src="{{ evi_url }}" muted class="fm-tecnico-media"></video>
+                                        <span class="fm-media-lupa"><i class="bi bi-play-circle-fill"></i></span>
+                                    </button>
+                                    {% else %}
+                                    <button type="button" class="fm-tecnico-media-link" title="Ver en grande" onclick="fmVerEvidencia('{{ evi_url|escapejs }}')">
+                                        <img src="{{ evi_url }}" class="fm-tecnico-media" alt="Evidencia del técnico">
+                                        <span class="fm-media-lupa"><i class="bi bi-arrows-fullscreen"></i></span>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                {% endwith %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </aside>
+                    {% endif %}
+
                 </div>{# /fm-grid #}
 
             </main>
         </div>
+    </div>
+</div>
+
+<!-- Modal de evidencia (se ve en grande aquí mismo, sin abrir otra pestaña) -->
+<div class="fm-modal" id="fmModalEvidencia" onclick="if(event.target===this)fmCerrarEvidencia()">
+    <div class="fm-modal-card">
+        <button type="button" class="fm-modal-cerrar" onclick="fmCerrarEvidencia()" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+        <h3 class="fm-modal-titulo"><i class="bi bi-camera-fill"></i> Evidencia de la reparación</h3>
+        <div class="fm-modal-visor" id="fmModalVisor"></div>
     </div>
 </div>
 {% endblock %}
@@ -163,10 +176,16 @@ function fmPreviewEvidencia(e) {
     if (!file) return;
     var url = URL.createObjectURL(file);
     var esVideo = file.type.indexOf('video') === 0;
-    prev.innerHTML = (esVideo
-        ? '<video src="' + url + '" controls></video>'
-        : '<img src="' + url + '" alt="Evidencia">') +
-        '<button type="button" class="fm-evidencia-quitar" title="Quitar"><i class="bi bi-trash3"></i></button>';
+    prev.innerHTML =
+        '<div class="fm-preview-marco">' +
+            (esVideo
+                ? '<video src="' + url + '" controls></video>'
+                : '<img src="' + url + '" alt="Evidencia de la reparación">') +
+            '<button type="button" class="fm-evidencia-quitar" title="Quitar"><i class="bi bi-trash3"></i></button>' +
+        '</div>' +
+        '<div class="fm-preview-pie"><i class="bi bi-check-circle-fill"></i>' +
+            (esVideo ? 'Video listo para adjuntar' : 'Foto lista para adjuntar') +
+        '</div>';
     vacia.style.display = 'none';
     prev.style.display = 'block';
     prev.querySelector('.fm-evidencia-quitar').addEventListener('click', function (ev) {
@@ -177,5 +196,27 @@ function fmPreviewEvidencia(e) {
         vacia.style.display = 'flex';
     });
 }
+
+// Abre la evidencia del técnico en un modal (no en otra pestaña).
+function fmVerEvidencia(url) {
+    var visor = document.getElementById('fmModalVisor');
+    if (!visor) return;
+    var esVideo = /\.(mp4|webm|mov|ogg)(\?|$)/i.test(url);
+    visor.innerHTML = esVideo
+        ? '<video src="' + url + '" controls autoplay playsinline class="fm-modal-media"></video>'
+        : '<img src="' + url + '" alt="Evidencia de la reparación" class="fm-modal-media">';
+    document.getElementById('fmModalEvidencia').classList.add('visible');
+}
+
+function fmCerrarEvidencia() {
+    var m = document.getElementById('fmModalEvidencia');
+    if (m) m.classList.remove('visible');
+    var visor = document.getElementById('fmModalVisor');
+    if (visor) visor.innerHTML = '';   // detiene el video al cerrar
+}
+
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') fmCerrarEvidencia();
+});
 </script>
 {% endblock %}
